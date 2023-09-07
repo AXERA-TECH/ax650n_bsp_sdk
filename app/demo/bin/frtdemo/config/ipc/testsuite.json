@@ -1,0 +1,183 @@
+{
+    "//": "dual_default",
+    "scenario_0": {
+        "LoopNum": -1,
+        "DefIntervalMs": 2000,
+        "RandomEnable": 0,
+        "VIN": [
+            {
+                "sns_id": 0,
+                "capture_enable": 1,
+                "nIntervalMs": 2000
+            },
+            {
+                "sns_id": 0,
+                "pipe_framerate": 25
+            },
+            {
+                "sns_id": 0,
+                "daynight_mode": 0
+            },
+            {
+                "sns_id": 1,
+                "capture_enable": 1
+            },
+            {
+                "sns_id": 1,
+                "pipe_framerate": 25
+            },
+            {
+                "sns_id": 1,
+                "daynight_mode": 0
+            }
+        ],
+        "VENC": [
+            {
+                "sns_id": 0,
+                "channel": 0,
+                "encoder_type": 0
+            },
+            {
+                "sns_id": 0,
+                "channel": 0,
+                "bitrate": 4096
+            },
+            {
+                "sns_id": 0,
+                "channel": 0,
+                "width": 1920,
+                "height": 1080
+            }
+        ],
+        "OSD": [
+            {
+                "sns_id": 0,
+                "enable": 1
+            },
+            {
+                "sns_id": 1,
+                "enable": 1
+            },
+            {
+                "sns_id": 0,
+                "enable": 0
+            },
+            {
+                "sns_id": 1,
+                "enable": 0
+            }
+        ],
+        "AI": [
+            {
+                "sns_id": 0,
+                "enable": 1
+            },
+            {
+                "sns_id": 1,
+                "enable": 1
+            },
+            {
+                "sns_id": 0,
+                "enable": 0
+            },
+            {
+                "sns_id": 1,
+                "enable": 0
+            }
+        ]
+    },
+    "//": "dual_sns",
+    "scenario_1": {
+        "LoopNum": -1,
+        "DefIntervalMs": 2000,
+        "RandomEnable": 0,
+        "VIN": [
+            {
+                "sns_id": 0,
+                "capture_enable": 1,
+                "nIntervalMs": 2000
+            },
+            {
+                "sns_id": 1,
+                "capture_enable": 1
+            }
+        ],
+        "OSD": [
+            {
+                "sns_id": 0,
+                "enable": 1
+            },
+            {
+                "sns_id": 1,
+                "enable": 1
+            },
+            {
+                "sns_id": 0,
+                "enable": 0
+            },
+            {
+                "sns_id": 1,
+                "enable": 0
+            }
+        ],
+        "AI": [
+            {
+                "sns_id": 0,
+                "enable": 1
+            },
+            {
+                "sns_id": 1,
+                "enable": 1
+            },
+            {
+                "sns_id": 0,
+                "enable": 0
+            },
+            {
+                "sns_id": 1,
+                "enable": 0
+            }
+        ]
+    },
+    "//": "single_sns",
+    "scenario_2": {
+        "LoopNum": -1,
+        "DefIntervalMs": 2000,
+        "RandomEnable": 0,
+        "VIN": [
+            {
+                "sns_id": 0,
+                "capture_enable": 1,
+                "nIntervalMs": 2000
+            },
+            {
+                "sns_id": 0,
+                "pipe_framerate": 25
+            },
+            {
+                "sns_id": 0,
+                "daynight_mode": 0
+            }
+        ],
+        "OSD": [
+            {
+                "sns_id": 0,
+                "enable": 1
+            },
+            {
+                "sns_id": 0,
+                "enable": 0
+            }
+        ],
+        "AI": [
+            {
+                "sns_id": 0,
+                "enable": 1
+            },
+            {
+                "sns_id": 0,
+                "enable": 0
+            }
+        ]
+    }
+}

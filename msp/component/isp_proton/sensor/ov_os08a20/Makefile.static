@@ -1,0 +1,92 @@
+CUR_PATH				:= $(shell pwd)
+HOME_PATH		        := $(abspath $(CUR_PATH)/../../../../..)
+
+BASE_PATH				:= $(HOME_PATH)/msp/component
+
+include $(HOME_PATH)/build/config.mak
+
+SRC_PATH			:= $(CUR_PATH)
+PRJ_OUT_HOME		:= $(HOME_PATH)/build/out/$(PROJECT)
+OBJ_OUT_PATH		:= $(PRJ_OUT_HOME)/objs
+MSP_OUT_PATH		:= $(HOME_PATH)/msp/out
+OUT_PATH			:= $(MSP_OUT_PATH)
+SRC_RELATIVE_PATH	:= $(subst $(HOME_PATH)/,,$(SRC_PATH))
+TARGET_OUT_PATH		:= $(OBJ_OUT_PATH)/$(SRC_RELATIVE_PATH)
+SYS_LIB_PATH		:= $(MSP_OUT_PATH)/lib
+ROOTFS_TARGET_PATH 	?= $(MSP_OUT_PATH)
+
+
+SRC_I2C_PATH			:= $(BASE_PATH)/isp_proton/sensor/i2c
+SNS_PATH			    := $(BASE_PATH)/isp_proton/sensor
+MODEL_PATH				:= $(CUR_PATH)/aiisp_model
+ROOTFS_TARGET_PATH 		?= $(OUT_PATH)
+COMMON_PATH				:= $(BASE_PATH)/isp_proton/sensor/common
+COMMON_SRC_PATH			:= $(BASE_PATH)/isp_proton/sensor/common/src
+
+GENERATED_PATH          := $(TARGET_OUT_PATH)/generated
+soversion=yes
+
+ifeq ($(PROJECT),AX650_slave)
+	INSTALL_AXMODEL := false
+endif
+
+include $(HOME_PATH)/build/config.mak
+
+PARAMS_PATH				:= $(CUR_PATH)/params_file/ax650
+
+# output
+MOD_NAME 		:= sns_os08a20
+OUTPUT 			:= .obj_a
+
+# source
+SRCS 			+= $(wildcard $(SRC_I2C_PATH)/*.c) \
+					$(wildcard $(CUR_PATH)/*.c) \
+					$(wildcard $(COMMON_SRC_PATH)/*.c) \
+
+
+
+CINCLUDE		+=  -I$(SRC_I2C_PATH)/ \
+					-I$(SNS_PATH)/include \
+					-I$(COMMON_PATH)/include \
+					-I$(OUT_PATH)/include \
+					-I$(PARAMS_PATH) \
+                    -I$(GENERATED_PATH)
+
+OBJS 			:= $(SRCS:%.c=$(OUTPUT)/%.o)
+DEPS			:= $(OBJS:%.o=%.d)
+
+# static lib
+LINKNAME	:= lib$(MOD_NAME).a
+STATIC_TARGET	:= $(LINKNAME)
+
+# build flags
+CFLAGS			:= $(STATIC_FLAG)
+ifeq ($(debug),yes)
+CFLAGS			+= -Werror -Wall -O0 -g
+else
+CFLAGS			+= -Werror -Wall -O2
+endif
+CFLAGS			+= -Wno-unused-variable
+CFLAGS			+= -DLINUX
+#CFLAGS			+= -DSENSOR_LOG_USE_PRINTF
+
+# dependency
+CLIB    		+= -lpthread
+
+
+# install
+INSTALL_LIB		:= $(STATIC_TARGET)
+MV_TARGET		:= $(INSTALL_LIB)
+ifeq ($(strip $(INSTALL_AXMODEL)),false)
+else
+	INSTALL_ETC		+= $(MODEL_PATH)/sdr/*.axmodel
+	INSTALL_ETC		+= $(MODEL_PATH)/hdr/*.axmodel
+endif
+ifneq ($(wildcard $(PARAMS_PATH)/custom/*.bin),)
+INSTALL_ETC		+= $(PARAMS_PATH)/custom/*.bin
+endif
+
+# link
+LINK = $(CC)
+
+include $(HOME_PATH)/build/rules.mak

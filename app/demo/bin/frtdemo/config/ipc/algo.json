@@ -1,0 +1,80 @@
+{
+	"//": "algo settings",
+	"algo_settings":
+	[
+		{
+			"sns_id": 0,
+			"SKEL": {
+				"//": "0: none; 4: HVCP; 5: FACE",
+				"detect_algo_type": 4,
+				"detect_models_path": "/opt/etc/skelModels/1024x576/part",
+				"push_strategy": {
+					"//": "1: fast; 2: interval; 3: best",
+					"push_mode": 3,
+					"interval_time": 2000,
+					"push_counts": 3
+				},
+				"push_to_web": false
+			},
+			"IVES": {
+				"MD": {
+					"enable": true,
+					"mb": "32x32",
+					"threshold Y": 20,
+					"confidence": 50
+				},
+				"OD": {
+					"enable": true,
+					"threshold Y": 100,
+					"confidence Y": 80,
+					"lux threshold": 0,
+					"lux diff": 60
+				},
+				"SCD": {
+					"enable": true,
+					"threshold": 60,
+					"confidence": 60
+				}
+			}
+		},
+		{
+			"sns_id": 1,
+			"SKEL": {
+				"//": "0: none; 4: HVCP; 5: FACE",
+				"detect_algo_type": 4,
+				"detect_models_path": "/opt/etc/skelModels/1024x576/part",
+				"push_strategy": {
+					"//": "1: fast; 2: interval; 3: best",
+					"push_mode": 3,
+					"interval_time": 2000,
+					"push_counts": 3
+				},
+				"push_to_web": false
+			},
+			"IVES": {
+				"MD": {
+					"enable": true,
+					"mb": "32x32",
+					"threshold Y": 20,
+					"confidence": 50
+				},
+				"OD": {
+					"enable": true,
+					"threshold Y": 100,
+					"confidence Y": 80,
+					"lux threshold": 0,
+					"lux diff": 60
+				},
+				"SCD": {
+					"enable": true,
+					"threshold": 60,
+					"confidence": 60
+				}
+			}
+		}
+	],
+	"AUDIO": {
+		"enable": false,
+		"threshold": 60
+	}
+}

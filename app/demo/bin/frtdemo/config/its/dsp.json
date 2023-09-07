@@ -1,0 +1,149 @@
+{
+  "//": "PPL0_dual_sns-T3DNR+T2DNR+T2DNR",
+  "scenario_0":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+      }
+    },
+    {
+      "grp_id": 1,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+
+      }
+
+    }
+  ],
+  "//": "PPL1",
+  "scenario_1":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+      }
+    },
+    {
+      "grp_id": 1,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+
+      }
+
+    }
+  ],
+  "//": "PPL2",
+  "scenario_2":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+
+      }
+    }
+  ],
+  "//": "PPL3",
+  "scenario_3":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+
+      }
+    }
+  ],
+  "//": "PPL4",
+  "scenario_4":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+      }
+    },
+    {
+      "grp_id": 1,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+
+      }
+
+    }
+  ],
+  "//": "PPL5",
+  "scenario_5":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+      }
+    },
+    {
+      "grp_id": 1,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+
+      }
+
+    }
+  ],
+  "scenario_10":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "sram_bin_path":"/opt/data/dsp/sram.bin",
+        "itcm_bin_path":"/opt/data/dsp/itcm.bin",
+        "dst_resolution": {"w": 640, "h": 360},
+        "deep_cnt":2
+      }
+    }
+  ]
+}

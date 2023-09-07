@@ -1,0 +1,63 @@
+CUR_PATH            := $(shell pwd)
+HOME_PATH           := $(abspath $(CUR_PATH)/../../..)
+
+include $(HOME_PATH)/build/config.mak
+
+SRC_PATH            := $(CUR_PATH)
+PRJ_OUT_HOME        := $(HOME_PATH)/build/out/$(PROJECT)
+OBJ_OUT_PATH     	:= $(PRJ_OUT_HOME)/objs
+SRC_RELATIVE_PATH   := $(subst $(HOME_PATH)/,,$(SRC_PATH))
+TARGET_OUT_PATH     := $(OBJ_OUT_PATH)/$(SRC_RELATIVE_PATH)
+MSP_OUT_PATH        := $(HOME_PATH)/msp/out
+INC_PATH            := $(MSP_OUT_PATH)/include
+LIB_PATH            := $(MSP_OUT_PATH)/lib
+ROOTFS_TARGET_PATH 	:= $(MSP_OUT_PATH)
+
+
+MOD_NAME             = sample_ives
+OUTPUT 				:= $(TARGET_OUT_PATH)/obj
+# source
+SRCS                := $(wildcard $(SRC_PATH)/*.c) \
+                       $(wildcard $(SRC_PATH)/md/*.c) \
+                       $(wildcard $(SRC_PATH)/od/*.c) \
+                       $(wildcard $(SRC_PATH)/scd/*.c)
+
+CINCLUDE            := -I$(SRC_PATH) \
+                       -I$(SRC_PATH)/md \
+                       -I$(SRC_PATH)/od \
+                       -I$(SRC_PATH)/scd \
+                       -I$(INC_PATH)
+
+OBJS                := $(SRCS:%.c=$(OUTPUT)/%.o)
+DEPS                := $(OBJS:%.o=%.d)
+
+# exec
+TARGET				:= $(TARGET_OUT_PATH)/$(MOD_NAME)
+
+# build flags
+CFLAGS				:= -Wall -Wl,-rpath-link=$(LIB_PATH)
+CFLAGS              += -DSAMPLE_IVES_BUILD_VERSION=\"$(SDK_VERSION)\"
+CFLAGS              += -DSAMPLE_IVES_NAME=\"$(MOD_NAME)\"
+
+ifeq ($(debug),yes)
+CFLAGS				+= -O0 -ggdb3
+else
+CFLAGS				+= -O2
+endif
+
+# dependency
+CLIB				:= -L$(LIB_PATH)
+CLIB				+= -lax_sys
+CLIB				+= -lax_ives
+#CLIB				+= -lax_syslog
+CLIB				+= -pthread
+
+# install
+INSTALL_TARGET		:= $(TARGET)
+INSTALL_DIR			:= $(ROOTFS_TARGET_PATH)/bin
+INSTALL_DATA    	:= $(CUR_PATH)/data/ives
+
+# link
+LINK = $(CC)
+
+include $(HOME_PATH)/build/rules.mak

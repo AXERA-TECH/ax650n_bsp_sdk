@@ -1,0 +1,250 @@
+# stream input
+[STREAM]
+# [1 - 32]
+count       = 32
+
+# [1 - 64], default is same as 'count'. if show logo, max. is 63.
+# vdec count  = 32
+
+# sata
+# - sata path: if path is empty(default), no file will be saved.
+# - max sata file size: MBytes of each file, default is 100MB
+# - max space size: MBytes of max. space of each stream, default is 300MB
+# sata path = /mnt/
+# max sata file size = 100
+# max space size = 300
+
+# width and height of all streams cannot exceed below max values
+# default: 1920x1080
+max width   = 1920
+max height  = 1080
+
+# VDEC pp output depth but ref frame is excluded, default: 8
+chn1 depth  = 4
+chn2 depth  = 4
+
+# usually fps is auto parsed whatever file or rtsp stream
+# if fps = 0, Use fps parsed by file stream, if fail to parse, 30 is replaced.
+default fps = 0
+
+# 0: frame (rtsp)  1: stream (file or rtsp), default: 0
+input mode  = 0
+
+# 1: user pool (default), 0: common pool, 2: vdec private pool
+user pool = 2
+
+# max stream buf size if stream input mode, max:0x200000, default: 0x200000
+# max stream buf size = 0x200000
+
+# vo link to vdec, but box will not be drawn. default: unlink
+# linked mode = 0
+
+# absolute stream file path or rtsp url (eg: rtsp://192.168.2.12:8554:8554/stream)
+stream01=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream02=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream03=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream04=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream05=rtsp://10.126.20.224:8554/vehicle_thai_1920x1080_30fps_2000kbps.265
+stream06=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream07=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream08=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream09=rtsp://10.126.20.224:8554/bridge_transport_1920x1080_30fps_2000kbps.265
+stream10=rtsp://10.126.20.224:8554/bangkok_road1_1920x1080_30fps_2000kbps.265
+stream11=rtsp://10.126.20.224:8554/Roundabout_1920x1080_30fps_2000kbps.265
+stream12=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream13=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream14=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream15=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream16=rtsp://10.126.20.224:8554/vehicle_thai_1920x1080_30fps_2000kbps.265
+stream17=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream18=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream19=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream20=rtsp://10.126.20.224:8554/bridge_transport_1920x1080_30fps_2000kbps.265
+stream21=rtsp://10.126.20.224:8554/bangkok_road1_1920x1080_30fps_2000kbps.265
+stream22=rtsp://10.126.20.224:8554/Roundabout_1920x1080_30fps_2000kbps.265
+stream23=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream24=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream25=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream26=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream27=rtsp://10.126.20.224:8554/vehicle_thai_1920x1080_30fps_2000kbps.265
+stream28=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream29=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream30=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream31=rtsp://10.126.20.224:8554/bridge_transport_1920x1080_30fps_2000kbps.265
+stream32=rtsp://10.126.20.224:8554/bangkok_road1_1920x1080_30fps_2000kbps.265
+stream33=rtsp://10.126.20.224:8554/Roundabout_1920x1080_30fps_2000kbps.265
+stream34=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream35=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream36=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream37=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream38=rtsp://10.126.20.224:8554/vehicle_thai_1920x1080_30fps_2000kbps.265
+stream39=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream40=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream41=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream42=rtsp://10.126.20.224:8554/bridge_transport_1920x1080_30fps_2000kbps.265
+stream43=rtsp://10.126.20.224:8554/bangkok_road1_1920x1080_30fps_2000kbps.265
+stream44=rtsp://10.126.20.224:8554/Roundabout_1920x1080_30fps_2000kbps.265
+stream45=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream46=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream47=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream48=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream49=rtsp://10.126.20.224:8554/vehicle_thai_1920x1080_30fps_2000kbps.265
+stream50=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream51=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream52=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream53=rtsp://10.126.20.224:8554/bridge_transport_1920x1080_30fps_2000kbps.265
+stream54=rtsp://10.126.20.224:8554/bangkok_road1_1920x1080_30fps_2000kbps.265
+stream55=rtsp://10.126.20.224:8554/Roundabout_1920x1080_30fps_2000kbps.265
+stream56=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream57=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream58=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream59=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream60=rtsp://10.126.20.224:8554/vehicle_thai_1920x1080_30fps_2000kbps.265
+stream61=rtsp://10.126.20.224:8554/road1_1920x1080_30fps_2000kbps.264
+stream62=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream63=rtsp://10.126.20.224:8554/daytime_driving_1920x1080_30fps_2000kbps.265
+stream64=rtsp://10.126.20.224:8554/bridge_transport_1920x1080_30fps_2000kbps.265
+
+
+[DETECT]
+enable     = 1
+
+# input image size to detect
+width      = 1024
+height     = 576
+
+# each x frame to detect
+skip rate  = 2
+fifo depth = 1
+
+# model directory path
+# /opt/etc/skelModels/1024x576/full ==> Virtual npu disable
+# /opt/etc/skelModels/1024x576/part ==> Virtual npu standard/big-little
+model path = /opt/etc/skelModels/1024x576/part
+
+# NPU Engine Mode
+# 0: Virtual npu disable
+# 1: Virtual npu standard
+# 2: Virtual npu big-little
+npu mode = 1
+
+# channel number [1 - 32]
+channel num = 3
+
+# each channel x attribute [ppl, track, VNPU]
+# ppl: [ 4: HVCP; 5: FACE ]
+# Virtual npu disable ==> VNPU: [ 0 ]
+# Virtual npu standard ==> VNPU: [ 0: STD VPNU default; 1: STD VPNU1; 2: STD VPNU2; 3: STD VPNU3 ]
+# Virtual npu big-little ==> VNPU: [ 0: BL VPNU default; 1: BL VPNU1; 2: BL VPNU2 ]
+channel0 attr = [4, 1, 0]
+channel1 attr = [4, 1, 1]
+channel2 attr = [4, 1, 3]
+channel3 attr = [4, 1, 0]
+channel4 attr = [4, 1, 1]
+channel5 attr = [4, 1, 3]
+channel6 attr = [4, 1, 0]
+channel7 attr = [4, 1, 1]
+channel8 attr = [4, 1, 3]
+channel9 attr = [4, 1, 0]
+channel10 attr = [4, 1, 1]
+channel11 attr = [4, 1, 3]
+channel12 attr = [4, 1, 0]
+channel13 attr = [4, 1, 1]
+channel14 attr = [4, 1, 3]
+channel15 attr = [4, 1, 0]
+channel16 attr = [4, 1, 1]
+channel17 attr = [4, 1, 3]
+channel18 attr = [4, 1, 0]
+channel19 attr = [4, 1, 1]
+channel20 attr = [4, 1, 3]
+channel21 attr = [4, 1, 0]
+channel22 attr = [4, 1, 1]
+channel23 attr = [4, 1, 3]
+channel24 attr = [4, 1, 0]
+channel25 attr = [4, 1, 1]
+channel26 attr = [4, 1, 3]
+channel27 attr = [4, 1, 0]
+channel28 attr = [4, 1, 1]
+channel29 attr = [4, 1, 3]
+channel30 attr = [4, 1, 0]
+channel31 attr = [4, 1, 1]
+
+[DISPC]
+dev = 0
+
+# 8: 1920x1080P60
+# 24: 3840x2160P60
+HDMI = 8
+
+online mode = 1
+
+layer depth = 3
+
+# rc
+show logo     = 1
+show no video = 1
+
+record enable   = 0
+record path     = /opt/data/record/
+
+# 1: mp4 (default)  0: raw
+# record muxer  = 1
+
+# max record file size in MB, no limit set to <= 0
+# default is 1024 MB
+max record size = 1024
+
+[DISPC1]
+dev = -1
+
+# 8: 1920x1080P60
+# 24: 3840x2160P60
+HDMI = 8
+
+online mode = 1
+
+layer depth = 3
+
+# rc
+show logo     = 1
+show no video = 1
+
+record enable   = 0
+record path     = /opt/data/record/
+
+# 1: mp4 (default)  0: raw
+# record muxer  = 1
+
+# max record file size in MB, no limit set to <= 0
+# default is 1024 MB
+max record size = 1024
+
+# 0:same src 1:diff src 2:other
+disp type = 1
+
+
+[VENC]
+# [h264, hevc]
+encoder        = "h264"
+bitrate        = 8192
+# 0: same as fps
+gop            = 0
+
+# [CBR, VBR, AVBR]
+rc type        = "CBR"
+min qp         = 0
+max qp         = 51
+min iqp        = 0
+max iqp        = 51
+min i prop     = 10
+max i prop     = 40
+intra qp delta = -2
+
+[FBC]
+# 0: no compress
+# 1: lossess
+# 2: lossy
+compress mode  = 0
+compress level = 0
+
+

@@ -1,0 +1,50 @@
+{
+	"//": "avs settings",
+    "avs_settings":
+    [
+        {
+            "avs_global_settings":
+            {
+                "pipe_num": 2,
+                "sync_pipe": true,
+                "mode": 0,
+                "dynamic_seam": false,
+                "blend_mode": 1,
+                "param_file_path": "/param/avs/os04a10/",
+                "param_type": 0,
+                "projection_type": 1,
+                "cali_enable": 0,
+                "cali_server_ip": "192.168.2.10",
+                "cali_server_port": 9999,
+                "pipe_id": [0, 1, 0, 0],
+                "chn_id": [0, 0, 0, 0],
+                "master_pipe_id": 1
+            }
+        },
+
+        {
+            "avs_group_settings":
+            {
+                "grp_id": 0,
+                "grp_info":
+                {
+                    "grp_chn_num": 1,
+                    "chn_id": 0,
+                    "pipe_frame_rate": [30, 30, 30, 30],
+                    "grp_framerate": {"src": 30, "dst": 30},
+                    "chn_framerate": {"src": 30, "dst": 30},
+                    "pipe_resolution":
+                    [
+                        {"w": 2688, "h": 1520}, {"w": 2688, "h": 1520}, {"w": 2688, "h": 1520}, {"w": 2688, "h": 1520}
+                    ],
+                    "grp_resolution": {"w": 3712, "h": 832},
+                    "chn_resolution": {"w": 3712, "h": 832},
+                    "pipe_link_flag": [1, 1, 0, 0],
+                    "grp_fbc":{"mode": 0, "level": 0},
+                    "chn_fbc":{"mode": 0, "level": 0},
+                    "chn_inplace": 0
+                }
+            }
+        }
+    ]
+}

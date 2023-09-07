@@ -1,0 +1,50 @@
+CUR_PATH		:= $(shell pwd)
+HOME_PATH		:= $(abspath $(CUR_PATH)/../../../../../..)
+
+include $(HOME_PATH)/build/color.mk
+include $(HOME_PATH)/build/config.mak
+
+PRJ_OUT_HOME		:= $(HOME_PATH)/build/out/$(PROJECT)
+OBJ_OUT_PATH		:= $(PRJ_OUT_HOME)/objs
+SRC_PATH		:= $(CUR_PATH)
+BASE_PATH		:= $(HOME_PATH)/msp/component
+ROOTFS_TARGET_PATH ?= $(HOME_PATH)/msp/out
+HEADER_EXTERNAL_PATH	:= $(HOME_PATH)/header/external
+SRC_RELATIVE_PATH	:= $(subst $(HOME_PATH)/,,$(SRC_PATH))
+TARGET_OUT_PATH		:= $(OBJ_OUT_PATH)/$(SRC_RELATIVE_PATH)
+
+# output
+MOD_NAME 		:= ax_pcie_dma
+OUTPUT 			:= $(TARGET_OUT_PATH)/.obj
+
+# source
+SRCS 			:= $(wildcard $(SRC_PATH)/*.c)
+
+CINCLUDE		:= -I$(HEADER_EXTERNAL_PATH) -I$(ROOTFS_TARGET_PATH)/include
+
+OBJS 			:= $(addprefix $(OUTPUT)/,$(notdir $(patsubst %.c,%.o,$(SRCS))))
+DEOBJS 			:= $(OBJS:%.o=%.d)
+
+# dynamic lib
+SONAME			:= lib$(MOD_NAME).so
+STRIPPED_TARGET	:= $(SONAME)
+DEBUG_TARGET    := lib$(MOD_NAME).debug
+
+# build flags
+CFLAGS			:= -shared -fPIC
+CFLAGS			+= -Wall -O2 -ggdb3 -Werror
+
+# dependency
+
+# install
+INSTALL_LIB		:= $(STRIPPED_TARGET) $(DEBUG_TARGET)
+MV_TARGET		:= $(INSTALL_LIB)
+#INSTALL_DIR	:= $(ROOTFS_TARGET_PATH)/lib/
+ifneq ($(wildcard $(HEADER_EXTERNAL_PATH)/ax_pcie_dma_api.h),)
+INSTALL_INC		:= $(HEADER_EXTERNAL_PATH)/ax_pcie_dma_api.h
+endif
+
+# link
+LINK = $(CC)
+
+include $(HOME_PATH)/build/rules.mak

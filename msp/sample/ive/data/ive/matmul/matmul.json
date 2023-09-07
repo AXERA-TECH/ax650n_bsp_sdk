@@ -1,0 +1,13 @@
+{
+    "mau_id": 0,
+    "ddr_rdw": 0,
+    "en_mul_res": 1,
+    "en_topn_res": 1,
+    "order": 0,
+    "topn": 32,
+    "type_in": 4,
+    "type_mul_res": 3,
+    "type_topn_res": 11,
+    "q_shape": [16, 512],
+    "b_shape": [1000, 512]
+}

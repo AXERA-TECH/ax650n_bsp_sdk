@@ -1,0 +1,1245 @@
+{
+    "//": "PPL0",
+    "scenario_0":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 2,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":5,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 3,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":6,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 4,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 5,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 4096
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 6,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":5,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 7,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":6,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    },
+    "//": "PPL1",
+    "scenario_1":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 2,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":5,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 3,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":6,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 4,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 5,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 4096
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 6,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":5,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 7,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":6,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    },
+    "//": "PPL2",
+    "scenario_2":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 2,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":5,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 3,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":6,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    },
+    "//": "PPL3",
+    "scenario_3":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 2,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":5,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 3,
+                "jpeg_type_desc":"5: Capture,  6: Flash",
+                "jpeg_type":6,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    },
+    "//": "PPL4",
+    "scenario_4":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 4096
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 2,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 3,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 4096
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    },
+    "//": "PPL5",
+    "scenario_5":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 4096
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 2,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 3,
+                "pipe_src": 1,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 4096
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    },
+    "//": "PPL10_single_3DNR+AI2DNR",
+    "scenario_10":
+    {
+        "instance":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 0,
+                "channel": 0,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "encoder_type": 0,
+                "channel": 1,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "gop": 15,
+                "//": "0: CBR, 1: VBR, 2:FIXQP",
+                "rc_type": 0,
+                "bitrate": 8192
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 2,
+                "jpeg_type":5,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "encoder_type": 3,
+                "channel": 3,
+                "jpeg_type":6,
+                "pipe_src": 0,
+                "in_fifo_depth": 1,
+                "out_fifo_depth": 1,
+                "mem_source": 0,
+                "qp_level": 70,
+                "frame_rate":1
+            }
+        ],
+        "enc_rc_info":
+        [
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 0,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 2,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            },
+            {
+                "//": "0: H264, 1: MJPEG, 2:H265, 3: JENC",
+                "type": 1,
+                "rc":
+                [
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 0,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "min_i_prop": 10,
+                        "max_i_prop": 40,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 1,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "min_iqp": 0,
+                        "max_iqp": 51,
+                        "intra_qp_delta": -2
+                    },
+                    {
+                        "//": "0: CBR, 1: VBR, 2:FIXQP",
+                        "type": 2,
+                        "min_qp": 0,
+                        "max_qp": 51,
+                        "fixed_qp": 25
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,209 @@
+{
+    "//": "audio feature",
+    "enable": false,
+    "//": "dev common attribute",
+    "dev_comm":
+    {
+        "//": "bit width default support: [1: 16bit] (only support 16bit when use coder)",
+        "//": "not support: [0: 8bit; 2: 24bit; 3: 32bit] (support 16/24/32bit when only use AI/AO)",
+        "bit_width": 1,
+        "//": "sample rate default support: [8000, 16000, 32000, 48000, 96000]",
+        "//": "not support: [11025, 12000, 22050, 24000, 44100, 48000, 64000] (need modify PLL clk)",
+        "sample_rate": 16000,
+        "//": "period size recommend to set equal to sample_rate/100",
+        "period_size": 160
+    },
+    "//": "capture attribute",
+    "capture":
+    {
+        "enable": false,
+        "dev":
+        {
+            "instance":
+            [
+                {
+                    "card_id": 0,
+                    "device_id": 2,
+                    "//": "[0 - 10.0], default is 1.0",
+                    "volume": 1.0,
+                    "3A":
+                    {
+                        "//": "automatic gain control",
+                        "agc":
+                        {
+                            "enable": true,
+                            "//": "0: adaptive analog; 1: adaptive digital; 2: fixed digital",
+                            "agc_mode": 2,
+                            "//": "[-31 - 0], default is -3",
+                            "target_level": -3,
+                            "//": "[0 - 90], default is 9",
+                            "gain": 9
+                        },
+                        "//": "audio noise suppression",
+                        "ans":
+                        {
+                            "enable": true,
+                            "//": "[0 - 3], default is 2",
+                            "target_level": 2
+                        },
+                        "//": "acoustic echo canceller",
+                        "aec":
+                        {
+                            "//": "0: disable; 1: float type; 2: fixed type",
+                            "aec_mode": 1,
+                            "float_attr":
+                            {
+                                "//": "0: low; 1: moderate; 2: high",
+                                "level": 1
+                            },
+                            "fixed_attr":
+                            {
+                                "//": "0: quite earpiece or headset; 1: earpiece; 2: lound earpiece; 3: speakerphone; 4: lound speakerphone",
+                                "routing_mode": 3
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "pipe":
+        {
+            "instance":
+            [
+                {
+                    "enable": true,
+                    "//": "19: G711A; 20: G711U; 23: LPCM; 37: AAC",
+                    "encoder_type": 19,
+                    "bitrate": 48000,
+                    "//": "0: mono; 1: stereo",
+                    "sound_mode": 0,
+                    "default_encoder":
+                    {
+                        "reserved": 0
+                    },
+                    "aac_encoder":
+                    {
+                        "//": "-1: none; 0: null object; 2: aac lc; 3: er aac ld; 4: er aac eld",
+                        "aac_type": 2,
+                        "//": "-1: unknown; 0: raw, 2: adts",
+                        "trans_type": 2
+                    }
+                },
+                {
+                    "enable": true,
+                    "//": "19: G711A; 20: G711U; 23: LPCM; 37: AAC",
+                    "encoder_type": 37,
+                    "bitrate": 48000,
+                    "//": "0: mono; 1: stereo",
+                    "sound_mode": 0,
+                    "default_encoder":
+                    {
+                        "reserved": 0
+                    },
+                    "aac_encoder":
+                    {
+                        "//": "-1: none; 0: null object; 2: aac lc; 3: er aac ld; 4: er aac eld",
+                        "aac_type": 2,
+                        "//": "-1: unknown; 0: raw, 2: adts",
+                        "trans_type": 2
+                    }
+                }
+            ],
+            "rtsp_streaming_channel": 0,
+            "web_streaming_channel": 0,
+            "mp4_recording_channel": 1
+        }
+    },
+    "//": "play attribute",
+    "play":
+    {
+        "enable": true,
+        "dev":
+        {
+            "instance":
+            [
+                {
+                    "card_id": 0,
+                    "device_id": 3,
+                    "//": "[0 - 10.0], default is 1.0",
+                    "volume": 1.0,
+                    "3A":
+                    {
+                        "//": "automatic gain control",
+                        "agc":
+                        {
+                            "enable": false,
+                            "//": "0: adaptive analog; 1: adaptive digital; 2: fixed digital",
+                            "agc_mode": 1,
+                            "//": "[-31 - 0], default is -3",
+                            "target_level": -3,
+                            "//": "[0 - 90], default is 9",
+                            "gain": 9
+                        },
+                        "//": "audio noise suppression",
+                        "ans":
+                        {
+                            "enable": false,
+                            "//": "[0 - 3], default is 2",
+                            "target_level": 2
+                        }
+                    }
+                }
+            ]
+        },
+        "pipe":
+        {
+            "instance":
+            [
+                {
+                    "enable": true,
+                    "//": "19: G711A; 20: G711U; 23: LPCM; 37: AAC",
+                    "decoder_type": 23,
+                    "bitrate": 48000,
+                    "//": "8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000, 96000",
+                    "sample_rate": 16000,
+                    "//": "0: mono; 1: stereo",
+                    "sound_mode": 0,
+                    "default_decoder":
+                    {
+                        "reserved": 0
+                    },
+                    "aac_decoder":
+                    {
+                        "//": "-1: unknown; 0: raw, 2: adts",
+                        "trans_type": 2
+                    }
+                },
+                {
+                    "enable": true,
+                    "//": "19: G711A; 20: G711U; 23: LPCM; 37: AAC",
+                    "decoder_type": 37,
+                    "bitrate": 48000,
+                    "//": "8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000, 96000",
+                    "sample_rate": 16000,
+                    "//": "0: mono; 1: stereo",
+                    "sound_mode": 0,
+                    "default_decoder":
+                    {
+                        "reserved": 0
+                    },
+                    "aac_decoder":
+                    {
+                        "//": "-1: unknown; 0: raw, 2: adts",
+                        "trans_type": 2
+                    }
+                }
+            ],
+            "web_talking_channel": 0,
+            "local_playing_channel": 1
+        }
+    },
+    "//": "welcome voice",
+    "welcome":
+    {
+        "enable": true,
+        "//": "19: G711A; 20: G711U; 23: LPCM; 37: AAC",
+        "voice_type": 37,
+        "file_name": "./res/welcome.aac"
+    }
+}

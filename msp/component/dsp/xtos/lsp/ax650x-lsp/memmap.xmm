@@ -1,0 +1,25 @@
+
+BEGIN iram0
+0x0: instRam : iram0 : 0x8000 : executable, writable ;
+ iram0_0 : F : 0x0 - 0x7fff : .DispatchVector.text .ResetVector.text .ResetHandler.literal .ResetHandler.text .DispatchHandler.literal .DispatchHandler.text .iram0.literal .iram0.text;
+END iram0
+
+BEGIN dram0
+0x18500000: dataRam : dram0 : 0x40000 : writable ;
+ dram0_0 : C : 0x18500000 - 0x1853ffff : .dram0.rodata .dram0.data .dram0.bss;
+END dram0
+
+BEGIN dram1
+0x18540000: dataRam : dram1 : 0x3c000 : writable ;
+ dram1_0 : C : 0x18540000 - 0x1857bfff : .dram1.rodata .dram1.data .dram1.bss;
+END dram1
+
+BEGIN dram1_stack
+0x1857c000: dataRam : dram1_stack : 0x4000 : writable ;
+ dram1_stack : C : 0x1857c000 - 0x1857ffff : STACK : ;
+END dram1_stack
+
+BEGIN rambypass
+0x20000000: instRam : rambypass : 0xF00000 : executable, writable ;
+ rambypass_0 : F : 0x20000000 - 0x20efffff: HEAP : .sram.rodata .rodata .sram.text .sram.literal .text .literal .clib.percpu.data .rtos.percpu.data .rtos.data .sram.data .data .rtos.literal .clib.literal .clib.data  .clib.rodata .rtos.rodata .clib.text .rtos.text __llvm_prf_names.clib.bss .clib.percpu.bss .rtos.percpu.bss .rtos.bss .sram.bss .bss
+END rambypass

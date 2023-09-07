@@ -1,0 +1,2 @@
+VENC:./sample_ivps -v /mnt/bringup/1024x1024.nv12@3@1024x1024@1024x1024 -n 10 -l 1
+JENC:./sample_ivps -v /mnt/bringup/1024x1024.nv12@3@1024x1024@1024x1024 -n 10 -l 2

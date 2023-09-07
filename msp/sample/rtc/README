@@ -1,0 +1,7 @@
+sample_rtc /dev/rtc0
+sample_rtc /dev/rtc0 power_on
+sample_rtc /dev/rtc0 shut_down
+sample_rtc /dev/rtc0 soft_restart
+sample_rtc /dev/rtc0 hard_restart
+sample_rtc /dev/input/event0
+

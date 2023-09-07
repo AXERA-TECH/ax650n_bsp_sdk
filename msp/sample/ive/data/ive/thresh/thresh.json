@@ -1,0 +1,8 @@
+{
+    "mode": 0,
+    "thr_l": 42,
+    "thr_h": 65,
+    "min_val": 32,
+    "mid_val": 49,
+    "max_val": 199
+}

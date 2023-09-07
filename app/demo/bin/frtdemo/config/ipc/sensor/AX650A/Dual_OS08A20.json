@@ -1,0 +1,47 @@
+{
+    "//": "default: dual_sns_with_AI",
+    "scenario_1":
+    [
+        {
+            "sns_id": 0,
+            "dev_id": 0,
+            "pipe_id": 0,
+            "sns_framerate": 30,
+            "pipe_framerate": 30,
+            "sns_type": 3,
+            "sns_mode": 1,
+            "snapshot": 0,
+            "enable_aiisp": 0,
+            "enable_dummy":0,
+            "dev_run_mode": 1,
+            "sns_output_mode": 0,
+            "resolution": [[3840, 2160], [1920, 1080], [1920, 1080]],
+            "yuv_depth": [4, 4, 4],
+            "enable_channel": [1, 1, 1],
+            "chn_compress": [[0, 0], [0, 0], [0, 0]],
+            "tuning_ctrl": 0,
+            "tuning_port": 8082,
+            "tuning_bin":[]
+        },
+        {
+            "sns_id": 1,
+            "dev_id": 4,
+            "pipe_id": 1,
+            "sns_framerate": 30,
+            "pipe_framerate": 30,
+            "sns_type": 3,
+            "sns_mode": 1,
+            "snapshot": 0,
+            "enable_aiisp": 0,
+            "dev_run_mode": 1,
+            "sns_output_mode": 0,
+            "resolution": [[3840, 2160], [1920, 1080], [1920, 1080]],
+            "yuv_depth": [4, 4, 4],
+            "enable_channel": [1, 1, 1],
+            "chn_compress": [[0, 0], [0, 0], [0, 0]],
+            "tuning_ctrl": 0,
+            "tuning_port": 8082,
+            "tuning_bin":[]
+        }
+    ]
+}

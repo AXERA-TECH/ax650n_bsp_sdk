@@ -1,0 +1,61 @@
+#!/bin/bash
+
+function usage {
+    echo "usage: ./$(basename $0) path_to_param.h"
+}
+
+if [ $# -lt 1 ]; then
+    echo "no input .h file!"
+    usage
+    exit 1
+fi
+
+H_NAME=$1
+BIN_NAME=${H_NAME/.h/.bin}
+
+IN_STUB_NAME=ax_isp_stub
+OUT_STUB_NAME=ax_isp_params
+
+# get API version of SDK
+API_VER_FILE=../../../../out/include/ax_isp_version.h
+if [ ! -f $API_VER_FILE ]; then
+    echo "$API_VER_FILE not found!"
+    exit 5
+fi
+API_VER_MAJ=`awk '/#define ISP_VERSION_MAJOR / {print $3}' $API_VER_FILE`
+API_VER_MIN=`awk '/#define ISP_VERSION_MINOR / {print $3}' $API_VER_FILE`
+API_VER_MIN2=`awk '/#define ISP_VERSION_MINOR2 / {print $3}' $API_VER_FILE`
+API_VER="${API_VER_MAJ}.${API_VER_MIN}.${API_VER_MIN2}"
+
+# get API version of .h
+H_API_VER=`awk '/AX650_ISP_V/ {split($1, arr, "\""); for (i in arr) { if (match(arr[i], "AX650_ISP_V")) print(substr(arr[i], 12));}}' $H_NAME`
+
+# check API version
+if [ $H_API_VER != $API_VER ]; then
+    echo API version not match! SDK is $API_VER, .h is $H_API_VER
+    exit 6;
+fi
+
+awk -f gen_stub.awk $H_NAME > $IN_STUB_NAME.c
+if [ $? -ne 0 ]; then
+    echo failed to gen $IN_STUB_NAME.c
+    exit 10;
+fi
+
+cat $IN_STUB_NAME.h $H_NAME $IN_STUB_NAME.c > $OUT_STUB_NAME.c
+if [ $? -ne 0 ]; then
+    echo failed to gen $OUT_STUB_NAME.c
+    exit 20;
+fi
+
+gcc -g $OUT_STUB_NAME.c -fPIC -shared -o $OUT_STUB_NAME.so -I../../../../out/include -I../include
+if [ $? -ne 0 ]; then
+    echo failed to gen $OUT_STUB_NAME.so
+    exit 30;
+fi
+
+./_makebin > $BIN_NAME
+if [ $? -ne 0 ]; then
+    echo error occur when writing bin
+    exit 100;
+fi
