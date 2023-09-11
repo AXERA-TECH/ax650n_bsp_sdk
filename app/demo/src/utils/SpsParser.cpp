@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
+ * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
  *
  **************************************************************************************************/
 #include "SpsParser.hpp"
@@ -15,8 +15,6 @@
 #include "h264.hpp"
 #include "hevc.hpp"
 
-/* H264: https://wiki.aixin-chip.com/pages/viewpage.action?pageId=40873951 */
-/* HEVC: https://wiki.aixin-chip.com/pages/viewpage.action?pageId=61593700 */
 
 #define EXTENDED_SAR 255
 #define FFMIN(a, b) ((a) > (b) ? (b) : (a))
@@ -781,7 +779,6 @@ static int decode_short_term_rps(SPS_BIT_STREAM_T *bs, ShortTermRPS *rps, HEVC_S
 }
 
 static AX_VOID decode_profile_tier_level(SPS_BIT_STREAM_T *bs, AX_S32 *profile) {
-    /* https://wiki.aixin-chip.com/display/SW/H.265+Profile-Tier-Level+Syntax */
     /* ffmpeg libavcodec/hevc_ps.c */
     (AX_VOID) u(bs, 2);  // general_profile_space
     (AX_VOID) u(bs, 1);  // general_tier_flag

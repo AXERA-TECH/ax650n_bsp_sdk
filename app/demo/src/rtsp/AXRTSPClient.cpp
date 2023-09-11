@@ -188,7 +188,6 @@ static void continueAfterDESCRIBE(RTSPClient *rtspClient, int resultCode, char *
     } while (0);
 
     /* An unrecoverable error occurred with this stream.
-       Jira 5905
        - if network is linked up, but server is not lanuched, continueAfterDESCRIBE is invoked, shutdownStream will delete rtspClient
        - if network is linked down, sendDescribeCommand fail by setup socket, so continueAfterDESCRIBE is NOT invoked, rtspClient remain not deleted
        That makes confused  to distinguish when to invoke CAXRTSPClient::Stop(), so delete rtspClient by CAXRTSPClient::Stop() explicitly

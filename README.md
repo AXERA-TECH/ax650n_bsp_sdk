@@ -79,6 +79,3 @@ sample_adc    sample_cmm_s   sample_isp_3a  sample_npu_classification  sample_pc
 sample_audio  sample_dmadim  sample_ive     sample_npu_yolov5s         sample_pcie_dma_host      sample_pcie_msg_slave  sample_rtc                  sample_vdec_ivps_vo    sample_vin_vo
 sample_avs    sample_dmaxor  sample_ives    sample_optee_aes           sample_pcie_dma_slave     sample_pool            sample_sysmap               sample_venc            sample_vo
 ```
-
-## License
-todo
