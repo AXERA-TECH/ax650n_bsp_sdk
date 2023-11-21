@@ -56,6 +56,7 @@ SUBDIRS_CLEAN   = $(addsuffix .clean, $(SUBDIRS))
 SUBDIRS_INSTALL = $(addsuffix .install, $(SUBDIRS))
 
 .PHONY: $(SUBDIRS) $(SUBDIRS_ALL) $(SUBDIRS_INSTALL) $(SUBDIRS_CLEAN)
+.NOTPARALLEL: clean install
 
 default: $(SUBDIRS)
 

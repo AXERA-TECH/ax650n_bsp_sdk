@@ -66,13 +66,18 @@
 
 #define AX_ALIGN_UP(x,a)    (((x)+(a)-1)&~(a-1))
 
+#define TILE_ALIGN(var, align) ((var + align - 1) & (~(align - 1)))
+
+extern AX_U32 gTileSizeTable[];
+
 AX_POOL PoolInit(AX_U32 frameSize, AX_U32 blkCnt);
 AX_POOL CommonPoolInit(AX_U32 frameSize, AX_U32 blkCnt);
 AX_U32 GetFrameSize(AX_IMG_FORMAT_E inputFormat, AX_S32 strideSrc, AX_S32 heightSrc);
 // To do: support multi plane
+AX_U32 LoadFrameFromFbcFile(FILE *pFileIn, AX_S32 widthSrc, AX_S32 strideSrc, AX_S32 heightSrc, AX_IMG_FORMAT_E eFmt, AX_VOID *pVaddr, AX_S32 compress_level);
 AX_U32 LoadFrameFromFile(FILE *pFileIn, AX_S32 widthSrc, AX_S32 strideSrc, AX_S32 heightSrc, AX_IMG_FORMAT_E eFmt, AX_VOID *pVaddr);
 AX_S32 LoadFileToMem(const AX_CHAR *ps8File, AX_U8 **ppu8Mem, AX_S32 *ps32Len);
 AX_S32 LoadMeshFileToMem(const AX_CHAR *pFile, AX_VOID **ppVirAddr, AX_U32 *pMeshTableSize);
 void SaveYUV(AX_VIDEO_FRAME_INFO_T *frameInfo, FILE *fp_out);
-
+void SaveFBC(AX_VIDEO_FRAME_INFO_T *frameInfo, FILE *fp_out);
 #endif

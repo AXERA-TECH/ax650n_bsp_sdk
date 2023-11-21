@@ -28,6 +28,10 @@ using namespace AX_IPC;
 ///////////////////////////////////////////////////////////////////////////////////////////
 AX_BOOL CSensorMgr::Init() {
     AX_U32 nSensorCount = APP_SENSOR_COUNT();
+    if (3 == nSensorCount) {
+        m_bSet3ASyncRatio = AX_TRUE;
+    }
+
     for (AX_U32 i = 0; i < nSensorCount; i++) {
         SENSOR_CONFIG_T tSensorCfg;
         if (!APP_SENSOR_CONFIG(i, tSensorCfg)) {
@@ -55,10 +59,22 @@ AX_BOOL CSensorMgr::Init() {
         m_vecSensorIns.emplace_back(pSensor);
     }
 
+    WEB_SHOW_SENSOR_MODE_E eWebSnsShowMode = (3 == nSensorCount) ? E_WEB_SHOW_SENSOR_MODE_PANO_DUAL : E_WEB_SHOW_SENSOR_MODE_SINGLE;
+    SET_APP_WEB_SHOW_SENSOR_MODE(eWebSnsShowMode);
+
+    AX_S32 nPanoSnsId = (3 == nSensorCount) ? 1 : -1;
+    SET_APP_WEB_PANO_SENSOR_ID(nPanoSnsId);
+
     return AX_TRUE;
 }
 
 AX_BOOL CSensorMgr::DeInit() {
+    for (auto pSensor : m_vecSensorIns) {
+        if (!pSensor->Close()) {
+            return AX_FALSE;
+        }
+    }
+
     for (ISensor* pSensor : m_vecSensorIns) {
         CSensorFactory::GetInstance()->DestorySensor(pSensor);
     }
@@ -72,6 +88,20 @@ AX_BOOL CSensorMgr::Start() {
             return AX_FALSE;
         }
 
+        if (pSensor->GetSnsConfig().nSnsID != 0) {
+            if (0 != pSensor->EnableMultiCamSync(AX_TRUE)) {
+                return AX_FALSE;
+            }
+        }
+    }
+
+    if (m_bSet3ASyncRatio) {
+        if (0 != Enable3ASyncRatio(AX_TRUE)) {
+            return AX_FALSE;
+        }
+    }
+
+    for (auto pSensor : m_vecSensorIns) {
         if (!pSensor->StartIspLoopThread()) {
             return AX_FALSE;
         }
@@ -90,10 +120,6 @@ AX_BOOL CSensorMgr::Stop() {
     StopDispatchRawThread();
     for (auto pSensor : m_vecSensorIns) {
         if (!pSensor->StopIspLoopThread()) {
-            return AX_FALSE;
-        }
-
-        if (!pSensor->Close()) {
             return AX_FALSE;
         }
     }
@@ -593,12 +619,17 @@ AX_BOOL CSensorMgr::ChangeDaynightMode(AX_U32 nSnsID, AX_DAYNIGHT_MODE_E eDaynig
 
 AX_VOID CSensorMgr::SwitchSnsMode(AX_U32 nSnsMode) {
     LOG_MM_C(SNS_MGR, "+++");
+    AX_U32 nDstSnsMode = nSnsMode;
 
     Stop();
     for (auto pSensor : m_vecSensorIns) {
+        pSensor->Close();
+        if (0 != pSensor->GetSnsConfig().nSnsID) { // 4+4 only support sdr mode
+            nDstSnsMode = AX_SNS_LINEAR_MODE;
+        }
         AX_U8 nDevID = pSensor->GetSnsConfig().nDevID;
-        pSensor->ChangeHdrMode(nSnsMode);
-        m_mapDev2ThreadParam[nDevID].eHdrMode = (AX_SNS_HDR_MODE_E)nSnsMode;
+        pSensor->ChangeHdrMode(nDstSnsMode);
+        m_mapDev2ThreadParam[nDevID].eHdrMode = (AX_SNS_HDR_MODE_E)nDstSnsMode;
         pSensor->Init();
     }
 
@@ -625,4 +656,44 @@ AX_VOID CSensorMgr::ChangeSnsMirrorFlip(AX_U32 nSnsID, AX_BOOL bMirror, AX_BOOL 
     }
 
     pCurSensor->ChangeSnsMirrorFlip(bMirror, bFlip);
+}
+
+AX_VOID CSensorMgr::SetAeSyncRatio(const AX_ISP_IQ_AE_SYNC_RATIO_T& tAeSyncRatio) {
+    m_tAeSyncRatio = tAeSyncRatio;
+}
+
+AX_VOID CSensorMgr::SetAwbSyncRatio(const AX_ISP_IQ_AWB_SYNC_RATIO_T& tAwbSyncRatio) {
+    m_tAwbSyncRatio = tAwbSyncRatio;
+}
+
+AX_S32 CSensorMgr::Enable3ASyncRatio(AX_BOOL bEnable) {
+    AX_S32 nRet = 0;
+    AX_U32 n3ARatioOffValue = 1 << 20;
+
+    AX_ISP_IQ_AE_SYNC_RATIO_T  tAeSyncRatio{0};
+    AX_ISP_IQ_AWB_SYNC_RATIO_T tAwbSyncRatio{0};
+
+    tAeSyncRatio.nAeSyncRatio = bEnable ? m_tAeSyncRatio.nAeSyncRatio : n3ARatioOffValue;
+    tAwbSyncRatio.nRGainRatio = bEnable ? m_tAwbSyncRatio.nRGainRatio : n3ARatioOffValue;
+    tAwbSyncRatio.nBGainRatio = bEnable ? m_tAwbSyncRatio.nBGainRatio : n3ARatioOffValue;
+
+    LOG_M_I(SNS_MGR, "bEnable: %d, nAeSyncRatio: %d, nRGainRatio: %d, nBGainRatio: %d",
+                    bEnable,
+                    tAeSyncRatio.nAeSyncRatio,
+                    tAwbSyncRatio.nRGainRatio,
+                    tAwbSyncRatio.nBGainRatio);
+
+    nRet = AX_ISP_IQ_SetAeSyncParam(&tAeSyncRatio);
+    if (0 != nRet) {
+        LOG_M_E(SNS_MGR, "AX_ISP_IQ_SetAeSyncParam fail, nRet:%d", nRet);
+        return nRet;
+    }
+
+    nRet = AX_ISP_IQ_SetAwbSyncParam(&tAwbSyncRatio);
+    if (0 != nRet) {
+        LOG_M_E(SNS_MGR, "AX_ISP_IQ_SetAwbSyncParam fail, nRet:%d", nRet);
+        return nRet;
+    }
+
+    return nRet;
 }

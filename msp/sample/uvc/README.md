@@ -1,8 +1,8 @@
-1) 功能说明：
+1）功能说明：
 
 该模块是UVC（USB Video Class）示例代码，方便客户快速理解和掌握VIN模块,VENC模块等相关接口实现UVC camera功能。
 sample_uvc可执行程序以及uvc驱动设置脚本uvc-gadget-composite.sh,位于/opt/bin/sample_uvc/目录，
-dummy sensor的jpg格式图片文件，位于/opt/data/uvc/目录支持650A平台。
+dummy sensor的jpg格式图片文件，位于/opt/data/uvc/目录, 支持650平台。
 
 支持单个及两个os08a20 sensor：
 输出分辨率为360p，540p，720p，1080p，4K，帧率为30的MJPG/H264/H265格式的视频流;
@@ -20,7 +20,7 @@ PC端调试UVC Camera可以使用PotPlayer播放器，该播放器支持视频�
 
 2）使用示例：
 
-准备好650A平台的硬件环境，上电后，可通过串口连接上650A平台。使用typeC连接线连接板子和PC。
+准备好650平台的硬件环境，上电后，可通过串口连接上650平台。使用typeC连接线连接板端的usb2/usb3接口与PC相连。
 
 注意事项:
 对于650A Demo板，在使用一个sensor时，sensor接在MIPI RX0-3接口上;在使用两个sensor时，第一个sensor
@@ -28,33 +28,36 @@ PC端调试UVC Camera可以使用PotPlayer播放器，该播放器支持视频�
 
 运行脚本设置UVC驱动，其中对于第四个参数是选择sensor类型，0: dummy sensor, 1: os08a20 sensor，输入
 其他值则会报错；参数三为实际创建的uvc通道数目，注意实际使用到了几个camera，就需要开启几路uvc通道。
-./opt/bin/sample_uvc/uvc-gadget-composite.sh start usb2 1 1
+参数五是选择usb的传输模式，0：iso模式，1：bulk模式。
+./opt/bin/sample_uvc/uvc-gadget-composite.sh start usb2 1 1 1
 
 参数1: start or stop
 参数2: usb2 or usb3 is supported
 参数3: uvc device count, support 2 devices at maximum
 参数4: 0: os08a20 sensor, 1: dummy sensor
+参数5：0：iso mode, 1: bulk mode
 
-在650A平台板端启动UVC程序
+在650平台板端启动UVC程序
 示例一：
-./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 0
+./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 0 -b
 其中-y选项选择sensor类型, 0:单个os08a20 sensor, 1:两个os08a20 sensor, 2:单个dummy sensor, 3:两个dummy sensor。
-该命令选择了0:单个os08a20 sensor。默认VIN模块和VENC模块之间采用LINK的方式。
+该命令选择了0:单个os08a20 sensor。默认VIN模块和VENC模块之间采用LINK的方式。-b选项表示选择usb bulk传输模式。
 
 示例二：
 ./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 0 -w 0
 其中-y选项选择sensor类型, 0:单个os08a20 sensor, 1:两个os08a20 sensor, 2:单个dummy sensor, 3:两个dummy sensor。
-该命令选择了0:单个os08a20 sensor。-w 0选项表示VIN模块和VENC模块之间采用非LINK的方式
+该命令选择了0:单个os08a20 sensor。-w 0选项表示VIN模块和VENC模块之间采用非LINK的方式。未加-b选项默认选择usb iso传输模式。
 
 示例三：
 ./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 1 -p -w 1
 其中-y选项选择sensor类型, 0:单个os08a20 sensor, 1:两个os08a20 sensor, 2:单个dummy sensor, 3:两个dummy sensor。
 该命令选择了1:两个os08a20 sensor。 -p选项表示开启isp tuning。 -w 1选项表示VIN模块和VENC模块之间采用LINK的方式。
+未加-b选项默认选择usb iso传输模式。
 
 示例四：
-./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 2
+./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 2 -b
 其中-y选项选择sensor类型, 0:单个os08a20 sensor, 1:两个os08a20 sensor, 2:单个dummy sensor, 3:两个dummy sensor。
-该命令选择了2: 单个dummy sensor。不加-i选项，默认图片是/opt/data/uvc/1280x720.jpg。
+该命令选择了2: 单个dummy sensor。不加-i选项，默认图片是/opt/data/uvc/1280x720.jpg。-b选项表示选择usb bulk传输模式。
 
 示例五：
 ./opt/bin/sample_uvc/sample_uvc -d -n 4 -y 2 -i /opt/data/uvc/1280x720.jpg
@@ -74,6 +77,7 @@ PC端调试UVC Camera可以使用PotPlayer播放器，该播放器支持视频�
 参数4 -p: 启动isp tuning标志
 参数5 -w: VIN与VENC模块之间采用LINK的方式工作
 参数6 -a: 使能aiisp：1，开启；0，关闭，默认开启AIISP
+参数7 -b: 启用usb bulk传输模式
 
 UVC camera播放器软件操作说明
 在互联网上下载一个PotPlayer软件安装包，安装在PC上。在PC上打开PotPlayer视频播放器,Alt+D快捷键打开

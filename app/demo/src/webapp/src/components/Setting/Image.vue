@@ -2,7 +2,7 @@
   <div>
     <el-form ref="formImageRef" :rules="formImageRules" :model="formImage" label-width="100px" size="mini">
       <el-form-item label="Camera:">
-        <el-select v-model="formImage.src_id" @change="onChangeSrcID" :disabled="dual_mode == 0">
+        <el-select v-model="formImage.src_id" @change="onChangeSrcID" :disabled="img_dual_mode == 0">
           <el-option v-for="item in Array.from({ length: 2 }, (item, index) => index)" :key="item" :label="'' + item"
             :value="item"></el-option>
         </el-select>
@@ -65,7 +65,7 @@
 
 <script>
 export default {
-  props: ["dual_mode"],
+  props: ["img_dual_mode"],
   data() {
     return {
       isp_mode: [

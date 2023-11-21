@@ -10,6 +10,8 @@ include $(HOME_PATH)/build/config.mak
 ################################################################################
 
 .PHONY : all clean install bin
+.NOTPARALLEL: clean all
+
 all: bin
 	@echo -e $(GREEN)"\nBuild $@ success!!\n"  $(DONE)
 

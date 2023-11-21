@@ -123,8 +123,14 @@ static AX_S32 __common_cam_open(AX_CAMERA_T *pCam)
     AX_S32 axRet = 0;
     AX_U8 nPipeId = 0;
     AX_U8 nDevId = pCam->nDevId;
-    AX_MIPI_RX_DEV_E nRxDev = pCam->nRxDev;
+    AX_U32 nRxDev = pCam->nRxDev;
     SAMPLE_SNS_TYPE_E eSnsType = pCam->eSnsType;
+
+    axRet = COMMON_ISP_ResetSnsObj(nPipeId, nDevId, eSnsType);
+    if (0 != axRet) {
+        COMM_CAM_PRT("COMMON_ISP_ResetSnsObj failed, ret=0x%x.\n", axRet);
+        return -1;
+    }
 
     axRet = COMMON_VIN_StartMipi(nRxDev, &pCam->tMipiRx);
     if (0 != axRet) {
@@ -151,6 +157,7 @@ static AX_S32 __common_cam_open(AX_CAMERA_T *pCam)
         for (i = 0; i < pCam->tDevBindPipe.nNum; i++) {
             nPipeId = pCam->tDevBindPipe.nPipeId[i];
             pCam->tPipeAttr.bAiIspEnable = pCam->tPipeInfo[i].bAiispEnable;
+            pCam->tPipeAttr.eCombMode = pCam->tPipeInfo[i].eCombMode;
             axRet = COMMON_VIN_SetPipeAttr(pCam->eSysMode, nPipeId, &pCam->tPipeAttr);
             if (0 != axRet) {
                 COMM_CAM_PRT("COMMON_ISP_SetPipeAttr failed, ret=0x%x.\n", axRet);
@@ -226,7 +233,7 @@ static AX_S32 __common_cam_close(AX_CAMERA_T *pCam)
     AX_S32 axRet = 0;
     AX_U8 nPipeId = pCam->nPipeId;
     AX_U8 nDevId = pCam->nDevId;
-    AX_MIPI_RX_DEV_E nRxDev = pCam->nRxDev;
+    AX_U32 nRxDev = pCam->nRxDev;
 
     if (pCam->bEnableFlash == AX_TRUE) {
         axRet = COMMON_VIN_StopOutsideDev(nDevId);
@@ -246,26 +253,27 @@ static AX_S32 __common_cam_close(AX_CAMERA_T *pCam)
             AX_ISP_StreamOff(pCam->tDevBindPipe.nPipeId[i]);
         }
     }
-
-    axRet = AX_ISP_CloseSnsClk(pCam->tSnsClkAttr.nSnsClkIdx);
-    if (0 != axRet) {
-        COMM_CAM_PRT("AX_VIN_CloseSnsClk failed, ret=0x%x.\n", axRet);
-    }
-
-    for (i = 0; i < pCam->tDevBindPipe.nNum; i++) {
-        nPipeId = pCam->tDevBindPipe.nPipeId[i];
-        axRet = AX_VIN_StopPipe(nPipeId);
+    if (!pCam->bDevOnly) {
+        axRet = AX_ISP_CloseSnsClk(pCam->tSnsClkAttr.nSnsClkIdx);
         if (0 != axRet) {
-            COMM_CAM_PRT("AX_VIN_StopPipe failed, ret=0x%x.\n", axRet);
+            COMM_CAM_PRT("AX_VIN_CloseSnsClk failed, ret=0x%x.\n", axRet);
         }
 
-        COMMON_VIN_StopChn(nPipeId);
+        for (i = 0; i < pCam->tDevBindPipe.nNum; i++) {
+            nPipeId = pCam->tDevBindPipe.nPipeId[i];
+            axRet = AX_VIN_StopPipe(nPipeId);
+            if (0 != axRet) {
+                COMM_CAM_PRT("AX_VIN_StopPipe failed, ret=0x%x.\n", axRet);
+            }
 
-        COMMON_ISP_DeInit(nPipeId, pCam->bRegisterSns);
+            COMMON_VIN_StopChn(nPipeId);
 
-        COMMON_ISP_UnRegisterSns(nPipeId);
+            COMMON_ISP_DeInit(nPipeId, pCam->bRegisterSns);
 
-        AX_VIN_DestroyPipe(nPipeId);
+            COMMON_ISP_UnRegisterSns(nPipeId);
+
+            AX_VIN_DestroyPipe(nPipeId);
+        }
     }
 
     axRet = COMMON_VIN_StopMipi(nRxDev);

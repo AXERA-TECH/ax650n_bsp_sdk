@@ -29,7 +29,7 @@
         </div>
       </el-header>
       <el-main class="main-container">
-        <router-view :mode_option="mode_option_data" :dual_mode="sns_mode"></router-view>
+        <router-view :mode_option="mode_option_data" :home_dual_mode="sns_mode" :pano_sns_id="pano_snsId"></router-view>
       </el-main>
     </el-container>
   </div>
@@ -55,6 +55,7 @@ export default {
       ],
       mode_option_data: 'normal',
       sns_mode: parseInt(window.sessionStorage.getItem('snsMode')),
+      pano_snsId: parseInt(window.sessionStorage.getItem('panoSnsId')),
       isForceStop: false
     }
   },
@@ -140,7 +141,9 @@ export default {
                 console.log('[home] got a event: ' + evt.target.result)
                 var eventObj = JSON.parse(evt.target.result)
                 for (var i = 0;i < eventObj.events.length;i++) {
-                  if (eventObj.events[i].type === 4) {
+                  if (eventObj.events[i].type === 0) {
+                    this.getInfo()
+                  } else if (eventObj.events[i].type === 4) {
                     this.logout()
                   }
                 }

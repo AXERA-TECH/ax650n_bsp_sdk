@@ -51,7 +51,8 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
 
     if (pstVdecCtx == NULL) {
         SAMPLE_LOG("VdGrp=%d, pstVdecCtx == NULL", VdGrp);
-        return -1;
+        sRet = -1;
+        goto ERR_RET;
     }
 
     pstCmd = &pstVdecCtx->tCmdParam;
@@ -70,22 +71,22 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
         if (ret == AX_SUCCESS) {
             s_u64GetFrameNum[VdGrp][VdChn] += 1;
             SAMPLE_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_SUCCESS, %lld\n",
-                           VdGrp, VdChn, s_u64GetFrameNum[VdGrp][VdChn]);
+                       VdGrp, VdChn, s_u64GetFrameNum[VdGrp][VdChn]);
         }
         else if (ret == AX_ERR_VDEC_QUEUE_EMPTY) {
             /* no data in unblock mode or timeout mode */
             SAMPLE_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_ERR_VDEC_QUEUE_EMPTY\n",
-                        VdGrp, VdChn);
+                       VdGrp, VdChn);
             usleep(20 * 1000);
             sRet = ret;
-            goto ERR_RET;
+            goto ERR_RET_RELEASE;
         }
         else if (ret == AX_ERR_VDEC_UNEXIST) {
-            SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_ERR_VDEC_UNEXIST \n",
-                           VdGrp, VdChn);
+            SAMPLE_WARN_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_ERR_VDEC_UNEXIST \n",
+                            VdGrp, VdChn);
             usleep(20 * 1000);
             sRet = ret;
-            goto ERR_RET;
+            goto ERR_RET_RELEASE;
         }
         else if (ret == AX_ERR_VDEC_FLOW_END) {
             s_u64GetFrameNum[VdGrp][VdChn] += 1;
@@ -93,29 +94,29 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
             SAMPLE_NOTICE_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_ERR_VDEC_FLOW_END %lld\n",
                               VdGrp, VdChn, s_u64GetFrameNum[VdGrp][VdChn]);
             sRet = ret;
-            goto ERR_RET;
+            goto ERR_RET_RELEASE;
         }
         else if (ret == AX_ERR_VDEC_STRM_ERROR) {
             s_u64GetFrameNum[VdGrp][VdChn] += 1;
             SAMPLE_WARN_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_ERR_VDEC_STRM_ERROR, %lld\n",
                             VdGrp, VdChn, s_u64GetFrameNum[VdGrp][VdChn]);
             sRet = ret;
-            goto ERR_RET;
+            goto ERR_RET_RELEASE;
         }
         else if (AX_ERR_VDEC_NOT_PERM == ret) {
             SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame AX_ERR_VDEC_NOT_PERM\n",
                             VdGrp, VdChn);
             sRet = ret;
-            goto ERR_RET;
+            goto ERR_RET_RELEASE;
         }
         else {
             SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, AX_VDEC_GetChnFrame FAILED! ret=0x%x %s\n",
                             VdGrp, VdChn, ret, AX_VdecRetStr(ret));
             sRet = ret;
-            goto ERR_RET;
+            goto ERR_RET_RELEASE;
         }
 
-        SAMPLE_LOG("VdGrp=%d, VdChn:%d, ii:%d, before AX_VDEC_ReleaseChnFrame "
+        SAMPLE_LOG("VdGrp=%d, VdChn:%d, ii:%d, after AX_VDEC_GetChnFrame "
                     ".u32Width:%d, .bEndOfStream:%d, .u64PhyAddr[0]:0x%llx, "
                     ".u64VirAddr[0]:0x%llx, BlkId[0]:0x%x, u64PTS:%lld, .u64PrivateData:0x%llx\n",
                     VdGrp, VdChn, ii,
@@ -138,7 +139,7 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
                                     "pstFrameInfo->stVFrame.u64PhyAddr[0] == 0\n",
                                     VdGrp, VdChn);
                     sRet = AX_ERR_VDEC_UNKNOWN;
-                    goto ERR_RET;
+                    goto ERR_RET_RELEASE;
                 }
             }
         }
@@ -203,13 +204,13 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
                         pstVdecCtx->pOutputFilePath[VdChn] = NULL;
                     }
                     sRet = AX_ERR_VDEC_UNKNOWN;
-                    goto ERR_RET;
+                    goto ERR_RET_RELEASE;
                 }
 
                 pstVdecCtx->pOutputFd[VdChn] = fp_out;
 
                 SAMPLE_LOG("VdGrp=%d, VdChn:%d, pstVdecCtx->pOutputFd[VdChn]:%p, fp_out:%p",
-                            VdGrp, VdChn, pstVdecCtx->pOutputFd[VdChn], fp_out);
+                           VdGrp, VdChn, pstVdecCtx->pOutputFd[VdChn], fp_out);
             }
         }
 
@@ -246,10 +247,11 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
 
     SAMPLE_LOG_N("VdGrp=%d, VdChn:%d ", VdGrp, VdChn);
 
+ERR_RET_RELEASE:
     for (ii = 0; ii < SAMPLE_VDEC_FRAME_CNT; ii++) {
         pstFrameInfo = &stFrameInfo[ii];
 
-        SAMPLE_LOG_N("VdGrp=%d, VdChn:%d, ii:%d", VdGrp, VdChn, ii);
+        SAMPLE_LOG("VdGrp=%d, VdChn:%d, ii:%d", VdGrp, VdChn, ii);
 
         if (!pstFrameInfo->stVFrame.u64PhyAddr[0])
             continue;
@@ -267,7 +269,7 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
                                 "u64PhyAddr[0]:0x%llX, BlkId[0]:0x%x, BlkId[1]:0x%x\n",
                                 VdGrp, VdChn, ret, AX_VdecRetStr(ret), pstFrameInfo->stVFrame.u64PhyAddr[0],
                                 pstFrameInfo->stVFrame.u32BlkId[0], pstFrameInfo->stVFrame.u32BlkId[1]);
-                goto ERR_RET;
+                continue;
             }
         }
 
@@ -275,7 +277,7 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
          * AX_VDEC_SetUserPic. */
         if (pstVdecUserPic->usrPicChnEnaCnt) {
             SAMPLE_LOG("usrPicChnEnaCnt BlkId[0]:0x%x, u32UsrPicBlkId:0x%x",
-                        pstFrameInfo->stVFrame.u32BlkId[0], u32UsrPicBlkId);
+                       pstFrameInfo->stVFrame.u32BlkId[0], u32UsrPicBlkId);
 
             if (pstFrameInfo->stVFrame.u32BlkId[0] == u32UsrPicBlkId) {
                 pstVdecUserPic->usrPicGet[VdChn] = AX_TRUE;
@@ -304,14 +306,18 @@ static AX_S32 __VdecRecvFrame(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn, SAMPLE_VDEC_
             if (pstVdecUserPic->bAllChnGetUsrPic) {
                 SAMPLE_LOG("VdGrp=%d, bAllChnGetUsrPic == AX_TRUE, ret AX_ERR_VDEC_FLOW_END", VdGrp);
                 sRet = AX_ERR_VDEC_FLOW_END;
-                goto ERR_RET;
+                continue;
             }
+        }
+
+        if (sRet != AX_SUCCESS) {
+            continue;
         }
 
         if (pstFrameInfo->bEndOfStream == AX_TRUE) {
             SAMPLE_LOG("VdGrp=%d, bEndOfStream == AX_TRUE, ret AX_ERR_VDEC_FLOW_END", VdGrp);
             sRet = AX_ERR_VDEC_FLOW_END;
-            goto ERR_RET;
+            continue;
         }
     }
 
@@ -493,22 +499,22 @@ static void *_VdecRecvThread(void *arg)
                     pstCtx_Grp0->u64SelectFrameCnt++;
                 }
                 else if (ret == AX_ERR_VDEC_STRM_ERROR) {
-                    SAMPLE_WARN_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s\n",
+                    SAMPLE_WARN_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s\n",
                                     VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                     continue;
                 }
                 else if (ret == AX_ERR_VDEC_QUEUE_EMPTY) {
-                    SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s\n",
+                    SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s\n",
                                    VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                     continue;
                 }
                 else if (ret == AX_ERR_VDEC_UNEXIST) {
-                    SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s \n",
+                    SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s \n",
                                    VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                     continue;
                 }
                 else if (AX_ERR_VDEC_NOT_PERM == ret) {
-                    SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s \n",
+                    SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s \n",
                                     VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                     continue;
                 }
@@ -517,12 +523,12 @@ static void *_VdecRecvThread(void *arg)
                         pstCtx_Grp0->u64SelectFrameCnt++;
                     }
 
-                    SAMPLE_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s\n",
+                    SAMPLE_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s\n",
                                VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                     continue;
                 }
                 else {
-                    SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame FAILED! ret=0x%x %s\n",
+                    SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame FAILED! ret=0x%x %s\n",
                                     VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                     goto ERR_RET;
                 }
@@ -644,7 +650,13 @@ static void *__VdecGrpChnRecvThread(void *arg)
             break;
         }
 
+        if (pstCtx->GrpStatus[VdGrp] == AX_VDEC_GRP_STOP_RECV) {
+            break;
+        }
+
         usleep(1000);
+        SAMPLE_LOG("VdGrp=%d, VdChn=%d, pstCtx->GrpStatus[VdGrp]:%d\n",
+                   VdGrp, VdChn, pstCtx->GrpStatus[VdGrp]);
     }
 
     while (1) {
@@ -658,34 +670,34 @@ static void *__VdecGrpChnRecvThread(void *arg)
         ret = __VdecRecvFrame(VdGrp, VdChn, pstCtx);
         if (ret != AX_SUCCESS) {
             if (ret == AX_ERR_VDEC_QUEUE_EMPTY) {
-                SAMPLE_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s\n",
+                SAMPLE_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s\n",
                            VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                 continue;
             }
             else if (ret == AX_ERR_VDEC_UNEXIST) {
-                SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s \n",
+                SAMPLE_ERR_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s \n",
                                VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                 continue;
             }
             else if (AX_ERR_VDEC_NOT_PERM == ret) {
-                SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s \n",
+                SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s \n",
                                VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                 continue;
             }
             else if (ret == AX_ERR_VDEC_STRM_ERROR) {
-                SAMPLE_WARN_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s\n",
+                SAMPLE_WARN_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s\n",
                             VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                 continue;
             }
             else if (ret == AX_ERR_VDEC_FLOW_END) {
                 if (pstCtx->bRecvFlowEnd == AX_FALSE)
                     pstCtx->bRecvFlowEnd = AX_TRUE;
-                SAMPLE_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame ret=0x%x %s\n",
+                SAMPLE_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame ret=0x%x %s\n",
                            VdGrp, VdChn, ret, AX_VdecRetStr(ret));
                 break;
             }
 
-            SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, __VdecRecvFrame FAILED! ret=0x%x %s\n",
+            SAMPLE_CRIT_LOG("VdGrp=%d, VdChn=%d, _VdecRecvFrame FAILED! ret=0x%x %s\n",
                             VdGrp, VdChn, ret, AX_VdecRetStr(ret));
             break;
         } else {
@@ -722,6 +734,9 @@ static AX_S32 __VdecSendEndOfStream(AX_VDEC_GRP VdGrp)
                         VdGrp, sRet, AX_VdecRetStr(sRet));
         goto ERR_RET;
     }
+
+    SAMPLE_LOG_ST("VdGrp=%d, AX_VDEC_SendStream ret:0x%x %s\n",
+                  VdGrp, sRet, AX_VdecRetStr(sRet));
 
 ERR_RET:
     return sRet;
@@ -928,8 +943,8 @@ static AX_S32 __VdecInputModeFrame(SAMPLE_VDEC_ARGS_T *pstFuncArgs,
             SAMPLE_LOG("VdGrp=%d, AX_VDEC_SendStream AX_SUCCESS, uSendPicNum:%d", VdGrp, uSendPicNum);
         }
         else if (sRet == AX_ERR_VDEC_FLOW_END) {
-            SAMPLE_LOG("VdGrp=%d, AX_VDEC_SendStream ret AX_ERR_VDEC_FLOW_END, uSendPicNum:%d",
-                        VdGrp, uSendPicNum);
+            SAMPLE_LOG_ST("VdGrp=%d, AX_VDEC_SendStream ret AX_ERR_VDEC_FLOW_END, uSendPicNum:%d",
+                          VdGrp, uSendPicNum);
             break;
         }
         else if (sRet == AX_ERR_VDEC_QUEUE_FULL) {
@@ -937,9 +952,16 @@ static AX_S32 __VdecInputModeFrame(SAMPLE_VDEC_ARGS_T *pstFuncArgs,
             usleep(1000);
             continue;
         }
-        else if (sRet == AX_ERR_VDEC_NOT_PERM) {
+        else if ((sRet == AX_ERR_VDEC_NOT_PERM) || (sRet == AX_ERR_VDEC_NOT_MATCH)) {
+            SAMPLE_ERR_LOG("VdGrp=%d, AX_VDEC_SendStream FAILED! ret:0x%x %s",
+                            VdGrp, sRet, AX_VdecRetStr(sRet));
             bReadFrm = AX_FALSE;
             usleep(1000);
+
+            if (s_pstVdecCtx->GrpStatus[VdGrp] >= AX_VDEC_GRP_RESET) {
+                break;
+            }
+
             continue;
         }
         else if ((sRet == AX_ERR_VDEC_NOT_SUPPORT)
@@ -1380,7 +1402,7 @@ static AX_S32 __VdecGrpSendStream(SAMPLE_VDEC_ARGS_T *pstFuncArgs, SAMPLE_STREAM
                 sRet = __VdecInputModeStream(pstFuncArgs, &tStreamInfo, pstStreamBuf);
                 if (sRet) {
                     if (sRet != AX_ERR_VDEC_FLOW_END) {
-                        SAMPLE_CRIT_LOG("VdGrp=%d, __VdecInputModeStream FAILED! ret:0x%x\n", VdGrp, sRet);
+                        SAMPLE_CRIT_LOG("VdGrp=%d, VdecInputModeStream FAILED! ret:0x%x\n", VdGrp, sRet);
                         goto ERR_RET_STOP_RECV;
                     }
                 }
@@ -1395,8 +1417,8 @@ static AX_S32 __VdecGrpSendStream(SAMPLE_VDEC_ARGS_T *pstFuncArgs, SAMPLE_STREAM
             pstVdecCtx->GrpStatus[VdGrp] = AX_VDEC_GRP_STOP_RECV;
         }
 
-        SAMPLE_LOG("VdGrp=%d, AX_VDEC_StopRecvStream Done! sLoopDecNum:%d\n",
-                    VdGrp, pstCmd->sLoopDecNum);
+        SAMPLE_LOG_ST("VdGrp=%d, AX_VDEC_StopRecvStream Done! sLoopDecNum:%d\n",
+                      VdGrp, pstCmd->sLoopDecNum);
         if (s_ThreadExit) {
             break;
         }
@@ -1410,6 +1432,7 @@ ERR_RET_STOP_RECV:
         SAMPLE_CRIT_LOG("VdGrp=%d, AX_VDEC_StopRecvStream FAILED! ret:0x%x", VdGrp, sRet);
     } else {
         pstVdecCtx->GrpStatus[VdGrp] = AX_VDEC_GRP_STOP_RECV;
+        SAMPLE_LOG_ST("VdGrp=%d, AX_VDEC_StopRecvStream Done!\n", VdGrp);
     }
 ERR_RET:
     s_ThreadExit += 1;
@@ -1643,7 +1666,7 @@ static void *_VdecGroupThreadMain(void *arg)
 
             sRet = h264_parse_sps(pstStreamMem, parse_len, &sps_data);
             SAMPLE_LOG_T("h264_parse_sps sRet:0x%x sps_data.height:%d, sps_data.width:%d parse_len:%d",
-                    sRet, sps_data.height, sps_data.width, parse_len);
+                         sRet, sps_data.height, sps_data.width, parse_len);
             if (sRet == AX_SUCCESS) {
                 for (ci = 0; ci < AX_DEC_MAX_CHN_NUM; ci++) {
                     if (pstCmd->tChnCfg[ci].enOutputMode == AX_VDEC_OUTPUT_ORIGINAL) {
@@ -2365,9 +2388,10 @@ static void _VdecSigInt(int sigNo)
     AX_VDEC_GRP VdGrp = 0;
     AX_VDEC_GRP_STATUS_T stGrpStatus;
 
+    s_ThreadExit = 1;
+
     if (s_pstVdecCtx == NULL) {
-        s_ThreadExit += 1;
-        SAMPLE_NOTICE_LOG("s_pstVdecCtx == NULL\n");
+        SAMPLE_LOG_ST("s_pstVdecCtx == NULL\n");
         goto ERR_RET;
     }
 
@@ -2379,7 +2403,12 @@ static void _VdecSigInt(int sigNo)
     for (VdGrp = uStartGrpId; VdGrp < (pstCmd->uGrpCount + uStartGrpId); VdGrp++) {
         memset(&stGrpStatus, 0, sizeof(stGrpStatus));
         s32Ret = AX_VDEC_QueryStatus(VdGrp, &stGrpStatus);
-        if (s32Ret) {
+        if (s32Ret == AX_SUCCESS) {
+        }
+        else if (s32Ret == AX_ERR_VDEC_UNEXIST) {
+            continue;
+        }
+        else {
             SAMPLE_CRIT_LOG("VdGrp=%d, AX_VDEC_QueryStatus ret:0x%x %s\n",
                             VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
             continue;
@@ -2392,6 +2421,7 @@ static void _VdecSigInt(int sigNo)
                                 VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
                 continue;
             }
+            SAMPLE_LOG_ST("VdGrp=%d, AX_VDEC_StopRecvStream Done!\n", VdGrp);
         }
 
         while (1) {
@@ -2399,6 +2429,7 @@ static void _VdecSigInt(int sigNo)
             if (s32Ret != AX_ERR_VDEC_BUSY) {
                 break;
             }
+            usleep(10000);
         }
 
         if (s32Ret) {
@@ -2408,6 +2439,8 @@ static void _VdecSigInt(int sigNo)
         }
 
         pstVdecCtx->GrpStatus[VdGrp] = AX_VDEC_GRP_RESET;
+
+        SAMPLE_LOG_ST("VdGrp=%d, reset done! pstVdecCtx:%p", VdGrp, pstVdecCtx);
     }
 ERR_RET:
 #endif

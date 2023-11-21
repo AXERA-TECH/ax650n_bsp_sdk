@@ -14,12 +14,12 @@
         "grp_framerate": {"src": -1, "dst": -1},
         "chn_framerate":
         [
-          {"src": 30, "dst": 12}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+          {"src": -1, "dst": 12}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
         ],
         "grp_resolution": {"w": -1, "h": -1},
         "chn_resolution":
         [
-          {"w": 3712, "h": 832}, {"w": 3712, "h": 832}, {"w": 1280, "h": 364}, {"w": 1280, "h": 364}, {"w": -1, "h": -1}
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": 2432, "h": 768}, {"w": 1280, "h": 364}, {"w": -1, "h": -1}
         ],
         "chn_link_flag": [0, 1, 1, 1, 1],
         "grp_fbc":{"mode": 0, "level": 0},
@@ -83,7 +83,7 @@
         [
           {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
         ],
-        "chn_inplace":[0,1,1,1]
+        "chn_inplace":[1,1,1,1]
       }
     },
     {
@@ -111,7 +111,7 @@
         [
           {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
         ],
-        "chn_inplace":[0,1,1,1]
+        "chn_inplace":[1,1,1,1]
       }
     },
     {
@@ -139,7 +139,7 @@
         [
           {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
         ],
-        "chn_inplace":[0,1,1,1]
+        "chn_inplace":[1,1,1,1]
       }
     },
     {
@@ -195,7 +195,207 @@
         [
           {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
         ],
+        "chn_inplace":[1,1,1,1]
+      }
+    }
+  ],
+  "//": "the same as scenario_0",
+  "scenario_1":
+  [
+    {
+      "grp_id": 0,
+      "grp_info":
+      {
+        "grp_chn_num": 4,
+        "engine_filter_0": "VPP",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["SUB", "SUB", "SUB", "SUB", ""],
+        "grp_framerate": {"src": -1, "dst": -1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": 12}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": 2432, "h": 768}, {"w": 1280, "h": 364}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [0, 1, 1, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 0, "level": 0}, {"mode": 2, "level": 4}, {"mode": 2, "level": 4}, {"mode": 2, "level": 4}, {"mode": 0, "level": 0}
+        ],
+        "chn_inplace":[0,0,0,0]
+      }
+    },
+    {
+      "grp_id": 1,
+      "grp_info":
+      {
+        "grp_chn_num": 1,
+        "engine_filter_0": "TDP",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["", "", "", "", ""],
+        "grp_framerate": {"src": -1, "dst": 1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [1, 1, 1, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 2, "level": 4}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
+        ],
         "chn_inplace":[0,1,1,1]
+      }
+    },
+    {
+      "grp_id": 2,
+      "grp_info":
+      {
+        "grp_chn_num": 1,
+        "engine_filter_0": "",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["TDP", "", "", "", ""],
+        "grp_framerate": {"src": -1, "dst": -1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [1, 1, 1, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
+        ],
+        "chn_inplace":[1,1,1,1]
+      }
+    },
+    {
+      "grp_id": 3,
+      "grp_info":
+      {
+        "grp_chn_num": 1,
+        "engine_filter_0": "",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["TDP", "", "", "", ""],
+        "grp_framerate": {"src": -1, "dst": -1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [1, 1, 1, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
+        ],
+        "chn_inplace":[1,1,1,1]
+      }
+    },
+    {
+      "grp_id": 4,
+      "grp_info":
+      {
+        "grp_chn_num": 1,
+        "engine_filter_0": "",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["TDP", "", "", "", ""],
+        "grp_framerate": {"src": -1, "dst": -1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [1, 1, 1, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
+        ],
+        "chn_inplace":[1,1,1,1]
+      }
+    },
+    {
+      "grp_id": 5,
+      "grp_info":
+      {
+        "grp_chn_num": 4,
+        "engine_filter_0": "VPP",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["SUB", "SUB", "SUB", "SUB", ""],
+        "grp_framerate": {"src": -1, "dst": -1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": 1280, "h": 364}, {"w": 1280, "h": 364}, {"w": 1280, "h": 364}, {"w": 1280, "h": 364}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [1, 1, 0, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 2, "level": 4}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
+        ],
+        "chn_inplace":[0,0,0,0]
+      }
+    },
+    {
+      "grp_id": 6,
+      "grp_info":
+      {
+        "grp_chn_num": 1,
+        "engine_filter_0": "",
+        "engine_filter_1": "",
+        "engine_filter_2": ["", "", "", "", ""],
+        "engine_filter_3": ["TDP", "", "", "", ""],
+        "grp_framerate": {"src": -1, "dst": -1},
+        "chn_framerate":
+        [
+          {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}, {"src": -1, "dst": -1}
+        ],
+        "grp_resolution": {"w": -1, "h": -1},
+        "chn_resolution":
+        [
+          {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}, {"w": -1, "h": -1}
+        ],
+        "chn_link_flag": [1, 1, 1, 1, 1],
+        "grp_fbc":{"mode": 0, "level": 0},
+        "chn_fbc":
+        [
+          {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}, {"mode": 0, "level": 0}
+        ],
+        "chn_inplace":[1,1,1,1]
       }
     }
   ]

@@ -90,6 +90,10 @@ typedef struct {
     AX_U32 nLv;
 } COMPRESS_CONFIG_T;
 
+typedef struct {
+    AX_U32 nMaxSendNaluIntervalMilliseconds;
+} UT_CONFIG_T;
+
 /**
  * @brief
  *
@@ -105,6 +109,7 @@ public:
     DISPVO_CONFIG_T GetDispVoConfig(const std::string &SECT);
     VENC_CONFIG_T GetVencConfig(AX_VOID);
     COMPRESS_CONFIG_T GetCompressConfig(AX_VOID);
+    UT_CONFIG_T GetUTConfig(AX_VOID);
 
 private:
     CBoxConfig(AX_VOID) = default;

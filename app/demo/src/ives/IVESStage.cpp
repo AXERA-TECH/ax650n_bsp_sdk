@@ -207,7 +207,6 @@ AX_BOOL CIVESStage::Stop(AX_VOID) {
     LOG_MM_C(IVES, "Stop+++");
 
     CAXStage::Stop();
-
     if (m_bMDEnable && m_spMDInstance) {
         m_spMDInstance->Cleanup();
     }
@@ -218,13 +217,25 @@ AX_BOOL CIVESStage::Stop(AX_VOID) {
         m_spSCDInstance->Cleanup();
     }
 
+    FreeQFrames();
+
     LOG_MM_C(IVES, "Stop---");
     return AX_TRUE;
 }
 
-AX_BOOL CIVESStage::DeInit(AX_VOID) {
-    CAXStage::DeInit();
+AX_VOID CIVESStage::FreeQFrames(AX_VOID) {
+    do {
+        CAXFrame* pFrame{nullptr};
+        if (!m_qFrame.Pop(pFrame, 0)) {
+            break;
+        }
+        if (pFrame) {
+            pFrame->FreeMem();
+        }
+    } while(1);
+}
 
+AX_BOOL CIVESStage::DeInit(AX_VOID) {
     m_spMDInstance.reset();
     m_spODInstance.reset();
     m_spSCDInstance.reset();

@@ -177,6 +177,13 @@ typedef enum {
     AX_HDMI_FORCE_DVI
 } AX_HDMI_FORCE_ACTION_E;
 
+typedef enum {
+    AX_HDMI_QUANTIZATION_NONE,
+    AX_HDMI_QUANTIZATION_LIMITED_RANGE,
+    AX_HDMI_QUANTIZATION_FULL_RANGE,
+    AX_HDMI_QUANTIZATION_BUTT
+} AX_HDMI_QUANTIZATION_E;
+
 typedef struct axHDMI_EDID_T {
     AX_BOOL bEdidValid;
     AX_U32 u32EdidLength;
@@ -186,6 +193,7 @@ typedef struct axHDMI_EDID_T {
 typedef struct axHDMI_ATTR_T {
     AX_BOOL bEnableHdmi;
     AX_HDMI_FORCE_ACTION_E enDefaultMode;
+    AX_HDMI_QUANTIZATION_E eOutCscQuantization;
 } AX_HDMI_ATTR_T;
 
 typedef AX_VOID (*HDMI_CallBack)(AX_HDMI_EVENT_TYPE_E enEvent, AX_VOID *pPrivateData);
@@ -194,6 +202,13 @@ typedef struct axHDMI_CALLBACK_FUNC_T {
     HDMI_CallBack pfnHdmiEventCallback;
     AX_VOID *pPrivateData;
 } AX_HDMI_CALLBACK_FUNC_T;
+
+typedef AX_VOID (*VSync_CallBack)(AX_U32 u32Seq, AX_U32 u32Sec, AX_U32 u32USec, AX_VOID *pPrivateData);
+
+typedef struct axVSYNC_CALLBACK_FUNC_T {
+    VSync_CallBack pfnVsyncEventCallback;
+    AX_VOID *pPrivateData;
+} AX_VSYNC_CALLBACK_FUNC_T;
 
 typedef struct axVO_PUB_ATTR_T {
     AX_VO_MODE_E enMode;
@@ -274,7 +289,6 @@ typedef struct axVO_VIDEO_LAYER_ATTR_T {
     AX_VO_LAYER_SYNC_MODE_E enSyncMode;
     AX_U32 u32PrimaryChnId;
     AX_U32 u32FifoDepth;
-    AX_U32 u32ChnNr;
     AX_U32 u32BkClr;
     AX_VO_BG_FILL_E enBgFillMode;
     AX_U32 u32DispatchMode;
@@ -421,7 +435,14 @@ AX_S32 AX_VO_Disable(VO_DEV VoDev);
 AX_S32 AX_VO_DpmsOn(VO_DEV VoDev);
 AX_S32 AX_VO_DpmsOff(VO_DEV VoDev);
 
+AX_S32 AX_VO_CrtcOn(VO_DEV VoDev);
+AX_S32 AX_VO_CrtcOff(VO_DEV VoDev);
+
 AX_S32 AX_VO_EnumMode(VO_DEV VoDev, AX_VO_DISPLAY_MODE_T *pstMode);
+
+AX_S32 AX_VO_VSYNC_RegCallbackFunc(VO_DEV VoDev, const AX_VSYNC_CALLBACK_FUNC_T *pstCallbackFunc);
+AX_S32 AX_VO_VSYNC_UnRegCallbackFunc(VO_DEV VoDev, const AX_VSYNC_CALLBACK_FUNC_T *pstCallbackFunc);
+AX_S32 AX_VO_GetVBlankTime(VO_DEV VoDev, AX_U64 *u64Time);
 
 AX_S32 AX_VO_HDMI_RegCallbackFunc(AX_HDMI_ID_E enHdmi, const AX_HDMI_CALLBACK_FUNC_T *pstCallbackFunc);
 AX_S32 AX_VO_HDMI_UnRegCallbackFunc(AX_HDMI_ID_E enHdmi, const AX_HDMI_CALLBACK_FUNC_T *pstCallbackFunc);

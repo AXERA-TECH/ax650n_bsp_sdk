@@ -53,6 +53,7 @@ typedef enum {
     E_REQ_TYPE_CAPTURE,
     E_REQ_TYPE_TRIGGER,
     E_REQ_TYPE_IMAGE,
+    E_REQ_TYPE_SWITCH_3A_SYNCRATIO,
     E_REQ_TYPE_MAX,
 } WEB_REQUEST_TYPE_E;
 
@@ -98,6 +99,7 @@ typedef enum {
     E_WEB_OPERATION_TYPE_TRIGGER,
     E_WEB_OPERATION_TYPE_SNS_MIRROR_FLIP,
     E_WEB_OPERATION_TYPE_LDC_ATTR,
+    E_WEB_OPERATION_TYPE_SWITCH_3A_SYNCRATIO,
     E_WEB_OPERATION_TYPE_MAX
 } WEB_OPERATION_TYPE_E;
 
@@ -360,6 +362,7 @@ typedef struct _WEB_REQ_OPERATION_T {
     WEB_REQUEST_TYPE_E eReqType;
     AX_S32 nIntervalMs;
     AX_U16 nPriority; /* Bigger value means higher priority */
+    AX_BOOL b3ASyncRationOn;
     union {
         WEB_OPR_ROTATION_T tRotation;
         WEB_OPR_SNS_MODE_T tSnsMode;
@@ -389,6 +392,7 @@ typedef struct _WEB_REQ_OPERATION_T {
         eReqType = E_REQ_TYPE_MAX;
         eOperationType = E_WEB_OPERATION_TYPE_MAX;
         nIntervalMs = -1;
+        b3ASyncRationOn = AX_TRUE;
     }
 
     AX_VOID SetOperaType(WEB_OPERATION_TYPE_E type) {

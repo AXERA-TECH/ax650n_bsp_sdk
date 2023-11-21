@@ -58,6 +58,16 @@
   --strideV                             v stride
 ```
 
+## Parameters VUI:
+```
+  --bSignalPresent                      equal to 1 specifies that video_format、video_full_range、color_present are present. [1]
+  --videoFormat                         Indicates the video format. [5]
+  --bFullRange                          video range, 1: full range 0: limited range. [1]
+  --bColorPresent                       equal to 1 specifies that colorPrimaries、transferCharacter、matrixCoeffs are present. [1]
+  --colorPrimaries                      indicates the chromaticity coordinates of source primaries. [2]
+  --transferCharacter                   indicates the opto-electronic transfer characteristics of the source. [2]
+  --matrixCoeffs                        indicates the matrix coefficients used in the transformation from RGB to YUV color space. [2]
+```
 ## dynamic change resolution
 ```
   --bDynRes                             enable change resolution
@@ -197,7 +207,7 @@
                                         0: UT_CASE_NORMAL               1: UT_CASE_BIT_RATE
                                         2: UT_CASE_RESET_CHN            3: UT_CASE_VENC_ROI
                                         4: UT_CASE_FRAME_RATE           5: UT_CASE_CHN_ATTR
-                                        6: UT_CASE_RC_MODE              7: UT_CASE_PROFILE_LEVEL
+                                        6: UT_CASE_RC_MODE              7: UT_CASE_VUI
                                         8: UT_CASE_JPEG_ENCODE_ONCE     9: UT_CASE_JPEG_PARAM
                                         10:UT_CASE_VIR_INTRA_INTERVAL   11:UT_CASE_INTRA_REFRESH
                                         12:UT_CASE_RESOLUTION           13:UT_CASE_REQUEST_IDR

@@ -89,7 +89,7 @@ AX_VOID SAMPLE_IVE_CropResize2_TEST(AX_U32 u32Engine, AX_U32 u32Mode, AX_S32 as3
 
 AX_VOID SAMPLE_IVE_CropResize2_TEST_HandleSig(AX_VOID);
 
-AX_VOID SAMPLE_IVE_MatMul_TEST(AX_CHAR *pchParamsList);
+AX_VOID SAMPLE_IVE_MatMul_TEST(AX_U32 u32Engine, AX_CHAR *pchParamsList);
 
 AX_VOID SAMPLE_IVE_MatMul_TEST_HandleSig(AX_BOOL bInitEngine);
 

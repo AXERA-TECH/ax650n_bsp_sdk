@@ -71,6 +71,26 @@ typedef struct axSAMPLE_VO_WBC_THREAD_PARAM {
     pthread_t ThreadID;
 } SAMPLE_VO_WBC_THREAD_PARAM_T;
 
+typedef struct axSAMPLE_VO_CURSOR_PARAM {
+    AX_U32 u32StartX;
+    AX_U32 u32StartY;
+    AX_U32 u32Width;
+    AX_U32 u32Height;
+
+    AX_U32 u32FbIndex;
+
+    AX_U32 u32CursorLayerEn;
+    AX_U32 u32CursorMoveEn;
+} SAMPLE_VO_CURSOR_PARAM_T;
+
+
+typedef struct axSAMPLE_VO_CURSOR_MOVE_THREAD_PARAM {
+    SAMPLE_VO_CURSOR_PARAM_T stCursorInfo[SAMPLE_VO_DEV_MAX];
+
+    pthread_t ThreadID;
+    AX_U32 u32ThreadForceStop;
+} SAMPLE_VO_CURSOR_MOVE_THREAD_PARAM_T;
+
 static int SAMPLE_VO_POOL_DESTROY(AX_U32 u32PoolID)
 {
     return AX_POOL_DestroyPool(u32PoolID);
@@ -358,6 +378,10 @@ static AX_S32 SAMPLE_VO_CURSOR_INIT(AX_U32 u32StartX, AX_U32 u32StartY, AX_U32 u
         goto exit;
     }
 
+    if (u32FbIndex == 7) {
+        show = 0;
+    }
+
     /* 8.set the cursor show flag */
     s32Ret = ioctl(s32Fd, AX_FBIOPUT_CURSOR_SHOW, &show);
     if (s32Ret < 0) {
@@ -373,6 +397,85 @@ exit:
 
     return s32Ret;
 }
+
+static AX_VOID * SAMPLE_VO_CURSOR_MOVE_THREAD(AX_VOID *pData)
+{
+    AX_S32 s32Fd = -1, s32DevFd[SAMPLE_VO_DEV_MAX] = {-1};
+    AX_S32 i, s32Ret = 0;
+    AX_U32 u32FbIndex = 0;
+    AX_CHAR fbPath[32];
+    AX_FB_CURSOR_POS_T stPos;
+    AX_U16 show = 1;
+    AX_S32 x, y;
+    AX_U32 u32StartX, u32StartY;
+    SAMPLE_VO_CURSOR_MOVE_THREAD_PARAM_T *pstThreadParam = (SAMPLE_VO_CURSOR_MOVE_THREAD_PARAM_T *)pData;
+
+    /* 1.Open framebuffer device */
+    for (i = 0; i < SAMPLE_VO_DEV_MAX; i++) {
+        if (pstThreadParam->stCursorInfo[i].u32CursorLayerEn) {
+            snprintf(fbPath, sizeof(fbPath), "/dev/fb%d", pstThreadParam->stCursorInfo[i].u32FbIndex);
+            s32DevFd[i] = open(fbPath, O_RDWR);
+            if (s32DevFd[i] < 0) {
+                SAMPLE_PRT("open %s failed, err:%s\n", fbPath, strerror(errno));
+                goto exit;
+            }
+        }
+    }
+
+    while (!pstThreadParam->u32ThreadForceStop) {
+        for (i = 0; i < SAMPLE_VO_DEV_MAX; i++) {
+            if (pstThreadParam->stCursorInfo[i].u32CursorLayerEn) {
+                s32Fd = s32DevFd[i];
+                u32StartX = pstThreadParam->stCursorInfo[i].u32StartX;
+                u32StartY = pstThreadParam->stCursorInfo[i].u32StartY;
+                show = 1;
+
+                for (x = 0; x < 8; x++) {
+                    for (y = 0; y < 8; y++) {
+                        /* 2.set the cursor display pos */
+                        stPos.u16X = u32StartX + (x * 100);
+                        stPos.u16Y = u32StartY + (y * 100);
+                        s32Ret = ioctl(s32Fd, AX_FBIOPUT_CURSOR_POS, &stPos);
+                        if (s32Ret < 0) {
+                            SAMPLE_PRT("put cursor pos fb%d failed\n", u32FbIndex);
+                            goto exit;
+                        }
+
+                        /* 3.set the cursor show flag */
+                        s32Ret = ioctl(s32Fd, AX_FBIOPUT_CURSOR_SHOW, &show);
+                        if (s32Ret < 0) {
+                            SAMPLE_PRT("put cursor show fb%d failed\n", u32FbIndex);
+                            goto exit;
+                        }
+                        usleep(100000);
+                        if (pstThreadParam->u32ThreadForceStop) {
+                            goto exit;
+                        }
+                    }
+                }
+
+                /* 3.close the layer cursor display */
+                show = 0;
+                s32Ret = ioctl(s32Fd, AX_FBIOPUT_CURSOR_SHOW, &show);
+                if (s32Ret < 0) {
+                    SAMPLE_PRT("put cursor show fb%d failed\n", u32FbIndex);
+                    goto exit;
+                }
+            }
+        }
+    }
+
+exit:
+    for (i = 0; i < SAMPLE_VO_DEV_MAX; i++) {
+        if (s32DevFd[i] != -1) {
+            close(s32DevFd[i]);
+            s32DevFd[i] = -1;
+        }
+    }
+
+    return NULL;
+}
+
 
 #define CHN_IMGS_PATH ""
 static AX_S32 load_img_file(AX_VOID *u64VirAddr, AX_U32 frameSize, AX_CHAR *img_name)
@@ -753,6 +856,7 @@ static AX_VOID *SAMPLE_VO_PLAY_THREAD(AX_VOID *pData)
     AX_U64 u64PTS, u64SeqNum = 0;
     AX_VO_CHN_ATTR_T stChnAttr;
     SAMPLE_VO_CHN_THREAD_PARAM_T *pstChnThreadParam = (SAMPLE_VO_CHN_THREAD_PARAM_T *)pData;
+    AX_S32 num = 0;
 
     u32LayerID = pstChnThreadParam->u32LayerID;
     u32ChnID = pstChnThreadParam->u32ChnID;
@@ -788,6 +892,7 @@ static AX_VOID *SAMPLE_VO_PLAY_THREAD(AX_VOID *pData)
         pstFrame = &stFrames[i % u32FrameMax];
         pstFrame->u64PTS = u64PTS;
         pstFrame->u64SeqNum = u64SeqNum;
+        pstFrame->u32FrameFlag |= AX_FRM_FLG_FR_CTRL;
 
         s32Ret = AX_VO_SendFrame(u32LayerID, u32ChnID, pstFrame, -1);
         if (s32Ret) {
@@ -805,6 +910,12 @@ static AX_VOID *SAMPLE_VO_PLAY_THREAD(AX_VOID *pData)
 
 exit:
     SAMPLE_PRT("layer%d-chn%d exit, s32Ret = 0x%x\n", u32LayerID, u32ChnID, s32Ret);
+
+    for (num = 0; num < u32FrameMax; num++) {
+        if (stFrames[num].u32BlkId[0]) {
+            AX_POOL_ReleaseBlock(stFrames[num].u32BlkId[0]);
+        }
+    }
 
     return NULL;
 }
@@ -1184,7 +1295,6 @@ AX_S32 SAMPLE_VO_LAYER(SAMPLE_VO_LAYER_CONFIG_S *pstLayerConf)
         goto exit1;
     }
 
-    pstVoLayerAttr->u32ChnNr = s32Chns;
     pstVoLayerAttr->u32PoolId = pstLayerConf->u32LayerPoolId;
 
     SAMPLE_PRT("u32LayerPoolId = %d, u32ChnPoolId = %d\n", pstLayerConf->u32LayerPoolId, pstLayerConf->u32ChnPoolId);
@@ -1312,7 +1422,7 @@ AX_S32 SAMPLE_VO_LAYER_DISPLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
             goto exit0;
         }
 
-        pstVoLayerAttr->u32ChnNr = s32Chns;
+        pstVoLayerConf->s32Chns = s32Chns;
         pstVoLayerAttr->u32FifoDepth = pstVoLayerConf->u32FifoDepth;
         pstVoLayerAttr->u32PoolId = pstVoLayerConf->u32LayerPoolId;
 
@@ -1338,7 +1448,7 @@ AX_S32 SAMPLE_VO_LAYER_DISPLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
         pstVoLayerConf = &pstVoConf->stVoLayer[i];
         pstVoLayerAttr = &pstVoLayerConf->stVoLayerAttr;
 
-        for (j = 0; j < pstVoLayerAttr->u32ChnNr; j++) {
+        for (j = 0; j < pstVoLayerConf->s32Chns; j++) {
             stLayerThreadParam[i].u32FrameCnt = ~0;
             pstChnThreadParam = &stLayerThreadParam[i].stVoChnThreadParm[j];
             pstChnThreadParam->u32LayerID = pstVoLayerConf->u32VoLayer;
@@ -1368,7 +1478,7 @@ AX_S32 SAMPLE_VO_LAYER_DISPLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
         pstVoLayerConf = &pstVoConf->stVoLayer[i];
         pstVoLayerAttr = &pstVoLayerConf->stVoLayerAttr;
 
-        for (j = 0; j < pstVoLayerAttr->u32ChnNr; j++) {
+        for (j = 0; j < pstVoLayerConf->s32Chns; j++) {
             pstChnThreadParam = &stLayerThreadParam[i].stVoChnThreadParm[j];
             if (pstChnThreadParam->ThreadID) {
                 pstChnThreadParam->u32ThreadForceStop = 1;
@@ -1500,6 +1610,7 @@ exit1:
 AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
 {
     AX_BOOL bNeedWbc = AX_FALSE;
+    AX_BOOL bMoveEn = AX_FALSE;
     AX_S32 i, j, s32Chns, s32Ret = 0;
     AX_U32 u32ChnFrameNr;
     AX_U32 u32Row, u32Col;
@@ -1516,6 +1627,7 @@ AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
     SAMPLE_VO_VIDEOLAYER_THREAD_PARAM_T stLayerThreadParam[SAMPLE_VO_DEV_MAX] = {0,};
     SAMPLE_VO_VIDEOLAYER_THREAD_PARAM_T stLayerOutProcThreadParm[SAMPLE_VO_DEV_MAX] = {0,};
     SAMPLE_VO_WBC_THREAD_PARAM_T stWbcThreadParam[SAMPLE_VO_DEV_MAX] = {0,};
+    SAMPLE_VO_CURSOR_MOVE_THREAD_PARAM_T stCursorMoveThreadParam;
 
     s32Ret = AX_VO_Init();
     if (s32Ret) {
@@ -1582,7 +1694,7 @@ AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
             goto exit0;
         }
 
-        pstVoLayerAttr->u32ChnNr = s32Chns;
+        pstVoLayerConf->s32Chns = s32Chns;
         pstVoLayerAttr->u32FifoDepth = pstVoLayerConf->u32FifoDepth;
         pstVoLayerAttr->u32PoolId = pstVoLayerConf->u32LayerPoolId;
 
@@ -1611,15 +1723,28 @@ AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
         }
     }
 
-    pstCursorLayerConf = &pstVoConf->stCursorLayer;
-    if (pstCursorLayerConf->u32CursorLayerEn) {
-        pstCursorLayerConf->bindVoDev = pstVoConf->stVoDev[0].u32VoDev;
-        s32Ret = SAMPLE_VO_CURSOR_INIT(pstCursorLayerConf->u32X, pstCursorLayerConf->u32Y,
+    for (i = 0; i < pstVoConf->u32VDevNr; i++) {
+        pstCursorLayerConf = &pstVoConf->stCursorLayer[i];
+        if (pstCursorLayerConf->u32CursorLayerEn) {
+            pstCursorLayerConf->bindVoDev = pstVoConf->stVoDev[i].u32VoDev;
+            s32Ret = SAMPLE_VO_CURSOR_INIT(pstCursorLayerConf->u32X, pstCursorLayerConf->u32Y,
                                        pstCursorLayerConf->u32Width, pstCursorLayerConf->u32Height,
                                        pstCursorLayerConf->u32FBIndex);
-        if (s32Ret) {
-            SAMPLE_PRT("SAMPLE_VO_CURSOR_INIT failed, s32Ret:0x%x\n", s32Ret);
-            goto exit0;
+
+            if (s32Ret) {
+                SAMPLE_PRT("SAMPLE_VO_CURSOR_INIT failed, s32Ret:0x%x\n", s32Ret);
+                goto exit0;
+            }
+
+            stCursorMoveThreadParam.stCursorInfo[i].u32StartX = pstCursorLayerConf->u32X;
+            stCursorMoveThreadParam.stCursorInfo[i].u32StartY = pstCursorLayerConf->u32Y;
+            stCursorMoveThreadParam.stCursorInfo[i].u32Width = pstCursorLayerConf->u32Width;
+            stCursorMoveThreadParam.stCursorInfo[i].u32Height = pstCursorLayerConf->u32Height;
+            stCursorMoveThreadParam.stCursorInfo[i].u32FbIndex = pstCursorLayerConf->u32FBIndex;
+            stCursorMoveThreadParam.stCursorInfo[i].u32CursorLayerEn = pstCursorLayerConf->u32CursorLayerEn;
+            stCursorMoveThreadParam.stCursorInfo[i].u32CursorMoveEn = pstCursorLayerConf->u32CursorMoveEn;
+
+            bMoveEn |= pstCursorLayerConf->u32CursorMoveEn;
         }
     }
 
@@ -1638,11 +1763,16 @@ AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
         }
     }
 
+    if (bMoveEn) {
+        stCursorMoveThreadParam.u32ThreadForceStop = 0;
+        pthread_create(&stCursorMoveThreadParam.ThreadID, NULL, SAMPLE_VO_CURSOR_MOVE_THREAD, &stCursorMoveThreadParam);
+    }
+
     for (i = 0; i < pstVoConf->u32LayerNr; i++) {
         pstVoLayerConf = &pstVoConf->stVoLayer[i];
         pstVoLayerAttr = &pstVoLayerConf->stVoLayerAttr;
 
-        for (j = 0; j < pstVoLayerAttr->u32ChnNr; j++) {
+        for (j = 0; j < pstVoLayerConf->s32Chns; j++) {
             pstChnThreadParam = &stLayerThreadParam[i].stVoChnThreadParm[j];
             pstChnThreadParam->u32LayerID = pstVoLayerConf->u32VoLayer;
             pstChnThreadParam->u32ChnID = j;
@@ -1694,6 +1824,11 @@ AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
         }
     }
 
+    if (bMoveEn) {
+        stCursorMoveThreadParam.u32ThreadForceStop = 1;
+        pthread_join(stCursorMoveThreadParam.ThreadID, NULL);
+    }
+
     for (i = 0; i < pstVoConf->u32LayerNr; i++) {
         pstVoLayerConf = &pstVoConf->stVoLayer[i];
         pstVoLayerAttr = &pstVoLayerConf->stVoLayerAttr;
@@ -1704,7 +1839,7 @@ AX_S32 SAMPLE_VO_PLAY(SAMPLE_VO_CONFIG_S *pstVoConf)
             SAMPLE_PRT("layer%d-out-proc-thread done\n", stLayerOutProcThreadParm[i].u32LayerID);
         }
 
-        for (j = 0; j < pstVoLayerAttr->u32ChnNr; j++) {
+        for (j = 0; j < pstVoLayerConf->s32Chns; j++) {
             pstChnThreadParam = &stLayerThreadParam[i].stVoChnThreadParm[j];
             if (pstChnThreadParam->ThreadID) {
                 pstChnThreadParam->u32ThreadForceStop = 1;

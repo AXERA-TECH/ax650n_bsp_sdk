@@ -29,12 +29,24 @@ AX_S32 AX_ISP_IQ_SetAwbParam(AX_U8 pipe, AX_ISP_IQ_AWB_PARAM_T *pIspAwbParam);
 AX_S32 AX_ISP_IQ_GetAwbParam(AX_U8 pipe, AX_ISP_IQ_AWB_PARAM_T *pIspAwbParam);
 AX_S32 AX_ISP_IQ_GetAwbStatus(AX_U8 pipe, AX_ISP_IQ_AWB_STATUS_T *pIspAwbStatus);
 
+AX_S32 AX_ISP_IQ_AwbSyncInit(void);
+AX_S32 AX_ISP_IQ_AwbSyncDeInit(void);
+AX_S32 AX_ISP_IQ_AwbSyncCalibration(AX_ISP_IQ_AWB_SYNC_RATIO_T *pAwbSyncRatio);
+AX_S32 AX_ISP_IQ_SetAwbSyncParam(AX_ISP_IQ_AWB_SYNC_RATIO_T *pAwbSyncRatio);
+AX_S32 AX_ISP_IQ_GetAwbSyncParam(AX_ISP_IQ_AWB_SYNC_RATIO_T *pAwbSyncRatio);
+
 AX_S32 AX_ISP_IQ_SetAeParam(AX_U8 pipe, AX_ISP_IQ_AE_PARAM_T *pIspAeParam);
 AX_S32 AX_ISP_IQ_GetAeParam(AX_U8 pipe, AX_ISP_IQ_AE_PARAM_T *pIspAeParam);
 AX_S32 AX_ISP_IQ_GetAeStatus(AX_U8 pipe, AX_ISP_IQ_AE_STATUS_T *pIspAeStatus);
 AX_S32 AX_ISP_IQ_GetAeHwLimit(AX_U8 pipe, AX_ISP_IQ_EXP_HW_LIMIT_T *pIspAeHwLimit);
 AX_S32 AX_ISP_IQ_CalibrateAeLuxK(AX_U8 pipe, AX_ISP_IQ_LUX_K_CALIB_INPUT_T *pIspAeLuxk);
 AX_U32 AX_ISP_IQ_GetAeLuxK(AX_U8 pipe);
+
+AX_S32 AX_ISP_IQ_AeSyncInit(void);
+AX_S32 AX_ISP_IQ_AeSyncDeInit(void);
+AX_S32 AX_ISP_IQ_AeSyncCalibration(AX_ISP_IQ_AE_SYNC_RATIO_T *pAeSyncRatio);
+AX_S32 AX_ISP_IQ_SetAeSyncParam(AX_ISP_IQ_AE_SYNC_RATIO_T *pAeSyncRatio);
+AX_S32 AX_ISP_IQ_GetAeSyncParam(AX_ISP_IQ_AE_SYNC_RATIO_T *pAeSyncRatio);
 
 AX_S32 AX_ISP_IQ_CalibrateAeNoiseLevel(AX_U8 pipe,AX_ISP_IQ_NOISE_LEVEL_CALIB_INPUT_T *pIspAeNoiseLevel);
 AX_U32 AX_ISP_IQ_GetAeNoiseLevel(AX_U8 pipe);

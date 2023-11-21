@@ -37,13 +37,25 @@ p: pipeline index, indicates ppl load type, like ITS or IPC or Pano etc.
 s: sensor type.
    0: DUAL OS08A20 (DEFAULT)
    1: Single OS08A20
+   2: DUAL OS08B10
+   3: Single OS08B10
+   4: Single SC910gs
    5: Pano Dual 0SO4A10
+   6: Single OS08A20 + Dual 0SO4A10(Pano)
 n: scenario, indicates the scenario to load, which is always defined in config files.
-   0: default (DEFAULT: dual sensor in T3DNR+T2DNR+T2DNR mode)"
-   1: Dual sensor in T3DNR+T2DNR+AI2DNR mode"
-   2: Single sensorin (Dual3DNR<->T3DNR)+T2DNR+AI2DNR mode"
-   4: Dual sensor in 4k@30fps AICE<->AINR SDR/HDR mode without jenc"
-   5: Dual sensor in 4k@50fps Dual3DNR<->T3DNR SDR mode without jenc"
+   ITS:"
+       0: Dual sensor in T3DNR+T2DNR+T2DNR mode(default)"
+       1: Dual sensor in T3DNR+T2DNR+AI2DNR mode"
+       2: Single sensor in (AI3D_T2DNR<->T3DNR)+T2DNR+AI2DNR mode"
+       3: Single sensor with flash mode"
+       4: Dual sensor in 4k@30fps AICE<->AINR SDR/HDR mode"
+       5: Dual sensor in 4k@50fps AI3D_T2DNR<->T3DNR SDR mode"
+   IPC:"
+       0: Single sensor(default)"
+       1: Single sensor + Dual sensor(8+4+4)"
+   Pano:"
+       0: Dual sensor(default)"
+       1: Dual sensor in board 8+4+4"
 l: log level, indicates the log level.
    CRITICAL = 1, ERROR = 2 (DEFAULT), WARN = 3, NOTICE = 4, INFO = 5, DEBUG = 6, DATA = 7
 t: log target, indicates the log output targets.

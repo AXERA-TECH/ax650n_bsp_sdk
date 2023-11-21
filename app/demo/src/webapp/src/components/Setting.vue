@@ -44,7 +44,7 @@
         </div>
       </el-aside>
       <el-main>
-        <router-view :dual_mode="formData.capInfo.support_dual_sns"></router-view>
+        <router-view :dual_mode="formData.capInfo.support_dual_sns" :img_dual_mode="formData.capInfo.img_page_support_dual_sns"></router-view>
       </el-main>
     </el-container>
   </div>
@@ -58,6 +58,7 @@ export default {
       formData: {
         capInfo: {
           support_dual_sns: 1,
+          img_page_support_dual_sns: 1,
           support_page_sys: 1,
           support_page_cam: 0,
           support_page_img: 0,
@@ -88,6 +89,7 @@ export default {
         console.log('setting page, get return: ', res)
         if (res.meta.status === 200) {
           this.formData.capInfo.support_dual_sns = res.data.capInfo.support_dual_sns
+          this.formData.capInfo.img_page_support_dual_sns = res.data.capInfo.img_page_support_dual_sns
           this.formData.capInfo.support_page_sys = res.data.capInfo.support_page_sys
           this.formData.capInfo.support_page_cam = res.data.capInfo.support_page_cam
           this.formData.capInfo.support_page_img = res.data.capInfo.support_page_img

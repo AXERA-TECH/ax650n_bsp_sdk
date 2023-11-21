@@ -15,6 +15,8 @@
 #include "h264.hpp"
 #include "hevc.hpp"
 
+/* H264: https://wiki.aixin-chip.com/pages/viewpage.action?pageId=40873951 */
+/* HEVC: https://wiki.aixin-chip.com/pages/viewpage.action?pageId=61593700 */
 
 #define EXTENDED_SAR 255
 #define FFMIN(a, b) ((a) > (b) ? (b) : (a))
@@ -779,6 +781,7 @@ static int decode_short_term_rps(SPS_BIT_STREAM_T *bs, ShortTermRPS *rps, HEVC_S
 }
 
 static AX_VOID decode_profile_tier_level(SPS_BIT_STREAM_T *bs, AX_S32 *profile) {
+    /* https://wiki.aixin-chip.com/display/SW/H.265+Profile-Tier-Level+Syntax */
     /* ffmpeg libavcodec/hevc_ps.c */
     (AX_VOID) u(bs, 2);  // general_profile_space
     (AX_VOID) u(bs, 1);  // general_tier_flag

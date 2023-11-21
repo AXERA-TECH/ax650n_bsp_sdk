@@ -48,13 +48,15 @@ SRCCPPS			+=	$(wildcard $(FRT_PATH)/*.cpp) \
 					$(wildcard $(SRC_PATH)/option_helper/*.cpp) \
 					$(wildcard $(SRC_PATH)/utils/*.cpp) \
 					$(wildcard $(SRC_PATH)/utils/yuv/*.cpp) \
+					$(wildcard $(SRC_PATH)/subfunc/eocw/*.cpp) \
 					$(wildcard $(SRC_PATH)/ivps/osd/*.cpp) \
 					$(wildcard $(SRC_PATH)/mp4enc/*.cpp) \
 					$(wildcard $(SRC_PATH)/capture/*.cpp) \
 					$(wildcard $(SRC_PATH)/dsp/*.cpp) \
 					$(wildcard $(FRT_PATH)/pano_ppl/*.cpp) \
 					$(wildcard $(FRT_PATH)/pano_ppl/test/*.cpp) \
-					$(wildcard $(SRC_PATH)/audio/*.cpp)
+					$(wildcard $(SRC_PATH)/audio/*.cpp) \
+					$(wildcard $(SRC_PATH)/avs/*.cpp)
 
 OBJS			:= $(SRCCPPS:%.cpp=$(OUTPUT)/%.o)
 
@@ -83,7 +85,9 @@ CINCLUDE 		:= 	-I$(FRT_PATH) \
 					-I$(SRC_PATH)/config/json \
 					-I$(SRC_PATH)/option_helper \
 					-I$(SRC_PATH)/utils \
+					-I$(SRC_PATH)/subfunc/eocw \
 					-I$(SRC_PATH)/utils/yuv \
+					-I$(SRC_PATH)/avs \
 					-I$(3RD_PATH)/inc/appweb \
 					-I$(3RD_PATH)/inc \
 					-I$(3RD_PATH)/inc/live/BasicUsageEnvironment \
@@ -163,6 +167,7 @@ CLIB			+= -lax_audio
 CLIB			+= -lax_audio_3a
 CLIB			+= -lax_dsp -lpthread -lax_dsp_cv
 CLIB			+= -lax_avs -lax_avscali
+CLIB            += -lax_dmadim
 
 ifeq ($(FONT_USE_FREETYPE),yes)
 CLIB			+= -L$(3RD_PATH)/lib -l:libfreetype.a

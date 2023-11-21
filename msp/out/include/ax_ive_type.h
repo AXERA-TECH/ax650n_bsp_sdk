@@ -174,7 +174,18 @@ typedef enum axIVE_ERR_CODE_E {
 
 } AX_IVE_ERR_CODE_E;
 
+/* MAU error code */
+typedef enum axIVE_MAU_ERR_CODE_E {
+    AX_ERR_MAU_CREATE_HANDLE_ERROR = 0x3,   /* Create handle error */
+    AX_ERR_MAU_DESTROY_HANDLE_ERROR = 0x4,  /* Destory handle error */
+    AX_ERR_MAU_MATMUL_ERROR = 0x5,          /* Matrix multiplication operation error */
+    AX_ERR_MAU_DRIVER_ERROR = 0x6,          /* MAU driver error */
+    AX_ERR_MAU_TILE_ERROR  = 0x7,           /* Tile error, only for NPU engine */
+
+} AX_IVE_MAU_ERR_CODE_E;
+
 #define AX_ID_IVE_SMOD  0x00
+#define AX_ID_MAU_SMOD  0x01
 /************************************************IVE error code ***********************************/
 /* Invalid device ID */
 #define AX_ERR_IVE_INVALID_DEVID AX_DEF_ERR(AX_ID_IVE, AX_ID_IVE_SMOD, AX_ERR_INVALID_MODID)
@@ -223,6 +234,20 @@ without deregistering it. */
 #define AX_ERR_IVE_QUERY_TIMEOUT AX_DEF_ERR(AX_ID_IVE, AX_ID_IVE_SMOD, AX_ERR_IVE_QUERY_TIMEOUT)
 /* IVE Bus error: */
 #define AX_ERR_IVE_BUS_ERR AX_DEF_ERR(AX_ID_IVE, AX_ID_IVE_SMOD, AX_ERR_IVE_BUS_ERR)
+/* IVE unknow error: */
+#define AX_ERR_IVE_UNKNOWN AX_DEF_ERR(AX_ID_IVE, AX_ID_IVE_SMOD, AX_ERR_UNKNOWN)
+
+/* Create handle error: */
+#define AX_ERR_IVE_MAU_CREATE_HANDLE AX_DEF_ERR(AX_ID_IVE, AX_ID_MAU_SMOD, AX_ERR_MAU_CREATE_HANDLE_ERROR)
+/* Destory handle error: */
+#define AX_ERR_IVE_MAU_DESTROY_HANDLE AX_DEF_ERR(AX_ID_IVE, AX_ID_MAU_SMOD, AX_ERR_MAU_DESTROY_HANDLE_ERROR)
+/* Matrix multiplication operation error: */
+#define AX_ERR_IVE_MAU_MATMUL AX_DEF_ERR(AX_ID_IVE, AX_ID_MAU_SMOD, AX_ERR_MAU_MATMUL_ERROR)
+/* MAU driver error: */
+#define AX_ERR_IVE_MAU_DRIVER AX_DEF_ERR(AX_ID_IVE, AX_ID_MAU_SMOD, AX_ERR_MAU_DRIVER_ERROR)
+/* Tile error, only for NPU engine: */
+#define AX_ERR_IVE_MAU_TILE AX_DEF_ERR(AX_ID_IVE, AX_ID_MAU_SMOD, AX_ERR_MAU_TILE_ERROR)
+
 
 /*
 * DMA mode
@@ -501,15 +526,26 @@ typedef struct axIVE_CROP_RESIZE_CTRL_T {
 } AX_IVE_CROP_RESIZE_CTRL_T;
 
 /*
-* NPU MAU data structure
+* MAU and NPU data structure
 */
 
+/*
+* MatMul handle
+*/
+typedef AX_VOID *AX_IVE_MATMUL_HANDLE;
+
+/*
+* MAU engine id
+*/
 typedef enum axIVE_MAU_ID_E {
     AX_IVE_MAU_ID_0 = 0,
 
     AX_IVE_MAU_ID_BUTT
 } AX_IVE_MAU_ID_E;
 
+/*
+* MAU order
+*/
 typedef enum axIVE_MAU_ORDER_E {
     AX_IVE_MAU_ORDER_ASCEND  = 0,
     AX_IVE_MAU_ORDER_DESCEND = 1,
@@ -517,6 +553,9 @@ typedef enum axIVE_MAU_ORDER_E {
     AX_IVE_MAU_ORDER_BUTT
 } AX_IVE_MAU_ORDER_E;
 
+/*
+* Data type for matrix manipulation
+*/
 typedef enum axIVE_MAU_DATA_TYPE_E {
     AX_IVE_MAU_DT_UNKNOWN  = 0,
     AX_IVE_MAU_DT_UINT8    = 1,
@@ -535,6 +574,18 @@ typedef enum axIVE_MAU_DATA_TYPE_E {
     AX_IVE_MAU_DT_BUTT
 } AX_IVE_MAU_DATA_TYPE_E;
 
+/*
+* MatMul control parameter for NPU engine
+*/
+typedef struct axIVE_NPU_MATMUL_CTRL_T {
+    AX_CHAR *pchModelDir;
+    AX_IVE_MAU_DATA_TYPE_E enDataType;
+    AX_S32 s32KSize;
+} AX_IVE_NPU_MATMUL_CTRL_T;
+
+/*
+* MatMul control parameter for MAU engine
+*/
 typedef struct axIVE_MAU_MATMUL_CTRL_T {
     AX_IVE_MAU_ID_E enMauId;
     AX_S32 s32DdrReadBandwidthLimit;
@@ -544,6 +595,9 @@ typedef struct axIVE_MAU_MATMUL_CTRL_T {
     AX_S32 s32TopN;
 } AX_IVE_MAU_MATMUL_CTRL_T;
 
+/*
+* Blob data(tensor) for matrix manipulation
+*/
 typedef struct axIVE_MAU_BLOB_T {
     AX_U64 u64PhyAddr;
     AX_VOID *pVirAddr;
@@ -552,14 +606,20 @@ typedef struct axIVE_MAU_BLOB_T {
     AX_IVE_MAU_DATA_TYPE_E enDataType;
 } AX_IVE_MAU_BLOB_T;
 
+/*
+* Input data for MatMul
+*/
 typedef struct axIVE_MAU_MATMUL_INPUT_T {
     AX_IVE_MAU_BLOB_T stMatQ;
     AX_IVE_MAU_BLOB_T stMatB;
 } AX_IVE_MAU_MATMUL_INPUT_T;
 
+/*
+* Output data for MatMul
+*/
 typedef struct axIVE_MAU_MATMUL_OUTPUT_T {
     AX_IVE_MAU_BLOB_T stMulRes;
-    AX_IVE_MAU_BLOB_T stTopNRes;
+    AX_IVE_MAU_BLOB_T stTopNRes; /* NPU engine no need */
 } AX_IVE_MAU_MATMUL_OUTPUT_T;
 
 #ifdef __cplusplus

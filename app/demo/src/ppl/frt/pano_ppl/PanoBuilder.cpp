@@ -35,7 +35,8 @@
 #include "WebServer.h"
 #include "ax_engine_api.h"
 #include "ax_venc_api.h"
-#include "PanoAVSOptionHelper.h"
+#include "AvsOptionHelper.h"
+#include "SensorOptionHelper.h"
 
 using namespace AX_PANO;
 
@@ -45,6 +46,7 @@ using namespace AX_PANO;
 #endif
 
 #define PPL "PANO_PPL"
+#define APP_VIN_STITCH_GRP (0)
 
 #ifndef SLT
 namespace {
@@ -56,11 +58,9 @@ AX_VOID AudioPlayCallback(AX_APP_AUDIO_CHAN_E eChan, const AX_APP_AUDIO_PLAY_FIL
 }  // namespace
 #endif
 
-CPanoBuilder* CPanoBuilder::pPanoBuilder;
-
 AX_BOOL CPanoBuilder::Construct(AX_VOID) {
     LOG_MM(PPL, "+++");
-    pPanoBuilder = this;
+
     /* Step-1: Global initialization */
     if (AX_FALSE == InitSysMods()) {
         return AX_FALSE;
@@ -89,51 +89,51 @@ AX_BOOL CPanoBuilder::Construct(AX_VOID) {
         return AX_FALSE;
     }
 
-    /*Step-5: Ivps initialize */
+    /*Step-5: AVS initialize, make sure init before ivps*/
+    if (AX_FALSE == InitAvs()) {
+        LOG_MM_E(PPL, "Initailize AVS failed.");
+        return AX_FALSE;
+    }
+
+    /*Step-6: Ivps initialize, make sure init after avs */
     if (AX_FALSE == InitIvps()) {
         LOG_MM_E(PPL, "Initailize Ivps failed.");
         return AX_FALSE;
     }
 
-    /*Step-6: venc initialize */
+    /*Step-7: venc initialize */
     if (AX_FALSE == InitVenc()) {
         LOG_MM_E(PPL, "Initailize Venc failed.");
         return AX_FALSE;
     }
 
-    /*Step-7: jenc initialize */
+    /*Step-8: jenc initialize */
     if (AX_FALSE == InitJenc()) {
         LOG_MM_E(PPL, "Initailize Jenc failed.");
         return AX_FALSE;
     }
 
-    /*Step-8: capture initialize */
+    /*Step-9: capture initialize */
     if (AX_FALSE == InitCapture()) {
         LOG_MM_E(PPL, "Initailize capture failed.");
         return AX_FALSE;
     }
 
-    /*Step-9: collector initialize */
+    /*Step-10: collector initialize */
     if (AX_FALSE == InitCollector()) {
         LOG_MM_E(PPL, "Initailize Ivps failed.");
         return AX_FALSE;
     }
 
-    /*Step-10: detector initialize */
+    /*Step-11: detector initialize */
     if (AX_FALSE == InitDetector()) {
         LOG_MM_E(PPL, "Initailize detector failed.");
         return AX_FALSE;
     }
 
-    /*Step-11: ives initialize */
+    /*Step-12: ives initialize */
     if (AX_FALSE == InitIves()) {
         LOG_MM_E(PPL, "Initailize ives failed.");
-        return AX_FALSE;
-    }
-
-    /*Step-12: Initialize AVS*/
-    if (AX_FALSE == InitAVS()) {
-        LOG_MM_E(PPL, "Initailize AVS failed.");
         return AX_FALSE;
     }
 
@@ -213,7 +213,7 @@ AX_BOOL CPanoBuilder::InitSensor() {
         tCamera.bCaptureEnable = AX_TRUE;
         tCamera.bSnsModeEnable = AX_FALSE;
         tCamera.bPNModeEnable = (nScenario == E_PPL_SCENRIO_0 ? AX_TRUE : AX_FALSE);
-        tCamera.bMirrorFlipEnable = AX_TRUE;
+        tCamera.bMirrorFlipEnable = AX_FALSE;
         tCamera.bRotationEnable = AX_FALSE;
         tCamera.bLdcEnable = AX_TRUE;
         CWebOptionHelper::GetInstance()->InitCameraAttr(nSnsID, tSnsConfig.eSensorType, tCamera);
@@ -262,41 +262,43 @@ AX_BOOL CPanoBuilder::InitIvps() {
             IVPS_GROUP_CFG_T* pConfig = pIvpsInstance->GetGrpCfg();
 
             if (E_PPL_MOD_TYPE_AVS == tRelation.tSrcModChn.eModType) {
-                AX_APP_AVS_CFG_T stAVSCfg = APP_AVS_ATTR();
+                AX_APP_AVS_RESOLUTION_T stAvsResolution = m_avs.GetAvsResolution();
+                CBaseSensor* pSensor = m_mgrSensor.GetSnsInstance(0);
+                AX_U8 nPipeID = pSensor->GetSnsConfig().arrPipeAttr->nPipeID;
+                AX_F32 fFrameRate = pSensor->GetPipeAttr(nPipeID).tFrameRateCtrl.fDstFrameRate;
                 AX_U8 nOutChannels = tIvpsGrpCfg.nGrpChnNum;
+
+                if (-1 == pConfig->arrGrpResolution[0]) {
+                    pConfig->arrGrpResolution[0] = stAvsResolution.u32Width;
+                }
+
+                if (-1 == pConfig->arrGrpResolution[1]) {
+                    pConfig->arrGrpResolution[1] = stAvsResolution.u32Height;
+                }
+
+                if (-1 == pConfig->arrGrpFramerate[0]) {
+                    pConfig->arrGrpFramerate[0] = fFrameRate;
+                }
+
+                if (-1 == pConfig->arrGrpFramerate[1]) {
+                    pConfig->arrGrpFramerate[1] = fFrameRate;
+                }
+
                 for (AX_U8 j = 0; j < nOutChannels; j++) {
-                    AX_S32 nSnsID = tRelation.tSrcModChn.nGroup;
-                    if (-1 == pConfig->arrGrpResolution[0]) {
-                        pConfig->arrGrpResolution[0] = stAVSCfg.arrGrpResolution[0];
-                    }
-                    pConfig->nSnsSrc = nSnsID;
-
-                    if (-1 == pConfig->arrGrpResolution[1]) {
-                        pConfig->arrGrpResolution[1] = stAVSCfg.arrGrpResolution[1];
-                    }
-
                     if (-1 == pConfig->arrChnResolution[j][0]) {
-                        pConfig->arrChnResolution[j][0] = stAVSCfg.arrChnResolution[0];
+                        pConfig->arrChnResolution[j][0] = stAvsResolution.u32Width;
                     }
 
                     if (-1 == pConfig->arrChnResolution[j][1]) {
-                        pConfig->arrChnResolution[j][1] = stAVSCfg.arrChnResolution[1];
-                    }
-
-                    if (-1 == pConfig->arrGrpFramerate[0]) {
-                        pConfig->arrGrpFramerate[0] = stAVSCfg.arrGrpFrameRate[0];
-                    }
-
-                    if (-1 == pConfig->arrGrpFramerate[1]) {
-                        pConfig->arrGrpFramerate[1] = stAVSCfg.arrGrpFrameRate[1];
+                        pConfig->arrChnResolution[j][1] = stAvsResolution.u32Height;
                     }
 
                     if (-1 == pConfig->arrChnFramerate[j][0]) {
-                        pConfig->arrChnFramerate[j][0] = stAVSCfg.arrChnFrameRate[0];
+                        pConfig->arrChnFramerate[j][0] = pConfig->arrGrpFramerate[0];
                     }
 
                     if (-1 == pConfig->arrChnFramerate[j][1]) {
-                        pConfig->arrChnFramerate[j][1] = stAVSCfg.arrChnFrameRate[1];
+                        pConfig->arrChnFramerate[j][1] = pConfig->arrGrpFramerate[1];
                     }
                 }
             } else if (E_PPL_MOD_TYPE_VIN == tRelation.tSrcModChn.eModType) {
@@ -815,34 +817,92 @@ AX_BOOL CPanoBuilder::InitVo() {
     return AX_TRUE;
 }
 
-AX_BOOL CPanoBuilder::InitAVS(AX_VOID) {
-    PANO_AVS_ATTR_T stPanoAVSAttr;
-    AX_APP_AVS_CFG_T cfg = APP_AVS_ATTR();
-    stPanoAVSAttr.u8PipeNum = APP_AVS_PIPE_NUM();
-    stPanoAVSAttr.bSyncPipe = (AX_BOOL)APP_AVS_IS_SYNC_PIPE();
-    stPanoAVSAttr.enMode = (AX_AVS_MODE_E)APP_AVS_MODE();
-    stPanoAVSAttr.enBlendMode = (AX_AVS_BLEND_MODE_E)APP_AVS_BLEND_MODE();
-    stPanoAVSAttr.enParamType = (PANO_AVS_PARAM_TYPE_E)APP_AVS_PARAM_TYPE();
-    stPanoAVSAttr.bDynamicSeam =  APP_AVS_IS_DYNAMIC_SEAM();
-    stPanoAVSAttr.strParamFilePath = APP_AVS_PARAM_FILE_PATH();
-    stPanoAVSAttr.pCaliDone = &CPanoBuilder::CalibrateDone;
-    stPanoAVSAttr.u8CaliEnable = cfg.u8CaliEnable;
-    for (AX_S32 i = 0; i < AX_AVS_PIPE_NUM; i++) {
-        stPanoAVSAttr.arrPipeId[i] = cfg.arrPipeId[i];
-        stPanoAVSAttr.arrChnId[i] = cfg.arrChnId[i];
-        stPanoAVSAttr.arrPipeResolution[i][0] = cfg.arrPipeResolution[i][0];
-        stPanoAVSAttr.arrPipeResolution[i][1] = cfg.arrPipeResolution[i][1];
-    }
-    stPanoAVSAttr.u8MasterPipeId = cfg.u8MasterPipeId;
-    stPanoAVSAttr.strCaliServerIP = cfg.strCaliServerIP;
-    stPanoAVSAttr.u16CaliServerPort = cfg.u16CaliServerPort;
+AX_BOOL CPanoBuilder::InitAvs(AX_VOID) {
+    AX_APP_AVS_ATTR_T stAvsAttr;
+    AX_APP_AVS_CFG_T stAVSCfg = APP_AVS_ATTR();
 
-    LOG_M_D(PPL, "u8PipeNum=%d, bSyncPipe=%d, enMode=%d, enBlendMode=%d, enParamType=%d, bDynamicSeam=%d, filePath=%s", stPanoAVSAttr.u8PipeNum,\
-            stPanoAVSAttr.bSyncPipe,stPanoAVSAttr.enMode,stPanoAVSAttr.enBlendMode,stPanoAVSAttr.enParamType,stPanoAVSAttr.bDynamicSeam,stPanoAVSAttr.strParamFilePath.c_str());
-    if(!m_avs.Init(stPanoAVSAttr)) {
+    stAvsAttr.bSyncPipe = (AX_BOOL)APP_AVS_IS_SYNC_PIPE();
+    stAvsAttr.enMode = (AX_AVS_MODE_E)APP_AVS_MODE();
+    stAvsAttr.enBlendMode = (AX_AVS_BLEND_MODE_E)APP_AVS_BLEND_MODE();
+    stAvsAttr.enParamType = (AX_APP_AVS_PARAM_TYPE_E)APP_AVS_PARAM_TYPE();
+    stAvsAttr.bDynamicSeam =  APP_AVS_IS_DYNAMIC_SEAM();
+    stAvsAttr.enProjectionType = APP_AVS_PROJECTION_TYPE();
+    stAvsAttr.stAvsCompress = stAVSCfg.stAvsCompress;
+    stAvsAttr.u8CaliEnable = stAVSCfg.u8CaliEnable;
+
+    string strCaliDataPath = APP_AVS_PARAM_FILE_PATH();
+    AX_U16 nPathLen = strCaliDataPath.length() > (AX_AVSCALI_MAX_PATH_LEN - 1) ? (AX_AVSCALI_MAX_PATH_LEN - 1) : strCaliDataPath.length();
+    memcpy((void *)stAvsAttr.tCaliInitParam.strCaliDataPath, strCaliDataPath.c_str(), nPathLen);
+    stAvsAttr.tCaliInitParam.tCallbacks.CaliDoneCb = &CPanoBuilder::CalibrateDone;
+    stAvsAttr.tCaliInitParam.pPrivData = (AX_VOID *)this;
+
+    AX_U32 nISPchn = 0;
+    PPL_MOD_INFO_T tDstMod = {E_PPL_MOD_TYPE_AVS, 0, 0};
+    vector<PPL_MOD_RELATIONSHIP_T> vecRelations;
+    if (!GetRelationsByDstMod(tDstMod, vecRelations, AX_TRUE)) {
+        LOG_MM_W(PPL, "Can not find relation for dest module: (Module:%s, Grp:%d, Chn:%d)", ModType2String(tDstMod.eModType).c_str(),
+                    tDstMod.nGroup, tDstMod.nChannel);
+    }
+
+    if (vecRelations.size() > 0) {
+        nISPchn = vecRelations[0].tSrcModChn.nChannel;
+    } else {
+        LOG_MM_W(PPL, "Can not find relation, set nISPchn to 0 by default.");
+    }
+
+    AX_U8 nAVSPipeNum = (vecRelations.size() >= AX_AVS_PIPE_NUM) ? AX_AVS_PIPE_NUM : vecRelations.size();
+    LOG_M_D(PPL, "nAVSPipeNum: %d", nAVSPipeNum);
+
+    stAvsAttr.tCaliInitParam.tSnsInfo.nSnsNum = stAvsAttr.u8PipeNum = nAVSPipeNum;
+
+    for (auto& relation : vecRelations) {
+        if ((AX_U32)relation.tDstModChn.nChannel < nAVSPipeNum) {
+            stAvsAttr.tCaliInitParam.tSnsInfo.arrPipeId[relation.tDstModChn.nChannel] = relation.tSrcModChn.nGroup;
+        } else {
+            LOG_MM_E(PPL, "Invalid linked avs channel: %d", relation.tDstModChn.nChannel);
+        }
+    }
+
+    CBaseSensor* pSensor = m_mgrSensor.GetSnsInstance(0);
+    AX_U8 nPipeID = pSensor->GetSnsConfig().arrPipeAttr->nPipeID;
+    stAvsAttr.tCaliInitParam.tSnsInfo.nImgWidth  = pSensor->GetChnAttr(nPipeID, nISPchn).nWidth;
+    stAvsAttr.tCaliInitParam.tSnsInfo.nImgHeight = pSensor->GetChnAttr(nPipeID, nISPchn).nHeight;
+    stAvsAttr.tCaliInitParam.tSnsInfo.nChn       = nISPchn;
+
+    for (AX_U8 j = 0; j < nAVSPipeNum; j++) {
+        SENSOR_CONFIG_T tSnsCfg = m_mgrSensor.GetSnsInstance(j)->GetSnsConfig();
+        if (AX_SNS_SYNC_MASTER == tSnsCfg.nMasterSlaveSel) {
+            stAvsAttr.tCaliInitParam.tSnsInfo.nMasterPipeId = tSnsCfg.arrPipeAttr->nPipeID;
+        }
+    }
+
+    LOG_M_D(PPL, "AVS in img size(%d, %d), Isp chn id: %d, master pipe id: %d, arrPipeId[0]: %d, arrPipeId[1]: %d",
+                 stAvsAttr.tCaliInitParam.tSnsInfo.nImgWidth, stAvsAttr.tCaliInitParam.tSnsInfo.nImgHeight,
+                 stAvsAttr.tCaliInitParam.tSnsInfo.nChn, stAvsAttr.tCaliInitParam.tSnsInfo.nMasterPipeId,
+                 stAvsAttr.tCaliInitParam.tSnsInfo.arrPipeId[0],stAvsAttr.tCaliInitParam.tSnsInfo.arrPipeId[1]);
+
+    stAvsAttr.strCaliServerIP = stAVSCfg.strCaliServerIP;
+    stAvsAttr.u16CaliServerPort = stAVSCfg.u16CaliServerPort;
+
+    LOG_M_I(PPL, "u8PipeNum=%d, bSyncPipe=%d, enMode=%d, enBlendMode=%d, enParamType=%d, bDynamicSeam=%d, enProjectionType=%d, avs param path: %s, compress(%d, %d)",
+            stAvsAttr.u8PipeNum, stAvsAttr.bSyncPipe,stAvsAttr.enMode,stAvsAttr.enBlendMode,stAvsAttr.enParamType,
+            stAvsAttr.bDynamicSeam, stAvsAttr.enProjectionType, stAvsAttr.tCaliInitParam.strCaliDataPath,
+            stAvsAttr.stAvsCompress.enCompressMode, stAvsAttr.stAvsCompress.u32CompressLevel);
+
+    if(!m_avs.Init(stAvsAttr)) {
         LOG_M_E(PPL, "avs initializes failed!");
         return  AX_FALSE;
     }
+
+    AX_AVSCALI_3A_SYNC_RATIO_T t3ASyncRatio{0};
+    m_avs.Get3ASyncRatio(t3ASyncRatio);
+    m_mgrSensor.SetAeSyncRatio(t3ASyncRatio.tAESyncRatio);
+    m_mgrSensor.SetAwbSyncRatio(t3ASyncRatio.tAWBSyncRatio);
+
+    SNS_TYPE_E eSnsType = m_mgrSensor.GetSnsInstance(0)->GetSnsConfig().eSensorType;
+    CWebOptionHelper::GetInstance()->SetRes2ResOption(eSnsType, 0, 0,
+                                                      m_avs.GetAvsResolution().u32Width,
+                                                      m_avs.GetAvsResolution().u32Height);
 
     return AX_TRUE;
 }
@@ -1001,6 +1061,12 @@ AX_BOOL CPanoBuilder::Start(AX_VOID) {
         }
     }
 
+    for (auto& pInstance : m_vecCollectorInstance) {
+        if (!pInstance->Start()) {
+            return AX_FALSE;
+        }
+    }
+
     if (!m_detector.Start()) {
         return AX_FALSE;
     }
@@ -1043,8 +1109,7 @@ AX_BOOL CPanoBuilder::Start(AX_VOID) {
     }
 
     if (AX_FALSE == m_avs.Start()) {
-        LOG_MM_E(PPL, "Start avs failed.");
-        return AX_FALSE;
+        LOG_MM_W(PPL, "Start avs failed.");
     }
 
     if (AX_FALSE == m_mgrSensor.Start()) {
@@ -1067,6 +1132,12 @@ AX_BOOL CPanoBuilder::Start(AX_VOID) {
 
     CPrintHelper::GetInstance()->Start();
     PostStartProcess();
+
+    if (AX_FALSE == m_avs.StartAVSCalibrate()) {
+        LOG_MM_E(PPL, "Start AVS calibrate failed.");
+        return AX_FALSE;
+    }
+
     LOG_MM(PPL, "---");
 
     return AX_TRUE;
@@ -1114,6 +1185,12 @@ AX_BOOL CPanoBuilder::Stop(AX_VOID) {
     }
 
     for (auto& pInstance : m_vecJencInstance) {
+        if (!pInstance->Stop()) {
+            return AX_FALSE;
+        }
+    }
+
+    for (auto& pInstance : m_vecCollectorInstance) {
         if (!pInstance->Stop()) {
             return AX_FALSE;
         }
@@ -1195,6 +1272,14 @@ AX_BOOL CPanoBuilder::Destroy(AX_VOID) {
     AX_APP_Audio_Deinit();
 #endif
 
+    for (auto& pInstance : m_vecCollectorInstance) {
+        if (!pInstance->DeInit()) {
+            return AX_FALSE;
+        }
+        SAFE_DELETE_PTR(pInstance);
+        pInstance = nullptr;
+    }
+
     if (!m_detector.DeInit()) {
         return AX_FALSE;
     }
@@ -1221,6 +1306,12 @@ AX_BOOL CPanoBuilder::Destroy(AX_VOID) {
 }
 
 AX_BOOL CPanoBuilder::ProcessWebOprs(WEB_REQUEST_TYPE_E eReqType, const AX_VOID* pJsonReq, AX_VOID** pResult /*= nullptr*/) {
+    std::unique_lock<std::mutex> lck(m_mtxWebOpr, std::defer_lock);
+    if (!lck.try_lock()) {
+        LOG_MM_E(PPL, "Web Operation is processing.");
+        return AX_FALSE;
+    }
+
     m_vecWebOpr.clear();
     if (!CWebOptionHelper::GetInstance()->ParseWebRequest(eReqType, pJsonReq, m_vecWebOpr)) {
         LOG_MM_E(PPL, "Parse web request failed ITS.");
@@ -1465,9 +1556,12 @@ AX_BOOL CPanoBuilder::DispatchOpr(WEB_REQ_OPERATION_T& tOperation, AX_VOID** pRe
             break;
         }
         case E_WEB_OPERATION_TYPE_DAYNIGHT: {
-            CBaseSensor* pSensor = m_mgrSensor.GetSnsInstance(tOperation.nSnsID);
-            if (nullptr != pSensor) {
-                ret = pSensor->ChangeDaynightMode((AX_DAYNIGHT_MODE_E)tOperation.tDaynight.nDayNightMode);
+            AX_U32 nSensorCount = m_mgrSensor.GetSensorCount();
+            for (AX_U32 i = 0; i < nSensorCount; i++) {
+                CBaseSensor* pSensor = m_mgrSensor.GetSnsInstance(i);
+                if (nullptr != pSensor) {
+                    ret = pSensor->ChangeDaynightMode((AX_DAYNIGHT_MODE_E)tOperation.tDaynight.nDayNightMode);
+                }
             }
             break;
         }
@@ -1552,7 +1646,9 @@ AX_BOOL CPanoBuilder::DispatchOpr(WEB_REQ_OPERATION_T& tOperation, AX_VOID** pRe
 
             for (auto& pInstance : m_vecIvpsInstance) {
                 if (pInstance->GetGrpCfg()->nSnsSrc == tOperation.nSnsID) {
-                    pInstance->GetOsdHelper()->EnableAiRegion(tOperation.tAiEnable.bOn);
+                    if (pInstance->GetOsdHelper()) {
+                        pInstance->GetOsdHelper()->EnableAiRegion(tOperation.tAiEnable.bOn);
+                    }
                 }
             }
             break;
@@ -1705,6 +1801,10 @@ AX_BOOL CPanoBuilder::DispatchOpr(WEB_REQ_OPERATION_T& tOperation, AX_VOID** pRe
             ret = AX_TRUE;
             break;
         }
+        case E_WEB_OPERATION_TYPE_SWITCH_3A_SYNCRATIO: {
+            m_mgrSensor.Enable3ASyncRatio(tOperation.b3ASyncRationOn);
+            break;
+        }
 
         default:
             LOG_MM_E(PPL, "eReqType:%d is nonsupport.", eOperaType);
@@ -1745,9 +1845,14 @@ AX_BOOL CPanoBuilder::ProcessTestSuiteOpers(WEB_REQ_OPERATION_T& tOperation) {
     return DispatchOpr(tOperation, nullptr);
 }
 
-AX_VOID CPanoBuilder::CalibrateDone(AX_S32 s32Result, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* pSyncRatio) {
+AX_VOID CPanoBuilder::CalibrateDone(AX_S32 s32Result, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* pSyncRatio, AX_VOID* pPrivData) {
     if (AX_SUCCESS != s32Result) {
         LOG_M_E(PPL, "AVS calibration failure, s32Result 0x%x", s32Result);
+        return;
+    }
+
+    if (nullptr == pPrivData) {
+        LOG_M_E(PPL, "Error, pPrivData in null!");
         return;
     }
 
@@ -1757,6 +1862,8 @@ AX_VOID CPanoBuilder::CalibrateDone(AX_S32 s32Result, AX_AVSCALI_AVS_PARAMS_T* p
         return;
     }
 
+    CPanoBuilder* pPanoBuilder = (CPanoBuilder *)pPrivData;
+
     pPanoBuilder->m_avs.SetCaliDataPath(strCaliDataPath);
 
     pPanoBuilder->m_avs.Stop();
@@ -1764,27 +1871,30 @@ AX_VOID CPanoBuilder::CalibrateDone(AX_S32 s32Result, AX_AVSCALI_AVS_PARAMS_T* p
     pPanoBuilder->m_avs.LoadParam();
     pPanoBuilder->m_avs.UpdateParam();
 
-    PANO_AVS_RESOLUTION_T stAVSChnReso = pPanoBuilder->m_avs.GetCaliReso();
+    AX_APP_AVS_RESOLUTION_T stAvsResolution = pPanoBuilder->m_avs.GetAvsResolution();
 
-    /* TODO:Change group's resolution of IVPS & channel's resolution of VENC */
+    vector<int> vecIvpsGrp;
     vector<PPL_MOD_RELATIONSHIP_T> vecRelations;
     PPL_MOD_INFO_T tSrcMod = {E_PPL_MOD_TYPE_AVS, 0, 0};
-    if(!pPanoBuilder->GetRelationsBySrcMod(tSrcMod, vecRelations, AX_TRUE)){
+    if (!pPanoBuilder->GetRelationsBySrcMod(tSrcMod, vecRelations, AX_TRUE)){
         LOG_MM_E(PPL, "GetRelationsBySrcMod failed");
         return;
     }
 
+    LOG_M_D(PPL, "Calibration completed, width = %d, height = %d", stAvsResolution.u32Width, stAvsResolution.u32Height);
+
     for (auto e : vecRelations) {
         if (e.Valid()) {
             if (e.tDstModChn.eModType == E_PPL_MOD_TYPE_IVPS) {
+                vecIvpsGrp.push_back(e.tDstModChn.nGroup);
                 IVPS_GROUP_CFG_T* pConfig = pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->GetGrpCfg();
-                pConfig->arrGrpResolution[0] = stAVSChnReso.u32Width;
-                pConfig->arrGrpResolution[1] = stAVSChnReso.u32Height;
-                pConfig->arrChnResolution[0][0] = stAVSChnReso.u32Width;
-                pConfig->arrChnResolution[0][1] = stAVSChnReso.u32Height;
+                pConfig->arrGrpResolution[0] = stAvsResolution.u32Width;
+                pConfig->arrGrpResolution[1] = stAvsResolution.u32Height;
+                pConfig->arrChnResolution[0][0] = stAvsResolution.u32Width;
+                pConfig->arrChnResolution[0][1] = stAvsResolution.u32Height;
                 if (2 <= pConfig->nGrpChnNum) {
-                    pConfig->arrChnResolution[1][0] = stAVSChnReso.u32Width;
-                    pConfig->arrChnResolution[1][1] = stAVSChnReso.u32Height;
+                    pConfig->arrChnResolution[1][0] = stAvsResolution.u32Width;
+                    pConfig->arrChnResolution[1][1] = stAvsResolution.u32Height;
                 }
 
                 if (!pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->InitParams()) {
@@ -1793,18 +1903,104 @@ AX_VOID CPanoBuilder::CalibrateDone(AX_S32 s32Result, AX_AVSCALI_AVS_PARAMS_T* p
                 }
 
                 IVPS_GRP_T* pIVPSGrp = pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->GetGrpPPLAttr();
-
                 if (AX_IVPS_SetPipelineAttr(e.tDstModChn.nGroup, &pIVPSGrp->tPipelineAttr)) {
                     LOG_MM_E(PPL, "AX_IVPS_GetPipelineAttr failed");
                     return;
+                }
+
+                AX_U8 nUpdateChnNum =  (pConfig->nGrpChnNum >= 2) ? 2 : 1; // Ref to ppl to check which chn of ivps grp need update resolution
+                for (AX_U8 i = 0; i < nUpdateChnNum; i++) {
+                    pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->EnableChannel(i, AX_FALSE);
+                    pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->UpdateChnResolution(i, stAvsResolution.u32Width, stAvsResolution.u32Height);
+                    pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->RefreshOSDByResChange();
+                    pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->EnableChannel(i, AX_TRUE);
+
+                    vector<PPL_MOD_RELATIONSHIP_T> vecRelations1;
+                    tSrcMod = {E_PPL_MOD_TYPE_IVPS, e.tDstModChn.nGroup, i};
+                    if (!pPanoBuilder->GetRelationsBySrcMod(tSrcMod, vecRelations1, AX_FALSE)){
+                        LOG_MM_E(PPL, "GetRelationsBySrcMod(%d, %d, %d) failed", E_PPL_MOD_TYPE_IVPS, e.tDstModChn.nGroup, i);
+                        return;
+                    }
+                    for (auto e : vecRelations1) {
+                        if (e.Valid()) {
+                            if (e.tDstModChn.eModType == E_PPL_MOD_TYPE_IVPS) {
+                                pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->EnableChannel(e.tDstModChn.nChannel, AX_FALSE);
+                                pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->UpdateChnResolution(e.tDstModChn.nChannel, stAvsResolution.u32Width, stAvsResolution.u32Height);
+                                pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->RefreshOSDByResChange();
+                                pPanoBuilder->m_vecIvpsInstance[e.tDstModChn.nGroup]->EnableChannel(e.tDstModChn.nChannel, AX_TRUE);
+
+                                vector<PPL_MOD_RELATIONSHIP_T> vecRelationsVenc;
+                                tSrcMod = {E_PPL_MOD_TYPE_IVPS, e.tDstModChn.nGroup, e.tDstModChn.nChannel};
+                                if (!pPanoBuilder->GetRelationsBySrcMod(tSrcMod, vecRelationsVenc, AX_FALSE)){
+                                    LOG_MM_E(PPL, "GetRelationsBySrcMod(%d, %d, %d) failed", E_PPL_MOD_TYPE_IVPS, e.tDstModChn.nGroup, e.tDstModChn.nChannel);
+                                    return;
+                                }
+
+                                for (auto e : vecRelationsVenc) {
+                                    if (e.Valid()) {
+                                        if (e.tDstModChn.eModType == E_PPL_MOD_TYPE_VENC || e.tDstModChn.eModType == E_PPL_MOD_TYPE_JENC) {
+                                            AX_VOID* pEncoder = nullptr;
+                                            AX_BOOL bIsJpeg = AX_FALSE;
+                                            if (!pPanoBuilder->GetEncoder(&pEncoder, &bIsJpeg, e.tDstModChn.nChannel)) {
+                                                continue;
+                                            }
+                                            pPanoBuilder->UpdateEncoderResolution(pEncoder, bIsJpeg, tSrcMod.nGroup, tSrcMod.nChannel);
+                                        }
+                                    }
+                                }
+                            } else if (e.tDstModChn.eModType == E_PPL_MOD_TYPE_COLLECT) {
+                                COLLECTOR_ATTR_T* pCollConfig = pPanoBuilder->m_vecCollectorInstance[e.tDstModChn.nGroup]->GetCollectorCfg();
+                                pCollConfig->nWidth = stAvsResolution.u32Width;
+                                pCollConfig->nHeight = stAvsResolution.u32Height;
+                                LOG_MM_I(PPL, "update collect width:%d, height:%d", pCollConfig->nWidth, pCollConfig->nHeight);
+
+                                vector<PPL_MOD_RELATIONSHIP_T> vecRelationsCollect;
+                                tSrcMod = {E_PPL_MOD_TYPE_COLLECT, e.tDstModChn.nGroup, 0};
+                                if (!pPanoBuilder->GetRelationsBySrcMod(tSrcMod, vecRelationsCollect, AX_FALSE)) {
+                                    LOG_MM_E(PPL, "GetRelationsBySrcMod(%d, %d, 0) failed", E_PPL_MOD_TYPE_COLLECT, e.tDstModChn.nGroup);
+                                    return;
+                                }
+
+                                for (auto& e : vecRelationsCollect) {
+                                    if (e.Valid()) {
+                                        if (!e.bLink) {
+                                            if (E_PPL_MOD_TYPE_DETECT == e.tDstModChn.eModType) {
+                                                if (!pPanoBuilder->m_vecDetectorObs.empty()) {
+                                                    pPanoBuilder->m_vecCollectorInstance[e.tSrcModChn.nGroup]->UnregObserver(pPanoBuilder->m_vecDetectorObs[pPanoBuilder->m_vecDetectorObs.size() - 1].get());
+                                                    pPanoBuilder->m_vecCollectorInstance[e.tSrcModChn.nGroup]->RegObserver(pPanoBuilder->m_vecDetectorObs[pPanoBuilder->m_vecDetectorObs.size() - 1].get());
+                                                    CWebOptionHelper::GetInstance()->InitAiAttr(pPanoBuilder->m_vecCollectorInstance[e.tSrcModChn.nGroup]->GetGroup());
+                                                }
+                                            }
+
+                                            if (E_PPL_MOD_TYPE_CAPTURE == e.tDstModChn.eModType) {
+                                                pPanoBuilder->m_vecCollectorInstance[e.tSrcModChn.nGroup]->UnregObserver(pPanoBuilder->m_vecCaptureObs[pPanoBuilder->m_vecCaptureObs.size() - 1].get());
+                                                pPanoBuilder->m_vecCollectorInstance[e.tSrcModChn.nGroup]->RegObserver(pPanoBuilder->m_vecCaptureObs[pPanoBuilder->m_vecCaptureObs.size() - 1].get());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-    pPanoBuilder->m_avs.Start();
+    SNS_TYPE_E eSnsType = pPanoBuilder->m_mgrSensor.GetSnsInstance(0)->GetSnsConfig().eSensorType;
+    CWebOptionHelper::GetInstance()->SetRes2ResOption(eSnsType, 0, 0,
+                                                      stAvsResolution.u32Width,
+                                                      stAvsResolution.u32Height);
+    CWebOptionHelper::GetInstance()->GetSns2VideoAttr()[0][0].nWidth = stAvsResolution.u32Width;
+    CWebOptionHelper::GetInstance()->GetSns2VideoAttr()[0][0].nHeight = stAvsResolution.u32Height;
 
+    pPanoBuilder->m_avs.Start();
     pPanoBuilder->m_avs.SetCaliDataPath("");
+
+    WEB_EVENTS_DATA_T event;
+    event.eType = E_WEB_EVENTS_TYPE_ReStartPreview;
+    event.nReserved = 0;
+    CWebServer::GetInstance()->SendEventsData(&event);
 }
 
 AX_VOID CPanoBuilder::SortOperations(vector<WEB_REQ_OPERATION_T>& vecWebRequests) {
@@ -1816,11 +2012,12 @@ AX_BOOL CPanoBuilder::InitSysMods(AX_VOID) {
     LOG_MM(PPL, "+++");
 
     m_arrMods.clear();
+    m_arrMods.push_back({AX_FALSE, "LOG", bind(&CPanoBuilder::APP_LOG_Init, this), bind(&CPanoBuilder::APP_LOG_DeInit, this)});
     m_arrMods.push_back({AX_FALSE, "SYS", bind(&CPanoBuilder::APP_SYS_Init, this), bind(&CPanoBuilder::APP_SYS_DeInit, this)});
     m_arrMods.push_back({AX_FALSE, "VENC", bind(&CPanoBuilder::APP_VENC_Init, this), bind(&CPanoBuilder::APP_VENC_DeInit, this)});
     m_arrMods.push_back({AX_FALSE, "NPU", bind(&CPanoBuilder::APP_NPU_Init, this), bind(&CPanoBuilder::APP_NPU_DeInit, this)});
-    m_arrMods.push_back({AX_FALSE, "LOG", bind(&CPanoBuilder::APP_LOG_Init, this), bind(&CPanoBuilder::APP_LOG_DeInit, this)});
     m_arrMods.push_back({AX_FALSE, "VIN", AX_VIN_Init, AX_VIN_Deinit});
+    m_arrMods.push_back({AX_FALSE, "VIN_Stitch", bind(&CPanoBuilder::APP_VIN_Stitch_Attr_Init, this), bind(&CPanoBuilder::APP_VIN_Stitch_Attr_DeInit, this)});
     m_arrMods.push_back({AX_FALSE, "MIPI_RX", AX_MIPI_RX_Init, AX_MIPI_RX_DeInit});
     m_arrMods.push_back({AX_FALSE, "IVPS", AX_IVPS_Init, AX_IVPS_Deinit});
     m_arrMods.push_back({AX_FALSE, "ACAP", bind(&CPanoBuilder::APP_ACAP_Init, this), bind(&CPanoBuilder::APP_ACAP_DeInit, this)});
@@ -1892,6 +2089,8 @@ AX_S32 CPanoBuilder::APP_SYS_Init() {
         return nRet;
     }
 
+    AX_APP_Log_SetSysModuleInited(AX_TRUE);
+
     nRet = AX_POOL_Exit();
     if (0 != nRet) {
         return nRet;
@@ -1907,6 +2106,8 @@ AX_S32 CPanoBuilder::APP_SYS_DeInit() {
     if (0 != nRet) {
         return nRet;
     }
+
+    AX_APP_Log_SetSysModuleInited(AX_FALSE);
 
     nRet = AX_SYS_Deinit();
     if (0 != nRet) {
@@ -2083,4 +2284,102 @@ AX_S32 CPanoBuilder::APP_APLAY_DeInit() {
     }
 
     return AX_SUCCESS;
+}
+
+AX_S32 CPanoBuilder::APP_VIN_Stitch_Attr_Init() {
+    AX_S32 nRet = AX_SUCCESS;
+    AX_VIN_STITCH_GRP_ATTR_T tVinStitchAttr{0};
+
+    AX_U32 nSensorCount = APP_SENSOR_COUNT();
+    // only one pipe for each sensor, so pipe number equal to sensor number
+    tVinStitchAttr.nPipeNum = (nSensorCount >= AX_VIN_STITCH_MAX_PIPE_NUM) ? AX_VIN_STITCH_MAX_PIPE_NUM : nSensorCount;
+    LOG_M_D(PPL, "nPipeNum: %d, nSensorCount: %d", tVinStitchAttr.nPipeNum, nSensorCount);
+
+    SENSOR_CONFIG_T tSnsCfg;
+    for (AX_U32 i = 0; i < tVinStitchAttr.nPipeNum; i++) {
+        if (!APP_SENSOR_CONFIG(i, tSnsCfg)) {
+            LOG_M_E(PPL, "Failed to get sensor config %d", i);
+            return -1;
+        }
+
+        // only one pipe for each sensor
+        tVinStitchAttr.tPipeStitch[i].nPipeId = tSnsCfg.arrPipeAttr[0].nPipeID;
+        if (AX_SNS_SYNC_MASTER == tSnsCfg.nMasterSlaveSel) {
+            tVinStitchAttr.tPipeStitch[i].nMasterFlag = 1;
+        }
+
+        LOG_M_D(PPL, "sns[%d] nPipeId: %d, nMasterFlag: %d",
+                      i,
+                      tVinStitchAttr.tPipeStitch[i].nPipeId,
+                      tVinStitchAttr.tPipeStitch[i].nMasterFlag);
+    }
+
+    tVinStitchAttr.bStitch = 1;
+    nRet = AX_VIN_SetStitchGrpAttr(APP_VIN_STITCH_GRP, &tVinStitchAttr);
+    if (AX_SUCCESS != nRet) {
+        LOG_MM_E(PPL, "AX_VIN_SetStitchGrpAttr fail, ret:0x%x", nRet);
+    }
+
+    return nRet;
+}
+
+AX_S32 CPanoBuilder::APP_VIN_Stitch_Attr_DeInit() {
+    return AX_SUCCESS;
+}
+
+AX_BOOL CPanoBuilder::GetEncoder(AX_VOID **ppEncoder, AX_BOOL *pIsJenc, AX_S32 encoderChn) {
+    if (nullptr == ppEncoder) {
+        LOG_M_E(PPL, "ppEncoder is null.");
+        return AX_FALSE;
+    }
+
+    *pIsJenc = AX_FALSE;
+
+    for (auto jencIns : m_vecJencInstance) {
+        if (jencIns->GetChnCfg()->nChannel == encoderChn) {
+            *ppEncoder = (AX_VOID *)jencIns;
+            *pIsJenc = AX_TRUE;
+            return AX_TRUE;
+        }
+    }
+
+    for (auto vencIns : m_vecVencInstance) {
+        if (vencIns->GetChnCfg()->nChannel == encoderChn) {
+            *ppEncoder = (AX_VOID *)vencIns;
+            return AX_TRUE;
+        }
+    }
+
+    *ppEncoder = nullptr;
+    return AX_FALSE;
+}
+
+AX_VOID CPanoBuilder::UpdateEncoderResolution(AX_VOID *pEncoder, AX_BOOL bJenc, AX_S32 nSrcGrp, AX_S32 srcChn) {
+    if (nullptr == pEncoder) {
+        LOG_M_E(PPL, "pEncoder is null.");
+        return;
+    }
+
+    if (bJenc) {
+        CJpegEncoder *pJenc = (CJpegEncoder *)pEncoder;
+        JPEG_CONFIG_T* pConfig = pJenc->GetChnCfg();
+        UpdateEncoderResolution((CJpegEncoder *)pEncoder, (JPEG_CONFIG_T *)pConfig, nSrcGrp, srcChn);
+    } else {
+        CVideoEncoder *pVenc = (CVideoEncoder *)pEncoder;
+        VIDEO_CONFIG_T* pConfig = pVenc->GetChnCfg();
+        UpdateEncoderResolution((CVideoEncoder *)pEncoder, (VIDEO_CONFIG_T *)pConfig, nSrcGrp, srcChn);
+    }
+}
+
+template<typename T1, typename T2>
+AX_VOID CPanoBuilder::UpdateEncoderResolution(T1* pEncoder, T2* pConfig, AX_S32 nSrcGrp, AX_S32 srcChn) {
+    AX_APP_AVS_RESOLUTION_T stAvsResolution = m_avs.GetAvsResolution();
+    pConfig->nWidth = stAvsResolution.u32Width;
+    pConfig->nHeight = stAvsResolution.u32Height;
+    m_vecIvpsInstance[nSrcGrp]->EnableChannel(srcChn, AX_FALSE);
+    pEncoder->StopRecv();
+    pEncoder->ResetChn();
+    pEncoder->UpdateChnResolution(*pConfig);
+    pEncoder->StartRecv();
+    m_vecIvpsInstance[nSrcGrp]->EnableChannel(srcChn, AX_TRUE);
 }

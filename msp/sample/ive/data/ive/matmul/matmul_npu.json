@@ -1,0 +1,9 @@
+{
+    "data_type": 5,
+    "k_size": 256,
+    "model_dir":"/opt/data/ive/matmul/matmul_models/",
+    "type_in": 5,
+    "type_mul_res": 3,
+    "q_shape": [256, 256],
+    "b_shape": [1e4, 256]
+}

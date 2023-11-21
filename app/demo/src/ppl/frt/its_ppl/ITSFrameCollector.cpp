@@ -38,7 +38,7 @@ AX_BOOL CFrameCollector::Stop() {
  * @brief Receive two pipes of VIN yuv frames and dispatch to multiple destinations directly.
  */
 AX_BOOL CFrameCollector::RecvFrame(AX_U8 nSrcGroup, AX_U8 nSrcChannel, CAXFrame* pFrame) {
-    m_mtxFrame.lock();
+    std::unique_lock<std::mutex> lock(m_mtxFrame);
     if (nullptr == pFrame) {
         return AX_FALSE;
     }
@@ -57,8 +57,6 @@ AX_BOOL CFrameCollector::RecvFrame(AX_U8 nSrcGroup, AX_U8 nSrcChannel, CAXFrame*
     pFrame->IncFrmRef();
     NotifyAll(pFrame);
     pFrame->FreeMem();
-
-    m_mtxFrame.unlock();
 
     return AX_TRUE;
 }
@@ -96,10 +94,6 @@ AX_VOID CFrameCollector::UnregObserver(IObserver* pObserver) {
 }
 
 AX_VOID CFrameCollector::NotifyAll(AX_VOID* pFrame) {
-    if (nullptr == pFrame) {
-        return;
-    }
-
     for (vector<IObserver*>::iterator it = m_vecObserver.begin(); it != m_vecObserver.end(); it++) {
         ((CAXFrame*)pFrame)->IncFrmRef();
         (*it)->OnRecvData(E_OBS_TARGET_TYPE_COLLECT, m_nGroup, 0, pFrame);

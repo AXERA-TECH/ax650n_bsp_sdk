@@ -2,7 +2,7 @@
 
 ## What is this?
 
-this is a ax650 linux bsp sdk form AX650_SDK_V1.40.0_P1. currently it is application layer open source.
+this is a ax650 linux bsp sdk form AX650_SDK_V1.45.0_P1. currently it is application layer open source.
 
 ## How to compile
 
@@ -23,8 +23,8 @@ cd ax650n_bsp_sdk
 
 Download the third-party zip file and decompress it into third-party dir
 
-- [百度网盘](https://pan.baidu.com/s/1f0PdMkHXF9lmOWMO9wMgVw?pwd=vlud)
-- [GoogleDrive](https://drive.google.com/file/d/1c1UhwuQji3I3rD7O7HViwf6tbtqEKNoV/view?usp=sharing)
+- [百度网盘](https://pan.baidu.com/s/1Oegs6C7ZzeFoVq_JgFMNDQ?pwd=3dcm)
+- [GoogleDrive](https://drive.google.com/file/d/1CmkKm_84uu2zLUj-qwQcnyLeBdbS1nsG/view?usp=sharing)
 
 ```
 $ tree -L 2

@@ -35,7 +35,7 @@ AX_VOID COS04a10::InitSnsAttr() {
 
 AX_VOID COS04a10::InitSnsClkAttr() {
     /* Referenced by AX_VIN_OpenSnsClk */
-    m_tSnsClkAttr.nSnsClkIdx = 1;
+    m_tSnsClkAttr.nSnsClkIdx = m_tSnsCfg.nClkID;
     m_tSnsClkAttr.eSnsClkRate = AX_SNS_CLK_24M;
 }
 
@@ -85,6 +85,7 @@ AX_VOID COS04a10::InitPipeAttr() {
     for (AX_U8 i = 0; i < m_tSnsCfg.nPipeCount; i++) {
         AX_U8 nPipe = m_tSnsCfg.arrPipeAttr[i].nPipeID;
         AX_VIN_PIPE_ATTR_T tPipeAttr;
+        memset(&tPipeAttr, 0, sizeof(AX_VIN_PIPE_ATTR_T));
         tPipeAttr.tPipeImgRgn = {0, 0, 2688, 1520};
         tPipeAttr.eBayerPattern = AX_BP_RGGB;
         tPipeAttr.ePixelFmt = m_tDevAttr.ePixelFmt;

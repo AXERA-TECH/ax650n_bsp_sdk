@@ -51,6 +51,8 @@ typedef enum _AX_ISP_PARAM_ID {
     AX_ISP_PARAM_AICE,
     AX_ISP_PARAM_SCENE,
     AX_ISP_PARAM_LDC,
+    AX_ISP_PARAM_DIS,
+    AX_ISP_PARAM_ME,
 } AX_ISP_PARAM_ID;
 
 typedef struct _ax_isp_iq_param_t {

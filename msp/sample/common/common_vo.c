@@ -524,16 +524,18 @@ AX_S32 SAMPLE_COMM_VO_StartVO(SAMPLE_VO_CONFIG_S *pstVoConf)
         }
     }
 
-    pstCursorLayerConf = &pstVoConf->stCursorLayer;
-    if (pstCursorLayerConf->u32CursorLayerEn) {
-        s32Ret = AX_VO_BindGraphicLayer(pstCursorLayerConf->u32FBIndex, pstCursorLayerConf->bindVoDev);
-        if (s32Ret) {
-            SAMPLE_PRT("failed with %#x!, GraphicLayer:%d, VoDev:%d\n", s32Ret, pstCursorLayerConf->u32FBIndex,
+    for (i = 0; i < pstVoConf->u32LayerNr; i++) {
+        pstCursorLayerConf = &pstVoConf->stCursorLayer[i];
+        if (pstCursorLayerConf->u32CursorLayerEn) {
+            s32Ret = AX_VO_BindGraphicLayer(pstCursorLayerConf->u32FBIndex, pstCursorLayerConf->bindVoDev);
+            if (s32Ret) {
+                SAMPLE_PRT("failed with %#x!, GraphicLayer:%d, VoDev:%d\n", s32Ret, pstCursorLayerConf->u32FBIndex,
                        pstCursorLayerConf->bindVoDev);
-            goto exit;
-        }
+                goto exit;
+            }
 
-        pstCursorLayerConf->s32InitFlag = 1;
+            pstCursorLayerConf->s32InitFlag = 1;
+        }
     }
 
 exit:
@@ -577,9 +579,11 @@ AX_S32 SAMPLE_COMM_VO_StopVO(SAMPLE_VO_CONFIG_S *pstVoConf)
         return -1;
     }
 
-    pstCursorLayerConf = &pstVoConf->stCursorLayer;
-    if (pstCursorLayerConf->u32CursorLayerEn && pstCursorLayerConf->s32InitFlag)
-        AX_VO_UnBindGraphicLayer(pstCursorLayerConf->u32FBIndex, pstCursorLayerConf->bindVoDev);
+    for (i = 0; i < pstVoConf->u32LayerNr; i++) {
+        pstCursorLayerConf = &pstVoConf->stCursorLayer[i];
+        if (pstCursorLayerConf->u32CursorLayerEn && pstCursorLayerConf->s32InitFlag)
+            AX_VO_UnBindGraphicLayer(pstCursorLayerConf->u32FBIndex, pstCursorLayerConf->bindVoDev);
+    }
 
     for (i = 0; i < SAMPLE_VO_DEV_MAX; i++) {
         pstGraphicConf = &pstVoConf->stGraphicLayer[i];

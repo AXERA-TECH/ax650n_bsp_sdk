@@ -301,15 +301,15 @@ AX_S32 os08a20_cfg_aec_param(ISP_PIPE_ID nPipeId)
     sns_obj->ae_ctrl_param.sns_ae_limit.fMaxRatio = OS08A20_MAX_RATIO;
 
     if (IS_LINEAR_MODE(sns_obj->sns_mode_obj.eHDRMode)) {
-        sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMinIntegrationTime[HDR_LONG_FRAME_IDX] = 1;
+        sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMinIntegrationTime[HDR_LONG_FRAME_IDX] = 2;
         sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMaxIntegrationTime[HDR_LONG_FRAME_IDX] = sns_os08a20params[nPipeId].vts - 8;
         sns_obj->ae_ctrl_param.sns_ae_param.nIntegrationTimeIncrement[HDR_LONG_FRAME_IDX] = 1;
     } else if (IS_2DOL_HDR_MODE(sns_obj->sns_mode_obj.eHDRMode)) {
-        sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMinIntegrationTime[HDR_LONG_FRAME_IDX] = 1;
+        sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMinIntegrationTime[HDR_LONG_FRAME_IDX] = 2;
         sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMaxIntegrationTime[HDR_LONG_FRAME_IDX] = sns_os08a20params[nPipeId].vts - 8;
         sns_obj->ae_ctrl_param.sns_ae_param.nIntegrationTimeIncrement[HDR_LONG_FRAME_IDX] = 1;
 
-        sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMinIntegrationTime[HDR_MEDIUM_FRAME_IDX] = 1;
+        sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMinIntegrationTime[HDR_MEDIUM_FRAME_IDX] = 2;
         sns_obj->ae_ctrl_param.sns_ae_limit.tIntTimeRange.nMaxIntegrationTime[HDR_MEDIUM_FRAME_IDX] = sns_os08a20params[nPipeId].vts - 8;
         sns_obj->ae_ctrl_param.sns_ae_param.nIntegrationTimeIncrement[HDR_MEDIUM_FRAME_IDX] = 1;
     } else {

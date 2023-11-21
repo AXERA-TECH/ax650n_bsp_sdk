@@ -44,12 +44,21 @@ public:
 
     AX_VOID Log(AX_S32 nLv, const AX_CHAR *pStr) override {
 #ifndef __X86__
-        AX_SYS_LogPrint_Ex(nLv, m_szAppName, 0, "%s", pStr);
+        if (m_bSysModuleInited) {
+            AX_SYS_LogPrint_Ex(nLv, m_szAppName, AX_ID_USER, "%s", pStr);
+        } else {
+            fprintf(stdout, "%s", pStr);
+        }
 #endif
     };
 
     AX_VOID Close(AX_VOID) override{};
 
+    AX_VOID SetSysModuleInited(AX_BOOL bInited) {
+        m_bSysModuleInited = bInited;
+    };
+
 private:
     AX_CHAR m_szAppName[MAX_APP_NAME_LEN]{"APP"};
+    AX_BOOL m_bSysModuleInited{AX_FALSE};
 };

@@ -29,16 +29,6 @@
 
 #include <xtensa/xtruntime.h>
 
-#ifndef EDGE_ALIGNED_64
-typedef enum {
-    TILE_UNALIGNED,
-    EDGE_ALIGNED_32,
-    DATA_ALIGNED_32,
-    EDGE_ALIGNED_64,
-    DATA_ALIGNED_64,
-} buffer_align_type_t;
-#endif
-
 /* Input/Output dimensions     */
 #define IMAGE_W    512
 #define IMAGE_H    512

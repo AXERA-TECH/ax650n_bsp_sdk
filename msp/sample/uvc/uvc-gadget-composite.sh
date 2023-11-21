@@ -20,13 +20,14 @@ USB3_NAME=usb3
 usb_acm_dev_controller=${USB2_NAME}_acm
 acm_UDC=${CONFIGFS}/usb_gadget/${usb_acm_dev_controller}/UDC
 
-if [ $# -ne 4 ]; then
+if [ $# -ne 5 ]; then
     echo "usage:"
-    echo "$0 start|stop usb2|usb3 1|2 0|1"
+    echo "$0 start|stop usb2|usb3 1|2 0|1 0|1"
     echo "param 1: command start or stop"
     echo "param 2: usb2 or usb3 is supported"
     echo "param 3: uvc device count, support 2 devices at maximum"
     echo "param 4: 0: os08a20 sensor, 1: dummy sensor"
+    echo "param 5: 0: iso mode, 1: bulk mode"
     exit 1
 fi
 
@@ -37,7 +38,7 @@ uvc_num=${3}
 sensor_type=${4}
 
 # 0: iso mode, 1: bulk mode.
-#bulk_mode=${5}
+bulk_mode=${5}
 
 if [ "start" != ${1} -a "stop" != ${1} ]; then
     echo " command start or stop is supported"
@@ -59,7 +60,6 @@ if [ 1 -lt ${sensor_type} -o 0 -gt ${sensor_type} ]; then
     exit 1
 fi
 
-<< EOF
 if [ 1 -lt ${bulk_mode} -o 0 -gt ${bulk_mode} ]; then
     echo "bulk_mode is out of range, 0,1 are supported"
     exit 1
@@ -68,7 +68,6 @@ fi
 if [ 1 -eq ${bulk_mode} ]; then
     PACKET_SIZE=1024
 fi
-EOF
 
 case $BOARD in
     "ax650-demo")
@@ -277,21 +276,20 @@ EOF
         echo 2 > functions/$FUNCTION/streaming_mult
     fi
 
-<< EOF
     # set bulk mode
     if [ 1 -eq ${bulk_mode} ]; then
         echo 1 > functions/$FUNCTION/streaming_bulk
     else
         echo 0 > functions/$FUNCTION/streaming_bulk
     fi
-EOF
+
     echo 64 > functions/$FUNCTION/uvc_num_request
     uvc_num_request=$(cat functions/$FUNCTION/uvc_num_request)
     mult=$(cat functions/$FUNCTION/streaming_mult)
     burst=$(cat functions/$FUNCTION/streaming_maxburst)
     interval=$(cat functions/$FUNCTION/streaming_interval)
-#    bulk=$(cat functions/$FUNCTION/streaming_bulk)
-    echo "	$FUNCTION: maxpacketsize:$MAXPACKETSIZE, mult:$mult , burst:$burst, interval:$interval, uvc_num_request:$uvc_num_request "
+    bulk=$(cat functions/$FUNCTION/streaming_bulk)
+    echo "	$FUNCTION: maxpacketsize:$MAXPACKETSIZE, mult:$mult , burst:$burst, interval:$interval, uvc_num_request:$uvc_num_request, stream_bulk:$bulk "
 
     ln -s functions/$FUNCTION $CONFIG
 }

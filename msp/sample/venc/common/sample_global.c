@@ -84,12 +84,16 @@ AX_VOID SAMPLE_VENC_PrintNaluInfo(AX_S32 VeChn, AX_VENC_STREAM_T *pstStream)
     for (AX_S32 naluIdx = 0; naluIdx < pstStream->stPack.u32NaluNum; naluIdx++) {
         if (PT_H264 == pstStream->stPack.enType) {
             SAMPLE_LOG_DEBUG(
-                "VencChn %d: nalu idx=%d, nalu type=(%s).\n", VeChn, naluIdx,
-                SAMPLE_VENC_H264NaluType(VeChn, pstStream->stPack.stNaluInfo[naluIdx].unNaluType.enH264EType));
+                "VencChn %d: nalu idx=%d, nalu type=(%s), size=%d, offset=%d.\n", VeChn, naluIdx,
+                SAMPLE_VENC_H264NaluType(VeChn, pstStream->stPack.stNaluInfo[naluIdx].unNaluType.enH264EType),
+                pstStream->stPack.stNaluInfo[naluIdx].u32NaluLength,
+                pstStream->stPack.stNaluInfo[naluIdx].u32NaluOffset);
         } else if (PT_H265 == pstStream->stPack.enType) {
             SAMPLE_LOG_DEBUG(
-                "VencChn %d: nalu idx=%d, nalu type=(%s).\n", VeChn, naluIdx,
-                SAMPLE_VENC_H265NaluType(VeChn, pstStream->stPack.stNaluInfo[naluIdx].unNaluType.enH265EType));
+                "VencChn %d: nalu idx=%d, nalu type=(%s), size=%d, offset=%d.\n", VeChn, naluIdx,
+                SAMPLE_VENC_H265NaluType(VeChn, pstStream->stPack.stNaluInfo[naluIdx].unNaluType.enH265EType),
+                pstStream->stPack.stNaluInfo[naluIdx].u32NaluLength,
+                pstStream->stPack.stNaluInfo[naluIdx].u32NaluOffset);
         }
     }
 

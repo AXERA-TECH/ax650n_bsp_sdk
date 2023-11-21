@@ -83,6 +83,19 @@ typedef struct {
 } AX_ISP_3A_AWB_DOMINANT_T;
 
 typedef struct {
+    AX_U32 nGainR;    /* Accuracy:U4.8 Range:[256, 4095] */
+    AX_U32 nGainGr;   /* Accuracy:U4.8 Range:[256, 4095] */
+    AX_U32 nGainGb;   /* Accuracy:U4.8 Range:[256, 4095] */
+    AX_U32 nGainB;    /* Accuracy:U4.8 Range:[256, 4095] */
+} AX_ISP_IQ_AWB_GAIN_T;
+
+typedef struct {
+    AX_ISP_IQ_AWB_GAIN_T tGains;
+    AX_U32               nDampRatio;       /* Accuracy:U1.20 Range:[0, 1048576 (1024*1024)] */
+    AX_U8                nFrameSkipping;   /* Accuracy:U8 Range:[0, 255] */
+}AX_ISP_IQ_AWB_AUTO_START_T;
+
+typedef struct {
     /* Gray Zone Common Info */
     AX_ISP_IQ_AWB_PNT_T tCenterPnt;
     AX_U32 nCenterPntRadius;    /* Accuracy:U4.20 Range:[0, 16777215 (16*1024*1024)] */
@@ -121,6 +134,9 @@ typedef struct {
 
 
     /*   Tuning Params  */
+
+    /*Auto Initialization Parameters */
+    AX_ISP_IQ_AWB_AUTO_START_T tInitParam;
 
     /* Common Settings */
     AX_U8  nMode;                /* Accuracy:U6    Range:[0, 2] INVALID=0, MANUAL=1, AUTO=2 */
@@ -275,13 +291,6 @@ typedef struct {
 } AX_ISP_IQ_AWB_ALG_STATUS_T;
 
 typedef struct {
-    AX_U32 nGainR;    /* Accuracy:U4.8 Range:[256, 4095] */
-    AX_U32 nGainGr;   /* Accuracy:U4.8 Range:[256, 4095] */
-    AX_U32 nGainGb;   /* Accuracy:U4.8 Range:[256, 4095] */
-    AX_U32 nGainB;    /* Accuracy:U4.8 Range:[256, 4095] */
-} AX_ISP_IQ_AWB_GAIN_T;
-
-typedef struct {
     AX_CHAR szName[AX_ISP_AWB_ILLUM_NAME_LEN_MAX];
     AX_U32  nColorTemperature; /* Accuracy:U32 Range:[0, 15000] */
     AX_S32  nGreenShift;       /* Accuracy:S4.20 Range:[-16777215, 16777215 (16*1024*1024)] */
@@ -310,6 +319,10 @@ typedef struct {
     AX_ISP_IQ_AWB_ALG_STATUS_T tAlgoStatus;
 } AX_ISP_IQ_AWB_STATUS_T;
 
+typedef struct {
+    AX_U32       nRGainRatio;             /* Accuracy:U4.20 Range:[0, 16777215 (16*1024*1024)] */
+    AX_U32       nBGainRatio;             /* Accuracy:U4.20 Range:[0, 16777215 (16*1024*1024)] */
+} AX_ISP_IQ_AWB_SYNC_RATIO_T;
 ////////////////////////////////////////////////////////////////////////////////////
 //  AE ALG Param
 ////////////////////////////////////////////////////////////////////////////////////
@@ -515,6 +528,8 @@ typedef struct
     AX_ISP_AE_OVEREXP_COMP_LUT_T tOverExpCompLut;
 } AX_ISP_IQ_AE_SLEEP_WAKEUP_PARAM_T;
 
+#define AX_ISP_AE_PRECHARGE_MAX_NUM (15)
+
 typedef struct {
     AX_U32 nSetPoint;            /* Accuracy: U8.10  Range: [0x0, 0x3FC00] */
     AX_U32 nTolerance;           /* Accuracy: U7.20  Range: [0x0, 0x6400000] */
@@ -523,6 +538,10 @@ typedef struct {
     AX_U32 nAgainLcg2HcgRatio;   /* Accuracy: U10.10 Range: [0x400, 0x2800] */
     AX_U32 nAgainHcg2LcgRatio;   /* Accuracy: U10.10 Range: [0x400, 0x2800] */
     AX_U32 nLuxk;                /* Accuracy: U24    Range: [0x0, 0x989680] */
+
+    AX_U32 nCompensationMode;    /* Accuracy: U8     Range: [0x0, 0x2] 0:Again compensatory; 1:Dgain compensatory; 2:Isp Dgain compensatory*/
+    AX_U8  nPreChargeSize;       /* Accuracy: U8     Range: [0x0, 0xF]  */
+    AX_U32 nPreCharge[AX_ISP_AE_PRECHARGE_MAX_NUM];           /*Accuracy: U8.10  Range: [0x0, 0x3FC00] */
 
     AX_U32 nMaxIspGain;          /* Accuracy:U22.10 Range:[tIspDgainLimit.nMin, tIspDgainLimit.nMax] */
     AX_U32 nMinIspGain;          /* Accuracy:U22.10 Range:[tIspDgainLimit.nMin, tIspDgainLimit.nMax] */
@@ -555,7 +574,7 @@ typedef struct {
     AX_ISP_IQ_AE_ROUTE_PARAM_T    tAeRouteParam;
     AX_ISP_IQ_AE_SETPOINT_CURVE_T tAeSetPointCurve;
     AX_ISP_IQ_AE_HDR_RATIO_T      tAeHdrRatio;
-    AX_U32 nMultiCamSyncMode;  /* 0: INDEPEND MODE; 1: MASTER SLAVE MODE; 2: SPLIT HDR MODE */
+    AX_U32 nMultiCamSyncMode;  /* 0: INDEPEND MODE; 1: MASTER SLAVE MODE; 2: SPLIT HDR MODE; 3: SPLICE MODE  */
     AX_U32 nMultiCamSyncRatio; /* Accuracy: U7.20  Range: [0x0, 0x8000000] */
     AX_ISP_IQ_AE_SLOW_SHUTTER_PARAM_T tSlowShutterParam;
     AX_ISP_IQ_AE_IRIS_PARAMS_T  tIrisParam;
@@ -672,6 +691,9 @@ typedef struct {
     AX_U32 nLumaList[AX_ISP_AE_NOISE_LEVEL_MAX_NUM];    /* Accuracy: U8.10  Range: [0x0, 0x3FC00]  */
 } AX_ISP_IQ_NOISE_LEVEL_CALIB_INPUT_T;
 
+typedef struct {
+    AX_U32 nAeSyncRatio;                             /* Accuracy:U4.20 Range:[0, 16777215 (16*1024*1024)] */
+} AX_ISP_IQ_AE_SYNC_RATIO_T;
 ////////////////////////////////////////////////////////////////////////////////////
 //  AF ALG Param
 ////////////////////////////////////////////////////////////////////////////////////

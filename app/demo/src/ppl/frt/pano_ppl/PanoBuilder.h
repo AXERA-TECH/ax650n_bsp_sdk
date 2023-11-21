@@ -23,7 +23,7 @@
 #include "Mpeg4Encoder.h"
 #include "PoolConfig.h"
 #include "VideoEncoder.h"
-#include "PanoAVS.h"
+#include "Avs.h"
 
 namespace AX_PANO {
 
@@ -42,8 +42,7 @@ public:
     virtual AX_BOOL ProcessWebOprs(WEB_REQUEST_TYPE_E eReqType, const AX_VOID* pJsonReq, AX_VOID** pResult = nullptr) override;
     virtual AX_BOOL ProcessTestSuiteOpers(WEB_REQ_OPERATION_T& tOperation) override;
 
-    static AX_VOID CalibrateDone(AX_S32 result, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* pSyncRatio);
-    static CPanoBuilder* pPanoBuilder;
+    static AX_VOID CalibrateDone(AX_S32 result, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* pSyncRatio, AX_VOID* pPrivData);
 protected:
     virtual AX_BOOL InitSysMods(AX_VOID);
     virtual AX_BOOL DeInitSysMods(AX_VOID);
@@ -60,6 +59,8 @@ protected:
     virtual AX_S32 APP_ACAP_DeInit(AX_VOID);
     virtual AX_S32 APP_APLAY_Init(AX_VOID);
     virtual AX_S32 APP_APLAY_DeInit(AX_VOID);
+    virtual AX_S32 APP_VIN_Stitch_Attr_Init();
+    virtual AX_S32 APP_VIN_Stitch_Attr_DeInit();
 
 private:
     AX_BOOL InitAudio();
@@ -72,7 +73,7 @@ private:
     AX_BOOL InitIves();
     AX_BOOL InitCapture();
     AX_BOOL InitVo();
-    AX_BOOL InitAVS(AX_VOID);
+    AX_BOOL InitAvs(AX_VOID);
     AX_BOOL InitPoolConfig();
     AX_BOOL GetRelationsBySrcMod(PPL_MOD_INFO_T& tSrcMod, vector<PPL_MOD_RELATIONSHIP_T>& vecOutRelations,
                                  AX_BOOL bIgnoreChn = AX_FALSE) const;
@@ -84,6 +85,12 @@ private:
     AX_VOID SortOperations(vector<WEB_REQ_OPERATION_T>& vecWebRequests);
     AX_VOID PostStartProcess(AX_VOID);
 
+    AX_BOOL GetEncoder(AX_VOID **ppEncoder, AX_BOOL *pIsJenc, AX_S32 encoderChn);
+    AX_VOID UpdateEncoderResolution(AX_VOID *pEncoder, AX_BOOL bJenc, AX_S32 nSrcGrp, AX_S32 srcChn);
+
+    template<typename T1, typename T2>
+    AX_VOID UpdateEncoderResolution(T1* pEncoder, T2* pConfig, AX_S32 nSrcGrp, AX_S32 srcChn);
+
 public:
     CSensorMgr m_mgrSensor;
     vector<CIVPSGrpStage*> m_vecIvpsInstance;
@@ -94,7 +101,7 @@ public:
     vector<CMPEG4Encoder*> m_vecMpeg4Instance;
     CDetector m_detector;
     CCapture m_capture;
-    CPanoAVS m_avs;
+    CAvs m_avs;
 
     std::vector<std::unique_ptr<IObserver>> m_vecRtspObs;
     std::vector<std::unique_ptr<IObserver>> m_vecWebObs;
@@ -109,6 +116,7 @@ public:
     CLinkage m_linkage;
     CPoolConfig* m_pPoolConfig{nullptr};
     vector<WEB_REQ_OPERATION_T> m_vecWebOpr;
+    std::mutex m_mtxWebOpr;
 
 private:
     typedef struct {

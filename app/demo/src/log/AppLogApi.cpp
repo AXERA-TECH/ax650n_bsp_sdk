@@ -29,6 +29,10 @@ AX_VOID AX_APP_SetLogLevel(AX_S32 nLv) {
     logger.SetLogLevel(nLv);
 }
 
+AX_VOID AX_APP_Log_SetSysModuleInited(AX_BOOL bInited) {
+    logger.SetSysModuleInited(bInited);
+}
+
 AX_VOID AX_APP_LogFmtStr(AX_S32 nLv, const AX_CHAR *pFmt, ...) {
     va_list args;
     va_start(args, pFmt);

@@ -5,7 +5,7 @@ LIBS_PATH		:= $(TOPDIR)libs
 KERNEL_DIR		:= linux-5.15.73
 UBOOT_DIR               := u-boot-2020.04
 ATF_DIR                 := arm-trusted-firmware
-OPTEE_DIR               := optee_os-3.5.0
+OPTEE_DIR               := optee_os-3.21.0
 
 CROSS	:= aarch64-none-linux-gnu-
 CC	= $(CROSS)gcc

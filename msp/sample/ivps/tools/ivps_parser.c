@@ -594,6 +594,10 @@ int IVPS_ArgsParser(int argc, char *argv[], IVPS_ARG_T *ptArg)
     signal(SIGINT, SigInt);
     signal(SIGTSTP, SigStop);
 
+    if (argc < 2) {
+        isExit = AX_TRUE;
+    }
+
     while ((c = getopt_long(argc, argv, "v:a:g:x:s:c:p:t:n:h:r:l:", long_options, &option_index)) != -1)
     {
         isExit = AX_FALSE;

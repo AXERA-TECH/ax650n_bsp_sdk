@@ -15,6 +15,14 @@
 #include "IPPLBuilder.h"
 #include "ISensor.hpp"
 
+typedef enum {
+    E_WEB_SHOW_SENSOR_MODE_SINGLE = 0,
+    E_WEB_SHOW_SENSOR_MODE_DUAL,
+    E_WEB_SHOW_SENSOR_MODE_PANO_SINGLE,
+    E_WEB_SHOW_SENSOR_MODE_PANO_DUAL,
+    E_WEB_SHOW_SENSOR_MODE_MAX
+} WEB_SHOW_SENSOR_MODE_E;
+
 #define APP_SENSOR_CONFIG(nSnsIndex, tOutConfig) \
         CSensorOptionHelper::GetInstance()->GetSensorConfig(nSnsIndex, tOutConfig)
 #define APP_SENSOR_COUNT() \
@@ -25,10 +33,16 @@
             CSensorOptionHelper::GetInstance()->SetSensorCount(_Count_)
 #define SET_APP_CURR_SCENARIO(_Scenario_) \
                 CSensorOptionHelper::GetInstance()->SwitchScenario(_Scenario_)
-#define SET_APP_PANO_MODE(_Mode_) \
-            CSensorOptionHelper::GetInstance()->SetPanoMode(_Mode_)
-#define APP_PANO_MODE() \
-        CSensorOptionHelper::GetInstance()->GetPanoMode()
+#define SET_APP_WEB_SHOW_SENSOR_MODE(_Mode_) \
+            CSensorOptionHelper::GetInstance()->SetWebShowSnsMode(_Mode_)
+#define SET_APP_WEB_PANO_SENSOR_ID(_PanoSnsId_) \
+            CSensorOptionHelper::GetInstance()->SetPanoSensorId(_PanoSnsId_)
+#define APP_WEB_SHOW_SENSOR_MODE() \
+        CSensorOptionHelper::GetInstance()->GetWebShowSnsMode()
+#define APP_WEB_SHOW_SENSOR_COUNT() \
+        CSensorOptionHelper::GetInstance()->GetWebShowSnsCount()
+#define APP_WEB_PANO_SENSOR_ID() \
+        CSensorOptionHelper::GetInstance()->GetPanoSensorId()
 
 /**
  * Load configuration
@@ -43,17 +57,25 @@ public:
         return m_nSensorCount;
     };
 
-    AX_U8 GetPanoMode() {
-        return m_nPanoMode;
+    WEB_SHOW_SENSOR_MODE_E GetWebShowSnsMode() {
+        return m_eWebShowSnsMode;
     };
 
+    AX_U32 GetWebShowSnsCount();
+
     AX_VOID SetSensorCount(AX_U32 nCount);
-    AX_VOID SetPanoMode(AX_U8 nMode);
+    AX_VOID SetWebShowSnsMode(WEB_SHOW_SENSOR_MODE_E eWebShowSnsMode);
 
     AX_BOOL SwitchScenario(AX_IPC_SCENARIO_E eScenario);
     AX_S32 GetCurrScenario() {
         return m_nCurrScenario;
     };
+
+    AX_VOID SetPanoSensorId(AX_S32 nPanoSnsId);
+    AX_S32 GetPanoSensorId() {
+        return m_nPanoSensorId;
+    };
+
 
 private:
     CSensorOptionHelper(AX_VOID) = default;
@@ -66,7 +88,8 @@ private:
 private:
     AX_S32 m_nCurrScenario{0};
     AX_U32 m_nSensorCount{0};
-    AX_U8 m_nPanoMode{0};
+    AX_S32 m_nPanoSensorId{-1};
+    WEB_SHOW_SENSOR_MODE_E m_eWebShowSnsMode{E_WEB_SHOW_SENSOR_MODE_SINGLE};
 
     std::map<AX_U8, std::map<AX_U8, SENSOR_CONFIG_T>> m_mapSensorCfg;
 };

@@ -21,7 +21,7 @@ AX_BOOL CPANOSPEC::Init() {
 
     OSD_CFG_T tOsdConfig;
     {
-        /*VENC Secondary*/
+        /* VENC Primary*/
         vecOsdCfg.clear();
         // TIME
         tOsdConfig.bEnable = AX_TRUE;
@@ -120,10 +120,16 @@ AX_BOOL CPANOSPEC::Init() {
 
         vecOsdCfg.push_back(tOsdConfig);
 
-        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 4, 1, vecOsdCfg);
+        // Rect
+        tOsdConfig.bEnable = AX_TRUE;
+        tOsdConfig.nZIndex = 5;
+        tOsdConfig.eType = OSD_TYPE_RECT;
+        vecOsdCfg.push_back(tOsdConfig);
+
+        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 3, 0, vecOsdCfg);
     }
     {
-        /* VENC Primary*/
+        /*VENC Secondary*/
         vecOsdCfg.clear();
         // TIME
         tOsdConfig.bEnable = AX_TRUE;
@@ -157,9 +163,6 @@ AX_BOOL CPANOSPEC::Init() {
         tOsdConfig.nBoundaryH = 28;
 
         vecOsdCfg.push_back(tOsdConfig);
-
-        /*JENC*/
-        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 2, 0, vecOsdCfg);
 
         // Channel
         tOsdConfig.bEnable = AX_FALSE;
@@ -210,29 +213,25 @@ AX_BOOL CPANOSPEC::Init() {
         tOsdConfig.tPrivacyAttr.nLineWidth = 2;
         tOsdConfig.tPrivacyAttr.nColor = 0xFFFFFF;
         tOsdConfig.tPrivacyAttr.bSolid = AX_FALSE;
-        int nSlide = 100;
+        int nSlide = 50;
         tOsdConfig.tPrivacyAttr.tPt[0].x = 20;
-        tOsdConfig.tPrivacyAttr.tPt[0].y = 200;  // nHeight / 2 - nSlide;
+        tOsdConfig.tPrivacyAttr.tPt[0].y = 100;  // nHeight / 2 - nSlide;
         tOsdConfig.tPrivacyAttr.tPt[1].x = 20 + nSlide * 2;
-        tOsdConfig.tPrivacyAttr.tPt[1].y = 200;  // nHeight / 2 - nSlide;
+        tOsdConfig.tPrivacyAttr.tPt[1].y = 100;  // nHeight / 2 - nSlide;
         tOsdConfig.tPrivacyAttr.tPt[2].x = 20 + nSlide * 2;
-        tOsdConfig.tPrivacyAttr.tPt[2].y = 400;  // nHeight / 2 + nSlide;
+        tOsdConfig.tPrivacyAttr.tPt[2].y = 200;  // nHeight / 2 + nSlide;
         tOsdConfig.tPrivacyAttr.tPt[3].x = 20;
-        tOsdConfig.tPrivacyAttr.tPt[3].y = 400;  // nHeight / 2 + nSlide;
+        tOsdConfig.tPrivacyAttr.tPt[3].y = 200;  // nHeight / 2 + nSlide;
 
         vecOsdCfg.push_back(tOsdConfig);
 
-        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 4, 2, vecOsdCfg);
-        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 7, 0, vecOsdCfg);
-        vecOsdCfg.clear();
         // Rect
         tOsdConfig.bEnable = AX_TRUE;
         tOsdConfig.nZIndex = 5;
         tOsdConfig.eType = OSD_TYPE_RECT;
         vecOsdCfg.push_back(tOsdConfig);
-        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 5, 0, vecOsdCfg);
+        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 4, 0, vecOsdCfg);
         CWebOptionHelper::GetInstance()->SetOsdConfig(0, 6, 0, vecOsdCfg);
-        CWebOptionHelper::GetInstance()->SetOsdConfig(0, 8, 0, vecOsdCfg);
     }
 
     VideoChnIndex2IvpsGrp();
@@ -245,15 +244,16 @@ AX_VOID CPANOSPEC::VideoChnIndex2IvpsGrp() {
     /*pair[sensorID, videoIndex] = pair[ivpsGrp, ivpsChn] */
     std::map<pair<AX_U8, AX_U8>, pair<AX_U8, AX_U8>> pairVides2Ivps;
     pair<AX_U8, AX_U8> tVenc = make_pair(0, 0);
-    pair<AX_U8, AX_U8> tIvps = make_pair(4, 1);
+    pair<AX_U8, AX_U8> tIvps = make_pair(3, 0);
     pairVides2Ivps[tVenc] = tIvps;
 
     tVenc = make_pair(0, 1);
-    tIvps = make_pair(4, 2);
+    tIvps = make_pair(4, 0);
     pairVides2Ivps[tVenc] = tIvps;
 
     tVenc = make_pair(0, 2);
-    tIvps = make_pair(7, 0);
+    tIvps = make_pair(6, 0);
     pairVides2Ivps[tVenc] = tIvps;
+
     CWebOptionHelper::GetInstance()->SetIvpsGrp2VideoIndex(pairVides2Ivps);
 }

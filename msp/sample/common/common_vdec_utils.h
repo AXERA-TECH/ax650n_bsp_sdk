@@ -314,6 +314,7 @@ typedef struct axSAMPLE_VDEC_CONTEXT_T {
     pthread_t RecvTid;
     AX_BOOL RecvThdWait;
     SAMPLE_VDEC_USERPIC_T stVdecUserPic;
+    AX_U64 grpSendFrmNum[AX_VDEC_MAX_GRP_NUM];
 
 #ifdef AX_VDEC_POOL_REFCNT_TEST
     AX_BLK blkRef[AX_VDEC_MAX_GRP_NUM][SAMPLE_VDEC_REF_BLK_CNT];

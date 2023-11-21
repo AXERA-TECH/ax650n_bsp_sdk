@@ -80,8 +80,6 @@ AX_S32 UTestNormal(SAMPLE_VENC_CMD_PARA_T *pCml)
             goto FREE;
         }
 
-        sleep(1);
-
         SampleGetStreamInit(chnIdx, enType, &gstStrmParam[chnIdx], pCml);
 
         s32Ret = COMMON_VENC_StartGetStream(&gstStrmParam[chnIdx]);
@@ -92,7 +90,6 @@ AX_S32 UTestNormal(SAMPLE_VENC_CMD_PARA_T *pCml)
         }
 
         COMMON_VENC_AdjustLoopExit(&gVencCaseLoopExit, chnIdx);
-        sleep(1);
     }
 
     while ((!gLoopExit) && (gVencCaseLoopExit != pCml->vencLoopExit))

@@ -17,12 +17,12 @@ static AX_ISP_VERSION_T ax_isp_version_param_hdr_2x = {
     /* nIspMinor1 */
     8,
     /* nIspMinor2 */
-    1,
+    3,
     /* szBuildTime */
     "",
 
     /* szIspVersion */
-    "AX650_ISP_V3.8.1",
+    "AX650_ISP_V3.8.3",
 };
 
 static AX_ISP_IQ_HDR_PARAM_T hdr_param_hdr_2x = {
@@ -34,8 +34,6 @@ static AX_ISP_IQ_HDR_PARAM_T hdr_param_hdr_2x = {
     0,
     /* nDebugMode */
     0,
-    /* nNoiseLutScale */
-    4096,
     /* tMotDetParam */
     {
         /* nCoarseMotMaskRatio[3][2] */
@@ -160,6 +158,8 @@ static AX_ISP_IQ_HDR_PARAM_T hdr_param_hdr_2x = {
     },
     /* tHdrManualParam */
     {
+        /* nNoiseLutScale */
+        4096,
         /* nCoarseMotMaskNoiseLvl[3] */
         {0, 0, 0},
         /* nCoarseMotMaskSen[3] */
@@ -10196,16 +10196,16 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_hdr_2x = {
                     "/opt/etc/OS08A20_HDR_3840x2160_10b_LCG_ISP1_A1-4X_0000_00000425982_230804_AX650.axmodel",
                     /* szModelName */
                     "OS08A20_HDR_3840x2160_10b_LCG_ISP1_A1-4X_0000_00000425982_230804_AX650.axmodel",
+                    /* szTemporalBaseNrName */
+                    "",
+                    /* szSpatialBaseNrName */
+                    "",
                     /* nHcgMode */
                     0,
                     /* nIsoThresholdMin */
                     100,
                     /* nIsoThresholdMax */
                     200,
-                    /* szTemporalBaseNrName */
-                    "",
-                    /* szSpatialBaseNrName */
-                    "",
                     /* nBiasIn */
                     {1200, 1200, 1200, 1200},
                     /* nBiasOut */
@@ -10420,16 +10420,16 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_hdr_2x = {
                     "",
                     /* szModelName */
                     "",
+                    /* szTemporalBaseNrName */
+                    "",
+                    /* szSpatialBaseNrName */
+                    "",
                     /* nHcgMode */
                     0,
                     /* nIsoThresholdMin */
                     1,
                     /* nIsoThresholdMax */
                     1000000,
-                    /* szTemporalBaseNrName */
-                    "",
-                    /* szSpatialBaseNrName */
-                    "",
                     /* nBiasIn */
                     {0, 0, 0, 0},
                     /* nBiasOut */
@@ -17725,6 +17725,24 @@ static AX_ISP_IQ_AWB_PARAM_T awb_param_hdr_2x = {
                 },
             },
         },
+        /* tInitParam */
+        {
+            /* tGains */
+            {
+                /* nGainR */
+                503,
+                /* nGainGr */
+                256,
+                /* nGainGb */
+                256,
+                /* nGainB */
+                429,
+            },
+            /* nDampRatio */
+            10000,
+            /* nFrameSkipping */
+            0,
+        },
         /* nMode */
         0,
         /* nIndex */
@@ -18199,6 +18217,12 @@ static AX_ISP_IQ_AE_PARAM_T ae_param_hdr_2x = {
         1024,
         /* nLuxk */
         179120,
+        /* nCompensationMode */
+        1,
+        /* nPreChargeSize */
+        0,
+        /* nPreCharge[25] */
+        {0,/*0 - 0*/},
         /* nMaxIspGain */
         8192,
         /* nMinIspGain */
@@ -19060,6 +19084,68 @@ static AX_ISP_IQ_LDC_PARAM_T ldc_param_hdr_2x = {
         },
         /* nDistortionCoeff[8] */
         {0, 0, 0, 0, 0, 0, 0, 0, /*0 - 7*/},
+    },
+};
+
+static AX_ISP_IQ_DIS_PARAM_T dis_param_hdr_2x = {
+    /* bDisEnable */
+    0,
+    /* nDisType */
+    0,
+    /* tDisV1Param */
+    {
+        /* nDelayFrameNum */
+        0,
+        /* nHistoryFrameNum */
+        2,
+        /* nCropRatio */
+        204,
+    },
+};
+
+static AX_ISP_IQ_ME_PARAM_T me_param_hdr_2x = {
+    /* nRefMode */
+    1,
+    /* nAutoMode */
+    0,
+    /* tGlbParam */
+    {
+        /* nClipMotionMode */
+        1,
+        /* nFpdNmsTopk */
+        2,
+        /* nLayerNum */
+        6,
+    },
+    /* tManualParam */
+    {
+        /* nZeroMotion */
+        0,
+        /* nFpdAlpha */
+        2,
+        /* nFpdResponseThres */
+        50,
+        /* nFpdScaleRange */
+        0,
+        /* nFpdNmsRadius */
+        4,
+    },
+    /* tAutoParam */
+    {
+        /* nParamGrpNum */
+        0,
+        /* nRefVal[16] */
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*0 - 15*/},
+        /* nZeroMotion[16] */
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*0 - 15*/},
+        /* nFpdAlpha[16] */
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,   /*0 - 15*/},
+        /* nFpdResponseThres[16] */
+        {50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,   /*0 - 15*/},
+        /* nFpdScaleRange[16] */
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /*0 - 15*/},
+        /* nFpdNmsRadius[16] */
+        {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,   /*0 - 15*/},
     },
 };
 

@@ -4,7 +4,7 @@
     [
         {
             "src_mod": "VIN",
-            "src_grp": 0,
+            "src_grp": 1,
             "src_chn": 0,
             "dst_mod": "AVS",
             "dst_grp": 0,
@@ -13,7 +13,7 @@
         },
         {
             "src_mod": "VIN",
-            "src_grp": 1,
+            "src_grp": 0,
             "src_chn": 0,
             "dst_mod": "AVS",
             "dst_grp": 0,
@@ -156,20 +156,29 @@
             "link": 0
         }
     ],
-    "//": "without avs",
+    "//": "the same as scenario_0",
     "scenario_1":
     [
         {
             "src_mod": "VIN",
             "src_grp": 0,
             "src_chn": 0,
-            "dst_mod": "IVPS",
+            "dst_mod": "AVS",
             "dst_grp": 0,
             "dst_chn": 0,
             "link": 1
         },
         {
-            "src_mod": "IVPS",
+            "src_mod": "VIN",
+            "src_grp": 1,
+            "src_chn": 0,
+            "dst_mod": "AVS",
+            "dst_grp": 0,
+            "dst_chn": 1,
+            "link": 1
+        },
+        {
+            "src_mod": "AVS",
             "src_grp": 0,
             "src_chn": 0,
             "dst_mod": "IVPS",
@@ -190,32 +199,23 @@
             "src_mod": "IVPS",
             "src_grp": 2,
             "src_chn": 0,
-            "dst_mod": "IVPS",
-            "dst_grp": 3,
-            "dst_chn": 0,
-            "link": 1
-        },
-        {
-            "src_mod": "IVPS",
-            "src_grp": 3,
-            "src_chn": 0,
             "dst_mod": "JENC",
             "dst_grp": 0,
             "dst_chn": 0,
             "link": 1
         },
         {
-            "src_mod": "IVPS",
-            "src_grp": 1,
+            "src_mod": "AVS",
+            "src_grp": 0,
             "src_chn": 0,
             "dst_mod": "IVPS",
-            "dst_grp": 4,
+            "dst_grp": 0,
             "dst_chn": 0,
             "link": 1
         },
         {
             "src_mod": "IVPS",
-            "src_grp": 4,
+            "src_grp": 0,
             "src_chn": 0,
             "dst_mod": "COLLECT",
             "dst_grp": 0,
@@ -242,8 +242,44 @@
         },
         {
             "src_mod": "IVPS",
-            "src_grp": 4,
+            "src_grp": 0,
             "src_chn": 1,
+            "dst_mod": "IVPS",
+            "dst_grp": 3,
+            "dst_chn": 0,
+            "link": 1
+        },
+        {
+            "src_mod": "IVPS",
+            "src_grp": 3,
+            "src_chn": 0,
+            "dst_mod": "VENC",
+            "dst_grp": 0,
+            "dst_chn": 1,
+            "link": 1
+        },
+        {
+            "src_mod": "IVPS",
+            "src_grp": 0,
+            "src_chn": 2,
+            "dst_mod": "IVPS",
+            "dst_grp": 4,
+            "dst_chn": 0,
+            "link": 1
+        },
+        {
+            "src_mod": "IVPS",
+            "src_grp": 4,
+            "src_chn": 0,
+            "dst_mod": "VENC",
+            "dst_grp": 0,
+            "dst_chn": 2,
+            "link": 1
+        },
+        {
+            "src_mod": "IVPS",
+            "src_grp": 0,
+            "src_chn": 3,
             "dst_mod": "IVPS",
             "dst_grp": 5,
             "dst_chn": 0,
@@ -253,15 +289,6 @@
             "src_mod": "IVPS",
             "src_grp": 5,
             "src_chn": 0,
-            "dst_mod": "VENC",
-            "dst_grp": 0,
-            "dst_chn": 1,
-            "link": 1
-        },
-        {
-            "src_mod": "IVPS",
-            "src_grp": 4,
-            "src_chn": 2,
             "dst_mod": "IVPS",
             "dst_grp": 6,
             "dst_chn": 0,
@@ -273,45 +300,17 @@
             "src_chn": 0,
             "dst_mod": "VENC",
             "dst_grp": 0,
-            "dst_chn": 2,
-            "link": 1
-        },
-        {
-            "src_mod": "IVPS",
-            "src_grp": 4,
-            "src_chn": 3,
-            "dst_mod": "IVPS",
-            "dst_grp": 7,
-            "dst_chn": 0,
-            "link": 1
-        },
-        {
-            "src_mod": "IVPS",
-            "src_grp": 7,
-            "src_chn": 0,
-            "dst_mod": "IVPS",
-            "dst_grp": 8,
-            "dst_chn": 0,
-            "link": 1
-        },
-        {
-            "src_mod": "IVPS",
-            "src_grp": 8,
-            "src_chn": 0,
-            "dst_mod": "VENC",
-            "dst_grp": 0,
             "dst_chn": 3,
             "link": 1
         },
         {
             "src_mod": "IVPS",
-            "src_grp": 7,
+            "src_grp": 5,
             "src_chn": 2,
             "dst_mod": "IVES",
             "dst_grp": 0,
             "dst_chn": 0,
             "link": 0
         }
-
     ]
 }

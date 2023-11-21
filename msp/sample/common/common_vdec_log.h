@@ -86,7 +86,7 @@ extern "C" {
     } while (0)
 
 #define SAMPLE_LOG_T(str, arg...)  do { \
-        printf("\n" "[SAMPLE][AX_VDEC][tid:%ld][T][%s][line:%d]: " str "\n", \
+        printf("\n"MACRO_WHITE"[SAMPLE][AX_VDEC][tid:%ld][T][%s][line:%d]: " str "\n", \
                gettid(), __func__, __LINE__, ##arg); \
     } while (0)
 
@@ -97,9 +97,9 @@ extern "C" {
     } while (0)
 
 #define SAMPLE_LOG_ST(str, arg...)  do { \
-        printf("\n" "[SAMPLE][AX_VDEC][tid:%ld][T][%s][line:%d]: " str "\n", \
+        printf("\n"MACRO_WHITE"[SAMPLE][AX_VDEC][tid:%ld][T][%s][line:%d]: " str "\n", \
                gettid(), __func__, __LINE__, ##arg); \
-        AX_SYS_LogPrint_Ex(SYS_LOG_ERROR, AX_SAMPLE_VDEC_LOG_TAG, AX_ID_USER, \
+        AX_SYS_LogPrint_Ex(SYS_LOG_WARN, AX_SAMPLE_VDEC_LOG_TAG, AX_ID_USER, \
                            MACRO_PURPLE"[SAMPLE][AX_VDEC][tid:%ld][T][%s][line:%d]: " str "\n", \
                            gettid(), __func__, __LINE__, ##arg); \
     } while (0)

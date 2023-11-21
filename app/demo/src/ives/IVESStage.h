@@ -88,6 +88,7 @@ public:
 private:
     AX_VOID NotifyAll(AX_U32 nGrp, AX_U32 nChn, AX_VOID *pStream);
     AX_BOOL GetResolutionByRotate(AX_U8 nRotation, AX_U32 &nWidth, AX_U32 &nHeight) ;
+    AX_VOID FreeQFrames(AX_VOID);
 
 private:
     AX_BOOL m_bMDEnable{AX_FALSE};

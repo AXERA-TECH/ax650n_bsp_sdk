@@ -17,12 +17,12 @@ static AX_ISP_VERSION_T ax_isp_version_param_sdr = {
     /* nIspMinor1 */
     8,
     /* nIspMinor2 */
-    1,
+    3,
     /* szBuildTime */
     "",
 
     /* szIspVersion */
-    "AX650_ISP_V3.8.1",
+    "AX650_ISP_V3.8.3",
 };
 
 

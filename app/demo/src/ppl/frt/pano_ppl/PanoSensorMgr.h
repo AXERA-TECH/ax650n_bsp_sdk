@@ -110,6 +110,11 @@ public:
     AX_VOID ChangeSnsFps(AX_U32 nSnsID, AX_F32 fFrameRate);
     AX_VOID ChangeSnsMirrorFlip(AX_U32 nSnsID, AX_BOOL bMirror, AX_BOOL bFlip);
 
+    AX_VOID SetAeSyncRatio(const AX_ISP_IQ_AE_SYNC_RATIO_T& tAeSyncRatio);
+    AX_VOID SetAwbSyncRatio(const AX_ISP_IQ_AWB_SYNC_RATIO_T& tAwbSyncRatio);
+
+    AX_S32 Enable3ASyncRatio(AX_BOOL bEnable);
+
 protected:
     AX_VOID RawDispatchThreadFunc(RAW_DISPATCH_THREAD_PARAM_T* pThreadParam);
     AX_VOID YuvGetThreadFunc(YUV_THREAD_PARAM_T* pThreadParam);
@@ -138,6 +143,9 @@ private:
     list<CAXFrame*> m_qFrame[MAX_SENSOR_COUNT * MAX_PIPE_PER_DEVICE][AX_VIN_CHN_ID_MAX];
     mutex m_mtxFrame[MAX_SENSOR_COUNT * MAX_PIPE_PER_DEVICE][AX_VIN_CHN_ID_MAX];
     AX_BOOL m_bGetYuvFlag[MAX_SENSOR_COUNT]{AX_TRUE, AX_TRUE};
+
+    AX_ISP_IQ_AE_SYNC_RATIO_T  m_tAeSyncRatio{1 << 20};
+    AX_ISP_IQ_AWB_SYNC_RATIO_T m_tAwbSyncRatio{1 << 20, 1 << 20};
 };
 
 }  // namespace AX_PANO

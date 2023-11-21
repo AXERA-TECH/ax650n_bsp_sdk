@@ -113,7 +113,7 @@ AX_BOOL SampleInvalidEnType(AX_S32 ut, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_RC_
             ret = AX_TRUE;
         break;
     case UT_CASE_VENC_ROI:
-    case UT_CASE_PROFILE_LEVEL:
+    case UT_CASE_VUI:
     case UT_CASE_VIR_INTRA_INTERVAL:
     case UT_CASE_INTRA_REFRESH:
     case UT_CASE_REQUEST_IDR:
@@ -589,53 +589,34 @@ AX_S32 SampleDynRcMode(AX_S32 VencChn, AX_VOID *handle)
     return AX_SUCCESS;
 }
 
-AX_S32 SampleDynProfileLevel(AX_S32 VencChn, AX_VOID *handle)
+AX_S32 SampleDynVui(AX_S32 VencChn, AX_VOID *handle)
 {
     AX_S32 s32Ret = AX_SUCCESS;
-    AX_VENC_CHN_ATTR_T stChnAttr;
-    AX_VENC_RECV_PIC_PARAM_T stRecvParam;
+    AX_VENC_VUI_PARAM_T stVui;
 
-    memset(&stChnAttr, 0, sizeof(AX_VENC_CHN_ATTR_T));
+    memset(&stVui, 0, sizeof(AX_VENC_VUI_PARAM_T));
 
-    s32Ret = AX_VENC_GetChnAttr(VencChn, &stChnAttr);
+    SAMPLE_VENC_SENDFRAME_PARA_T *pSend = (SAMPLE_VENC_SENDFRAME_PARA_T *)handle;
+    SAMPLE_VENC_CMD_PARA_T *pCml = (SAMPLE_VENC_CMD_PARA_T *)pSend->ptrPrivate;
+
+    s32Ret = AX_VENC_GetVuiParam(VencChn, &stVui);
     if (AX_SUCCESS != s32Ret) {
-        SAMPLE_LOG_ERR("AX_VENC_GetChnAttr:%d failed! ret=0x%x\n", VencChn, s32Ret);
+        SAMPLE_LOG_ERR("chn-%d: AX_VENC_GetVuiParam failed! ret=0x%x\n", VencChn, s32Ret);
         return -1;
     }
 
-    if (stChnAttr.stVencAttr.enType == PT_H264) {
-        SAMPLE_LOG_DEBUG("Old: VencChn %d, type %d enProfile %d enLevel %d\n", VencChn, stChnAttr.stVencAttr.enType,
-                         stChnAttr.stVencAttr.enProfile, stChnAttr.stVencAttr.enLevel);
-        stChnAttr.stVencAttr.enProfile = AX_VENC_H264_HIGH_10_PROFILE;
-        stChnAttr.stVencAttr.enLevel = AX_VENC_H264_LEVEL_4_2;
-    } else if (stChnAttr.stVencAttr.enType == PT_H265) {
-        SAMPLE_LOG_DEBUG("Old: VencChn %d, type %d enProfile %d enLevel %d\n", VencChn, stChnAttr.stVencAttr.enType,
-                         stChnAttr.stVencAttr.enProfile, stChnAttr.stVencAttr.enLevel);
-        stChnAttr.stVencAttr.enProfile = AX_VENC_HEVC_MAIN_10_PROFILE;
-        stChnAttr.stVencAttr.enLevel = AX_VENC_HEVC_LEVEL_6_1;
-    } else {
-        return AX_SUCCESS;
-    }
+    stVui.stVuiVideoSignal.video_signal_type_present_flag = pCml->bSignalPresent;
+    stVui.stVuiVideoSignal.video_format = pCml->videoFormat;
+    stVui.stVuiVideoSignal.video_full_range_flag = pCml->bFullRange;
+    stVui.stVuiVideoSignal.colour_description_present_flag = pCml->bColorPresent;
+    stVui.stVuiVideoSignal.colour_primaries = pCml->colorPrimaries;
+    stVui.stVuiVideoSignal.transfer_characteristics = pCml->transferCharacter;
+    stVui.stVuiVideoSignal.matrix_coefficients = pCml->matrixCoeffs;
 
-    s32Ret = AX_VENC_StopRecvFrame(VencChn);
+    s32Ret = AX_VENC_SetVuiParam(VencChn, &stVui);
     if (AX_SUCCESS != s32Ret) {
-        SAMPLE_LOG_ERR(" %d:  AX_VENC_StopRecvFrame failed, ret=%x\n", VencChn, s32Ret);
+        SAMPLE_LOG_ERR("chn-%d: AX_VENC_SetVuiParam failed! ret=0x%x\n", VencChn, s32Ret);
         return -1;
-    }
-
-    s32Ret = AX_VENC_SetChnAttr(VencChn, &stChnAttr);
-    if (AX_SUCCESS != s32Ret) {
-        SAMPLE_LOG_ERR("AX_VENC_SetChnAttr:%d failed! ret=0x%x\n", VencChn, s32Ret);
-        return -1;
-    }
-
-    SAMPLE_LOG_DEBUG("New: VencChn %d, type %d enProfile %d enLevel %d\n", VencChn, stChnAttr.stVencAttr.enType,
-                     stChnAttr.stVencAttr.enProfile, stChnAttr.stVencAttr.enLevel);
-
-    stRecvParam.s32RecvPicNum = -1;
-    s32Ret = AX_VENC_StartRecvFrame(VencChn, &stRecvParam);
-    if (AX_SUCCESS != s32Ret) {
-        SAMPLE_LOG_ERR(" %d:  AX_VENC_StartRecvFrame failed, ret=%x\n", VencChn, s32Ret);
     }
 
     return AX_SUCCESS;

@@ -278,6 +278,7 @@ typedef struct axAVS_CHN_ATTR_T
     AX_AVS_OUTPUT_ATTR_T        stOutAttr;
     AX_U32                      u32Depth;
     AX_BOOL                     bBlockEnable;
+    AX_FRAME_COMPRESS_INFO_T    stCompressInfo;
 } AX_AVS_CHN_ATTR_T;
 
 AX_S32 AX_AVS_CreateGrp(AX_AVS_GRP AVSGrp, const AX_AVS_GRP_ATTR_T *pstGrpAttr);

@@ -168,6 +168,8 @@ AX_S32 CBoxAppSys::APP_SYS_Init(AX_VOID) {
         return ret;
     }
 
+    AX_APP_Log_SetSysModuleInited(AX_TRUE);
+
     ret = AX_POOL_Exit();
     if (0 != ret) {
         LOG_E("%s: AX_POOL_Exit() fail, ret = 0x%x", __func__, ret);
@@ -183,6 +185,8 @@ AX_S32 CBoxAppSys::APP_SYS_DeInit(AX_VOID) {
     if (!CAXPoolManager::GetInstance()->DestoryAllPools()) {
         return -1;
     }
+
+    AX_APP_Log_SetSysModuleInited(AX_FALSE);
 
     ret = AX_SYS_Deinit();
     if (0 != ret) {

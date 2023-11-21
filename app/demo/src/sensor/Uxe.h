@@ -14,7 +14,7 @@
 
 class CUxe : public CBaseSensor {
 public:
-    CUxe(AX_BOOL bYUV444);
+    CUxe(AX_IMG_FORMAT_E eImgFormat, AX_U32 nW = 3840, AX_U32 nH = 2160, AX_U32 nFps = 60);
     virtual ~CUxe(AX_VOID);
 
     AX_BOOL Init(AX_VOID) override;
@@ -38,6 +38,10 @@ protected:
     virtual AX_VOID InitTriggerAttr() override;
 
 private:
-    AX_BOOL m_bYUV444{AX_FALSE};
+    //AX_BOOL m_bYUV444{AX_FALSE};
+    AX_IMG_FORMAT_E m_eImgFormat;  // AX_FORMAT_BAYER_RAW_8BPP, AX_FORMAT_YUV420_SEMIPLANAR, AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P010
     AX_FRAME_INTERRUPT_ATTR_T m_tDevFrmIntAttr;
+    AX_U32 m_nW;
+    AX_U32 m_nH;
+    AX_U32 m_nFps;
 };

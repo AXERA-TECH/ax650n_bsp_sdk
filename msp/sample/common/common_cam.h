@@ -35,7 +35,7 @@ typedef struct {
     SAMPLE_SNS_TYPE_E                   eSnsType;
     COMMON_VIN_MODE_E                   eSysMode;
 
-    AX_MIPI_RX_DEV_E                    nRxDev;
+    AX_U32                              nRxDev;
     AX_U8                               nDevId;
     AX_U8                               nPipeId;
 

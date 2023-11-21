@@ -38,6 +38,7 @@
 #define PARAM_KEY_SDK_VERSION "sdkVersion"
 #define PARAM_KEY_SETTING_CAPABILITY "capInfo"
 #define PARAM_KEY_SNS_MODE "snsMode"
+#define PARAM_KEY_PANO_SNS_ID "panoSnsId"
 using namespace std;
 
 extern string g_SDKVersion;
@@ -339,15 +340,21 @@ static void LoginAction(HttpConn* conn) {
 
     MprJson* pResponseBody = ConstructBaseResponse(strStatus.c_str(), szToken);
 
-    AX_BOOL bDualSnsMode = ((APP_SENSOR_COUNT() == 1) || APP_PANO_MODE()) ? AX_FALSE : AX_TRUE;
-
+    AX_BOOL bDualSnsMode = (APP_WEB_SHOW_SENSOR_COUNT() == 1) ? AX_FALSE : AX_TRUE;
     mprWriteJson(mprGetJsonObj(pResponseBody, "data"), PARAM_KEY_SNS_MODE, (bDualSnsMode ? "1" : "0"), MPR_JSON_STRING);
+
+    string strPanoSnsId = (APP_WEB_PANO_SENSOR_ID() == -1 ) ? "-1" : to_string(APP_WEB_PANO_SENSOR_ID());
+    mprWriteJson(mprGetJsonObj(pResponseBody, "data"), PARAM_KEY_PANO_SNS_ID, strPanoSnsId.c_str(), MPR_JSON_STRING);
 
     httpSetContentType(conn, "application/json");
     httpWrite(conn->writeq, mprJsonToString(pResponseBody, MPR_JSON_QUOTES));
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void CapabilityAction(HttpConn* conn) {
@@ -369,7 +376,15 @@ static void CapabilityAction(HttpConn* conn) {
 
         httpSetStatus(conn, 200);
         httpFinalize(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
+    }
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
     }
 }
 
@@ -387,10 +402,7 @@ static void PreviewInfoAction(HttpConn* conn) {
 
     MprJson* pResponseBody = ConstructBaseResponse(RESPONSE_STATUS_OK, 0);
     if (strcmp(conn->rx->method, "GET") == 0) {
-        AX_U8 nSnsCnt = APP_SENSOR_COUNT();
-        if (APP_PANO_MODE()) {
-            nSnsCnt = 1;
-        }
+        AX_U8 nSnsCnt = APP_WEB_SHOW_SENSOR_COUNT();
         AX_CHAR arrStreamStr[2][16] = {0};
         for (AX_U8 i = 0; i < 2; i++) {
             if (i < nSnsCnt) {
@@ -482,6 +494,14 @@ static void PreviewInfoAction(HttpConn* conn) {
 
         httpSetStatus(conn, 200);
         httpFinalize(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
+    }
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
     }
 }
 
@@ -517,6 +537,10 @@ static void SwitchChnAction(HttpConn* conn) {
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void WSPreviewAction(HttpConn* conn) {
@@ -524,6 +548,10 @@ static void WSPreviewAction(HttpConn* conn) {
 
     if (!IsAuthorized(conn, AX_FALSE)) {
         LOG_MM_E(WEB, "Unauthorized, try to login again.");
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -551,6 +579,10 @@ static void WSPreviewAction(HttpConn* conn) {
     AX_S32 nIndex = mprAddItem(g_pClients, conn);
     LOG_MM_D(WEB, "connected %p, index=%d", conn, nIndex);
     httpSetConnNotifier(conn, WebNotifier);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void SaveWSConnection(HttpConn* conn, AX_U8 nSnsID, AX_U8 nUniChnID) {
@@ -564,22 +596,38 @@ static void SaveWSConnection(HttpConn* conn, AX_U8 nSnsID, AX_U8 nUniChnID) {
     AX_S32 nIndex = mprAddItem(g_pClients, conn);
     LOG_MM_D(WEB, "connected %p, index=%d", conn, nIndex);
     httpSetConnNotifier(conn, WebNotifier);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void WSCaptureAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_FALSE)) {
         LOG_MM_E(WEB, "Unauthorized, try to login again.");
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
     AX_U8 nSrcID = 0; /* Dual sensor's capture shares one connection */
     LOG_MM_I(WEB, "[%d] Capture stream %d setup conn=%p.", nSrcID, s_pWebInstance->GetCaptureChannel(), conn);
     SaveWSConnection(conn, nSrcID, s_pWebInstance->GetCaptureChannel());
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void WSSnapshotAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_FALSE)) {
         LOG_MM_E(WEB, "Unauthorized, try to login again.");
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -588,11 +636,19 @@ static void WSSnapshotAction(HttpConn* conn) {
 
     LOG_MM_I(WEB, "[%d] Snapshot picture %d setup.", nSrcID, nChnnelID);
     SaveWSConnection(conn, nSrcID, nChnnelID);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void TriggerAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -625,11 +681,19 @@ static void TriggerAction(HttpConn* conn) {
 
     httpSetStatus(conn, nHttpStatusCode);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void SnapshotAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -659,44 +723,76 @@ static void SnapshotAction(HttpConn* conn) {
 
     httpSetStatus(conn, nHttpStatusCode);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void WSAudioAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_FALSE)) {
         LOG_M_E(WEB, "Unauthorized, try to login again.");
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
     AX_U8 nSnsID = 0;
     AX_U8 nUniChnID = s_pWebInstance->GetAencChannel();
     SaveWSConnection(conn, nSnsID, nUniChnID);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void WSTalkAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_FALSE)) {
         LOG_M_E(WEB, "Unauthorized, try to login again.");
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
     AX_U8 nUniChnID = s_pWebInstance->GetTalkChannel();
     LOG_M_I(WEB, "Websocket talk channel id: %d", nUniChnID);
     SaveWSConnection(conn, 0, nUniChnID);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void WSEventsAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_FALSE)) {
         LOG_MM_E(WEB, "Unauthorized, try to login again.");
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
     AX_U16 nChnID = (0x0 /*sensor id*/ | ((WS_EVENTS_CHANNEL & 0x00FF) << 8));
     LOG_MM_D(WEB, "nChnID:%d", nChnID);
     SaveWSConnection(conn, 0, WS_EVENTS_CHANNEL);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void AssistInfoAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -731,11 +827,19 @@ static void AssistInfoAction(HttpConn* conn) {
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void SystemAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -764,13 +868,25 @@ static void SystemAction(HttpConn* conn) {
 
         httpSetStatus(conn, 200);
         httpFinalize(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
+    }
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
     }
 }
 
 static AX_VOID CameraAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -813,11 +929,19 @@ static AX_VOID CameraAction(HttpConn* conn) {
 
     httpSetStatus(conn, nHttpStatusCode);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static AX_VOID ImageAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -860,11 +984,19 @@ static AX_VOID ImageAction(HttpConn* conn) {
 
     httpSetStatus(conn, nHttpStatusCode);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void AudioAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -891,11 +1023,19 @@ static void AudioAction(HttpConn* conn) {
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void VideoAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -937,11 +1077,19 @@ static void VideoAction(HttpConn* conn) {
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void AiAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -968,11 +1116,19 @@ static void AiAction(HttpConn* conn) {
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
 }
 
 static void OverlayAction(HttpConn* conn) {
     if (!IsAuthorized(conn, AX_TRUE)) {
         ResponseUnauthorized(conn);
+
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
         return;
     }
 
@@ -1000,6 +1156,37 @@ static void OverlayAction(HttpConn* conn) {
 
     httpSetStatus(conn, 200);
     httpFinalize(conn);
+
+    if (mprNeedYield()) {
+        mprYield(MPR_YIELD_DEFAULT);
+    }
+}
+
+static void Switch3ASyncRatioAction(HttpConn* conn) {
+    if (!IsAuthorized(conn, AX_TRUE)) {
+        ResponseUnauthorized(conn);
+        return;
+    }
+
+    static AX_BOOL bActionProcessing = AX_FALSE;
+    AX_S32 nHttpStatusCode = 200;
+    if (!bActionProcessing) {
+        bActionProcessing = AX_TRUE;
+        MprJson* json3ASR = httpGetParams(conn);
+        LOG_MM_I(WEB, "Web request: %s", mprJsonToString(json3ASR, MPR_JSON_QUOTES));
+        s_pWebInstance->GetPPLInstance()->ProcessWebOprs(E_REQ_TYPE_SWITCH_3A_SYNCRATIO, json3ASR);
+        bActionProcessing = AX_FALSE;
+    } else if (bActionProcessing) {
+        // Response status: Not Acceptable
+        nHttpStatusCode = 406;
+    }
+
+    MprJson* pResponseBody = ConstructBaseResponse(RESPONSE_STATUS_OK, 0);
+    httpSetContentType(conn, "application/json");
+    httpWrite(conn->writeq, mprJsonToString(pResponseBody, MPR_JSON_QUOTES));
+
+    httpSetStatus(conn, nHttpStatusCode);
+    httpFinalize(conn);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -1022,6 +1209,7 @@ const HTTP_ACTION_INFO g_httpActionInfo[] = {{"/action/login", LoginAction},
                                              {"/action/preview/stream", SwitchChnAction},
                                              {"/action/preview/snapshot", SnapshotAction},
                                              {"/action/preview/trigger", TriggerAction},
+                                             {"/action/preview/sync_ratio_3a", Switch3ASyncRatioAction},
                                              {"/audio_0", WSAudioAction},
                                              {"/talk", WSTalkAction},
                                              {"/preview_0", WSPreviewAction},
@@ -1193,6 +1381,9 @@ void* CWebServer::SendDataThreadFunc(void* pThis) {
     while (pWebServer->m_bServerStarted) {
         pWebServer->SendWSData();
         CElapsedTimer::mSleep(10);
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
     }
 
     LOG_MM_I(WEB, "---");
@@ -1207,6 +1398,9 @@ void* CWebServer::RecvDataThreadFunc(void* pThis) {
     while (pWebServer->m_bServerStarted) {
         pWebServer->RecvWSData();
         CElapsedTimer::mSleep(10);
+        if (mprNeedYield()) {
+            mprYield(MPR_YIELD_DEFAULT);
+        }
     }
 
     LOG_MM_I(WEB, "---");

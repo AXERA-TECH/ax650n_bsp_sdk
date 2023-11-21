@@ -96,7 +96,6 @@ static SAMPLE_VO_CONFIG_S g_stVoConf = {
                 .enSyncMode = AX_VO_LAYER_SYNC_NORMAL,
                 .u32PrimaryChnId = 0,
                 .u32FifoDepth = 0,
-                .u32ChnNr = 1,
                 .u32BkClr = 0,
                 .enWBMode = AX_VO_LAYER_WB_POOL,
                 .u32InplaceChnId = 0,

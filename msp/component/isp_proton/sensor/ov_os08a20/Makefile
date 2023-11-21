@@ -15,6 +15,8 @@ ROOTFS_TARGET_PATH	:= $(OUT_PATH)
 ################################################################################
 
 .PHONY : all clean install lib
+.NOTPARALLEL: clean all
+
 all: lib
 	@echo -e $(GREEN)"\nBuild $@ success!!\n"  $(DONE)
 

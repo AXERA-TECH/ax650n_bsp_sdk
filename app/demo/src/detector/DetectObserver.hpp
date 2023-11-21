@@ -44,8 +44,11 @@ public:
             return AX_FALSE;
         }
 
-        pConfig->nWidth = pParams->nWidth;
-        pConfig->nHeight = pParams->nHeight;
+        if (pParams->nWidth * pParams->nHeight > pConfig->nWidth * pConfig->nHeight) {
+            pConfig->nWidth = pParams->nWidth;
+            pConfig->nHeight = pParams->nHeight;
+        }
+
         m_mapSnsMatch[nGrp] = pParams->nSnsSrc;
 
         return AX_TRUE;

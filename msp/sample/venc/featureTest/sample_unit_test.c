@@ -25,7 +25,7 @@ Sample_Test_Case_T gTestCaseSet[SAMPLE_MAX_TESTCASE_NUM] = {
     VENC_TEST_CASE_INIT(UT_CASE_FRAME_RATE, UTestDynamicAttr, SampleTestFrameRate),
     VENC_TEST_CASE_INIT(UT_CASE_CHN_ATTR, UTestSetChnAttr, NULL),
     VENC_TEST_CASE_INIT(UT_CASE_RC_MODE, UTestDynamicAttr, SampleDynRcMode),
-    VENC_TEST_CASE_INIT(UT_CASE_PROFILE_LEVEL, UTestDynamicAttr, SampleDynProfileLevel),
+    VENC_TEST_CASE_INIT(UT_CASE_VUI, UTestDynamicAttr, SampleDynVui),
     VENC_TEST_CASE_INIT(UT_CASE_JPEG_ENCODE_ONCE, UTestJpegStartEncOnce, NULL),
     VENC_TEST_CASE_INIT(UT_CASE_JPEG_PARAM, UTestDynamicJpeg, SampleJpegParam),
     VENC_TEST_CASE_INIT(UT_CASE_VIR_INTRA_INTERVAL, UTestDynamicAttr, SampleVirIntraInterval),

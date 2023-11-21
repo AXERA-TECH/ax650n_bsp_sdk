@@ -732,7 +732,7 @@ AX_BOOL CVideoDecoder::Send(AX_VDEC_GRP vdGrp, const AX_U8* pData, AX_U32 nLen, 
     // LOG_M_W(VDEC, "AX_VDEC_SendStream(vdGrp %d len %d) ---, ret = 0x%x", vdGrp, stStream.u32StreamPackLen, ret);
     if (0 != ret) {
         if (AX_ERR_VDEC_NEED_REALLOC_BUF == ret) {
-            /* refer to jira:
+            /* refer to jira4806:
                   If stream changed, app is in charge of destory and recreate */
             ret = AX_VDEC_StopRecvStream(vdGrp);
             if (0 != ret) {

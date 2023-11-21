@@ -366,6 +366,7 @@ AX_VOID SAMPLE_IVE_Usage(AX_CHAR* pchPrgName)
     printf("\t\tFor Crop and Resize case, cropimage support IVE/VGP/VPP engine, cropresize and cropresize_split_yuv support VGP/VPP engine.\n");
     printf("\t\tFor CSC case, support TDP/VGP/VPP engine.\n");
     printf("\t\tFor CropResize2 case, support VGP/VPP engine.\n");
+    printf("\t\tFor MatMul case, support NPU/MAU engine.\n");
 
     printf("\t-m | --mode_choice:Choose test mode, default:0\n");
     printf("\t\tFor DualPicCalc case, indicate dual pictures calculation task:\n"
@@ -616,7 +617,7 @@ int main(int argc, char *argv[])
                     break;
                 }
             }
-            SAMPLE_IVE_MatMul_TEST(pchParamsList);
+            SAMPLE_IVE_MatMul_TEST(u32EngineId, pchParamsList);
         }
         break;
     default :

@@ -9,13 +9,23 @@
  **************************************************************************************************/
 
 #include "FileStreamer.hpp"
+#include <time.h>
+#include <chrono>
+#include <random>
+#include <thread>
 #include "AppLogApi.h"
+#include "ax_sys_api.h"
 
 #define DEMUX "DEMUX"
 
 AX_VOID CFileStreamer::DemuxThread(AX_VOID* pArg) {
     AX_S32 ret;
     const AX_S32 nCookie = m_stInfo.nCookie;
+    AX_U64 nPTS;
+    AX_U32 nPTSIntv = 1000000 / ((m_nForceFps > 0) ? m_nForceFps : m_stInfo.nFps);
+
+    std::default_random_engine e(time(0));
+    std::uniform_int_distribution<unsigned> u(0, m_nMaxSendNaluIntervalMilliseconds);
 
     while (m_DemuxThread.IsRunning()) {
         ret = av_read_frame(m_pAvFmtCtx, m_pAvPkt);
@@ -68,9 +78,26 @@ AX_VOID CFileStreamer::DemuxThread(AX_VOID* pArg) {
 
                     ++m_stStat.nCount;
 
+                    if (1 == m_stStat.nCount || 0 == m_stInfo.nFps) {
+                        /* 1st frame or unknown fps */
+                        AX_SYS_GetCurPTS(&nPTS);
+                    } else {
+                        nPTS += nPTSIntv;
+                    }
+
+                    // LOG_M_C(DEMUX, "pts = %lld", nPTS);
+
                     for (auto&& m : m_lstObs) {
-                        if (!m->OnRecvVideoData(nCookie, m_pAvPkt->data, m_pAvPkt->size, 0) && m_bSyncObs) {
+                        if (!m->OnRecvVideoData(nCookie, m_pAvPkt->data, m_pAvPkt->size, nPTS) && m_bSyncObs) {
                             break;
+                        }
+                    }
+
+                    if (m_nMaxSendNaluIntervalMilliseconds > 0) {
+                        AX_U32 ms = u(e);
+                        if (ms > 10) {
+                        //  LOG_M_C(DEMUX, "sleep for %d ms", ms);
+                            std::this_thread::sleep_for(std::chrono::milliseconds(ms));
                         }
                     }
                 }
@@ -87,6 +114,8 @@ AX_VOID CFileStreamer::DemuxThread(AX_VOID* pArg) {
 AX_BOOL CFileStreamer::Init(const STREAMER_ATTR_T& stAttr) {
     LOG_M_D(DEMUX, "%s: stream %d +++", __func__, stAttr.nCookie);
 
+    m_nForceFps = stAttr.nForceFps;
+    m_nMaxSendNaluIntervalMilliseconds = stAttr.nMaxSendNaluIntervalMilliseconds;
     // #ifdef __SLT__
     //     m_bLoop = AX_FALSE;
     // #else

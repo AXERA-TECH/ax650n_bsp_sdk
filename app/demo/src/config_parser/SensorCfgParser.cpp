@@ -129,11 +129,27 @@ AX_BOOL CSensorCfgParser::ParseJson(picojson::object& objJsonRoot,
             auto& objSetting = arrSettings[nSettingIndex].get<picojson::object>();
 
             SENSOR_CONFIG_T tSensorCfg;
-            if (objSetting.end() != objSetting.find("pano_mode")) {
-                tSensorCfg.nPanoMode = objSetting["pano_mode"].get<double>();
-            }
             tSensorCfg.nSnsID = objSetting["sns_id"].get<double>();
             tSensorCfg.nDevID = objSetting["dev_id"].get<double>();
+
+            if (objSetting.end() != objSetting.find("dev_node")) {
+                tSensorCfg.nDevNode = objSetting["dev_node"].get<double>();
+                LOG_M_D(SNS_PARSER, "Sns[%d]DevId[%d] nDevNode: %d",
+                                    tSensorCfg.nSnsID, tSensorCfg.nDevID,
+                                    tSensorCfg.nDevNode);
+            } else {
+                LOG_M_E(SNS_PARSER, "Miss 'dev_node' config!");
+            }
+
+            if (objSetting.end() != objSetting.find("clk_id")) {
+                tSensorCfg.nClkID = objSetting["clk_id"].get<double>();
+                LOG_M_D(SNS_PARSER, "Sns[%d]DevId[%d] nClkID: %d",
+                                    tSensorCfg.nSnsID, tSensorCfg.nDevID,
+                                    tSensorCfg.nClkID);
+            } else {
+                LOG_M_E(SNS_PARSER, "Miss 'clk_id' config!");
+            }
+
             if (objSetting.end() != objSetting.find("master_slave_select")) {
                 tSensorCfg.nMasterSlaveSel = (AX_SNS_MASTER_SLAVE_E)objSetting["master_slave_select"].get<double>();
             }
@@ -230,6 +246,27 @@ AX_BOOL CSensorCfgParser::ParseJson(picojson::object& objJsonRoot,
                 tPipeConfig.vecTuningBin.push_back(arrTuningBin[i].get<string>());
             }
 
+            // parse car window enhance config
+            tPipeConfig.nEnhanceModelCnt = 0;
+            if (objSetting.end() != objSetting.find("cw_enhance_cfg")) {
+                picojson::array& arrEnhanceCfg = objSetting["cw_enhance_cfg"].get<picojson::array>();
+                AX_U32 nCount = 0;
+                for (size_t i = 0; i < arrEnhanceCfg.size(); i++) {
+                    picojson::object objEnhance = arrEnhanceCfg[i].get<picojson::object>();
+                    tPipeConfig.tEnhanceModelTable[i].nRefValue = objEnhance["ref_value"].get<double>();
+                    strcpy((char*)tPipeConfig.tEnhanceModelTable[i].szModel, objEnhance["model"].get<string>().c_str());
+                    strcpy((char*)tPipeConfig.tEnhanceModelTable[i].szMask, objEnhance["mask"].get<string>().c_str());
+                    // printf("****[%d] %d %s %s\n", (int)i, tPipeConfig.tEnhanceModelTable[i].nRefValue,
+                    //                                 tPipeConfig.tEnhanceModelTable[i].szModel,
+                    //                                 tPipeConfig.tEnhanceModelTable[i].szMask);
+                    nCount++;
+                    if (nCount >= ENHANCE_TABLE_CNT) {
+                        printf("car window enchance cfg size <%d> is invalid, max size is %d.\n", (int)arrEnhanceCfg.size(), ENHANCE_TABLE_CNT);
+                    }
+                }
+                tPipeConfig.nEnhanceModelCnt = nCount;
+            }
+
             /* Merge multiple pipe configs to single sensor config with same sensor id */
             if (mapDev2SnsSetting.find(tSensorCfg.nSnsID) != mapDev2SnsSetting.end()) {
                 if (MAX_PIPE_PER_DEVICE == mapDev2SnsSetting[tSensorCfg.nSnsID].nPipeCount) {
@@ -272,6 +309,9 @@ string CSensorCfgParser::LoadType2FileName(AX_S32 nLoadType) {
         }
         case E_LOAD_TYPE_PANO_DUAL_OS04A10: {
             return "Pano_Dual_OS04A10.json";
+        }
+        case E_LOAD_TYPE_SINGLE_OS08A20_PANO_DUAL_OS04A10: {
+            return "Single_OS08A20_Dual_OS04A10.json";
         }
         default: {
             return "Dual_OS08A20.json";

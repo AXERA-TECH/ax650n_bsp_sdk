@@ -19,7 +19,8 @@ ISensor *CSensorFactory::CreateSensor(const SENSOR_CONFIG_T &tSensorCfg) {
     switch (tSensorCfg.eSensorType) {
         case E_SNS_TYPE_OS04A10:
         case E_SNS_TYPE_OS04A10_LF:
-        case E_SNS_TYPE_OS04A10_SF: {
+        case E_SNS_TYPE_OS04A10_SF:
+        case E_SNS_TYPE_OS04A10_DUAL_PANO: {
             pSnsInstance = new COS04a10(tSensorCfg);
             break;
         }

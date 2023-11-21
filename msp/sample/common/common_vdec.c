@@ -68,9 +68,6 @@ AX_S32 SampleVdecChnAttrSet(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn,
     pstVdChnAttr->u32ScaleRatioY = pstCmd->tChnCfg[VdChn].u32ScaleRatioY;
 
     pstVdChnAttr->u32OutputFifoDepth = pstCmd->tChnCfg[VdChn].u32OutputFifoDepth;
-    pstVdChnAttr->enOutputMode = pstCmd->tChnCfg[VdChn].enOutputMode;
-
-    pstVdChnAttr->enImgFormat = pstCmd->tChnCfg[VdChn].enImgFormat;
 
     if (pstCmd->tChnCfg[VdChn].uCompressLevel) {
         pstVdChnAttr->stCompressInfo.u32CompressLevel = pstCmd->tChnCfg[VdChn].uCompressLevel;
@@ -86,13 +83,15 @@ AX_S32 SampleVdecChnAttrSet(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn,
             pstVdChnAttr->u32FrameStride = AX_COMM_ALIGN(AX_COMM_ALIGN(uWidth, 128) * uPixBits, AX_VDEC_WIDTH_ALIGN * 8) / 8;
         else
             pstVdChnAttr->u32FrameStride = AX_COMM_ALIGN(uWidth * 2, AX_VDEC_WIDTH_ALIGN);
-    } else if (pstCmd->tChnCfg[VdChn].enImgFormat == AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P101010) {
+    }
+    else if (pstCmd->tChnCfg[VdChn].enImgFormat == AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P101010) {
         uPixBits = 10;
         if (pstVdChnAttr->stCompressInfo.enCompressMode == AX_COMPRESS_MODE_LOSSY)
             pstVdChnAttr->u32FrameStride = AX_COMM_ALIGN(AX_COMM_ALIGN(uWidth, 128) * uPixBits, AX_VDEC_WIDTH_ALIGN * 8) / 8;
         else
             pstVdChnAttr->u32FrameStride = AX_COMM_ALIGN(uWidth * 10 / 8, AX_VDEC_WIDTH_ALIGN);
-    } else {
+    }
+    else {
         uPixBits = 8;
         if (pstVdChnAttr->u32FrameStride == 0) {
             if (pstCmd->enDecType == PT_H264 || pstCmd->enDecType == PT_H265) {
@@ -137,7 +136,6 @@ AX_S32 SampleVdecChnAttrSet(AX_VDEC_GRP VdGrp, AX_VDEC_CHN VdChn,
                         VdGrp, sRet, AX_VdecRetStr(sRet));
         goto ERR_RET;
     }
-
 
 ERR_RET:
     return sRet;

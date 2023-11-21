@@ -62,7 +62,7 @@ AX_VIN_PIPE_ATTR_T gDummyPipeAttr = {
     .ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP,
     .eSnsMode = AX_SNS_LINEAR_MODE,
     .tCompressInfo = {AX_COMPRESS_MODE_NONE, 0},
-    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {0, {AX_COMPRESS_MODE_NONE, 0}}},
+    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {1, {AX_COMPRESS_MODE_LOSSLESS, 0}}},
     .tFrameRateCtrl = {AX_INVALID_FRMRATE, AX_INVALID_FRMRATE},
 };
 
@@ -158,7 +158,7 @@ AX_VIN_PIPE_ATTR_T gOs08a20PipeAttr = {
     .ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP,
     .eSnsMode = AX_SNS_LINEAR_MODE,
     .tCompressInfo = {AX_COMPRESS_MODE_NONE, 0},
-    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {0, {AX_COMPRESS_MODE_NONE, 0}}},
+    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {1, {AX_COMPRESS_MODE_LOSSLESS, 0}}},
     .tFrameRateCtrl = {AX_INVALID_FRMRATE, AX_INVALID_FRMRATE},
 };
 
@@ -254,7 +254,7 @@ AX_VIN_PIPE_ATTR_T gOs08b10PipeAttr = {
     .ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP,
     .eSnsMode = AX_SNS_LINEAR_MODE,
     .tCompressInfo = {AX_COMPRESS_MODE_NONE, 0},
-    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {0, {AX_COMPRESS_MODE_NONE, 0}}},
+    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {1, {AX_COMPRESS_MODE_LOSSLESS, 0}}},
     .tFrameRateCtrl = {AX_INVALID_FRMRATE, AX_INVALID_FRMRATE},
 };
 
@@ -291,7 +291,7 @@ AX_VIN_CHN_ATTR_T gOs08b10Chn2Attr = {
 AX_MIPI_RX_DEV_T gSc910gsMipiRx = {
     .eInputMode = AX_INPUT_MODE_SUBLVDS,
     .tLvdsAttr.eLaneNum = AX_SLVDS_DATA_LANE_8,
-    .tLvdsAttr.nDataRate =  810,
+    .tLvdsAttr.nDataRate = 750,
     .tLvdsAttr.nDataLaneMap[0] = 0,
     .tLvdsAttr.nDataLaneMap[1] = 1,
     .tLvdsAttr.nDataLaneMap[2] = 2,
@@ -307,9 +307,9 @@ AX_MIPI_RX_DEV_T gSc910gsMipiRx = {
 AX_SNS_ATTR_T gSc910gsSnsAttr = {
     .nWidth = 3840,
     .nHeight = 2336,
-    .fFrameRate = 45.0,
+    .fFrameRate = 50.0,
     .eSnsMode = AX_SNS_LINEAR_MODE,
-    .eRawType = AX_RT_RAW12,
+    .eRawType = AX_RT_RAW10,
     .eBayerPattern = AX_BP_RGGB,
     .bTestPatternEnable = AX_FALSE,
     .eMasterSlaveSel = AX_SNS_SLAVE,
@@ -341,7 +341,7 @@ AX_VIN_DEV_ATTR_T gSc910gsDevAttr = {
     .tLvdsIntfAttr.szSyncCode[2][0][1] = 0x8000,
     .tLvdsIntfAttr.szSyncCode[3][0][0] = 0xab00,
     .tLvdsIntfAttr.szSyncCode[3][0][1] = 0x8000,
-    .ePixelFmt = AX_FORMAT_BAYER_RAW_12BPP,
+    .ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP,
     .eBayerPattern = AX_BP_RGGB,
     .eSnsMode = AX_SNS_LINEAR_MODE,
     .eSnsOutputMode = AX_SNS_NORMAL,
@@ -354,7 +354,7 @@ AX_VIN_PIPE_ATTR_T gSc910gsPipeAttr = {
     .ePixelFmt = AX_FORMAT_BAYER_RAW_16BPP,
     .eSnsMode = AX_SNS_LINEAR_MODE,
     .tCompressInfo = {AX_COMPRESS_MODE_NONE, 0},
-    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {0, {AX_COMPRESS_MODE_NONE, 0}}},
+    .tNrAttr = {{0, {AX_COMPRESS_MODE_NONE, 0}}, {1, {AX_COMPRESS_MODE_LOSSLESS, 0}}},
 };
 
 AX_VIN_CHN_ATTR_T gSc910gsChn0Attr = {
@@ -392,63 +392,69 @@ AX_VIN_POWER_SYNC_ATTR_T  gSc910gsPowerAttr =  {
     .nFreqTolLeft = 2,
     .nFreqTolRight = 2,
     .nElecFreq = 50,
-    .nSyncTriggerFreq = 25,
+    .nSyncTriggerFreq = 50,
+    .nSyncDelayElcUs = 2000,
+    .nStrobeGpioNum[0] = 90,
+    .nStrobeGpioNum[1] = 89,
+    .nStrobeGpioNum[2] = 65,
+    .nStrobeGpioNum[3] = 91,
+    .nStrobeGpioNum[4] = 92,
 };
 
 AX_VIN_SYNC_SIGNAL_ATTR_T gSc910gsVsyncAttr = {
     .nSyncIdx = 0,
     .eSyncInv = AX_VIN_SYNC_POLARITY_HIGH,
-    .nSyncFreq = 2500,
+    .nSyncFreq = 2700,
     .nSyncDutyRatio = 1,
 };
 
 AX_VIN_SYNC_SIGNAL_ATTR_T gSc910gsHsyncAttr = {
     .nSyncIdx = 0,
     .eSyncInv = AX_VIN_SYNC_POLARITY_HIGH,
-    .nSyncFreq = 16000,
+    .nSyncFreq = 7407,
     .nSyncDutyRatio = 1,
 };
 
 AX_VIN_LIGHT_SYNC_INFO_T gSc910gsLightSyncInfo = {
-    .nVts = 2500,
-    .nHts = 16000,
-    .nIntTime = 2500 / (1000 / 25) * 10,
-    .nElecToVsyncTime = 500,
-    .nVbbTime = 0,
+    .nVts = 2700,
+    .nHts = 7407,
+    .nIntTime = 8000,
+    .nElecToVsyncTime = 1350,
+    .nVbbTime = 100,
     .szShutterParam[0].nShutterSeq = 1,
     .szShutterParam[0].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
-    .szShutterParam[1].nShutterSeq = 0,
-    .szShutterParam[1].eShutterMode = AX_VIN_SHUTTER_MODE_VIDEO,
+    .szShutterParam[1].nShutterSeq = 1,
+    .szShutterParam[1].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
     .szShutterParam[2].nShutterSeq = 1,
     .szShutterParam[2].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
-    .szShutterParam[3].nShutterSeq = 0,
-    .szShutterParam[3].eShutterMode = AX_VIN_SHUTTER_MODE_VIDEO,
+    .szShutterParam[3].nShutterSeq = 1,
+    .szShutterParam[3].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
     .szShutterParam[4].nShutterSeq = 1,
     .szShutterParam[4].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
-    .szShutterParam[5].nShutterSeq = 0,
-    .szShutterParam[5].eShutterMode = AX_VIN_SHUTTER_MODE_VIDEO,
+    .szShutterParam[5].nShutterSeq = 1,
+    .szShutterParam[5].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
     .szShutterParam[6].nShutterSeq = 1,
     .szShutterParam[6].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
-    .szShutterParam[7].nShutterSeq = 0,
-    .szShutterParam[7].eShutterMode = AX_VIN_SHUTTER_MODE_VIDEO,
+    .szShutterParam[7].nShutterSeq = 1,
+    .szShutterParam[7].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
     .szShutterParam[8].nShutterSeq = 1,
     .szShutterParam[8].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
-    .szShutterParam[9].nShutterSeq = 0,
-    .szShutterParam[9].eShutterMode = AX_VIN_SHUTTER_MODE_VIDEO,
+    .szShutterParam[9].nShutterSeq = 1,
+    .szShutterParam[9].eShutterMode = AX_VIN_SHUTTER_MODE_PICTURE,
 };
 
 #define LIGHT_STROBE (0)
 AX_VIN_STROBE_LIGHT_TIMING_ATTR_T gSc910gsSnapStrobeAttr = {
     .eStrobeSyncInv = AX_VIN_SYNC_POLARITY_HIGH,
-    .nStrobeDutyTime = 499,
-    .nStrobeDelayTime = 1,
+    .nStrobeDutyTime = 20,
+    .nStrobeDelayTime = 1430,
 };
 
 #define LIGHT_FLASH (2)
 AX_VIN_FLASH_LIGHT_TIMING_ATTR_T gSc910gsSnapFlashAttr = {
     .eFlashSyncInv = AX_VIN_SYNC_POLARITY_HIGH,
-    .nFlashDutyTime = 50,
-    .nFlashDelayTime = 1,
+    .nFlashDutyTime = 20,
+    .nFlashDelayTime = 1430,
 };
 
 #endif //_COMMON_CONFIG_H__

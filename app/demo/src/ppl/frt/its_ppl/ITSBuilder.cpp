@@ -1311,6 +1311,7 @@ AX_BOOL CITSBuilder::DispatchOpr(WEB_REQ_OPERATION_T& tOperation, AX_VOID** pRes
                 pVencInstance->StopRecv();
                 /*Reset chn fifo*/
                 pVencInstance->ResetChn();
+                pVencInstance->SetPauseFlag(AX_TRUE);
                 /* IVPS update resolution */
                 m_vecIvpsInstance[tPrecedingMod.nGroup]->UpdateChnResolution(tPrecedingMod.nChannel, tOperation.tResolution.nWidth,
                                                                              tOperation.tResolution.nHeight);
@@ -1325,6 +1326,7 @@ AX_BOOL CITSBuilder::DispatchOpr(WEB_REQ_OPERATION_T& tOperation, AX_VOID** pRes
 
                 /* VENC start receive */
                 pVencInstance->StartRecv();
+                pVencInstance->SetPauseFlag(AX_FALSE);
                 /* IVPS enable channel */
                 m_vecIvpsInstance[tPrecedingMod.nGroup]->EnableChannel(tPrecedingMod.nChannel, AX_TRUE);
 
@@ -1817,6 +1819,8 @@ AX_S32 CITSBuilder::APP_SYS_Init() {
         return nRet;
     }
 
+    AX_APP_Log_SetSysModuleInited(AX_TRUE);
+
     nRet = AX_POOL_Exit();
     if (0 != nRet) {
         return nRet;
@@ -1832,6 +1836,8 @@ AX_S32 CITSBuilder::APP_SYS_DeInit() {
     if (0 != nRet) {
         return nRet;
     }
+
+    AX_APP_Log_SetSysModuleInited(AX_FALSE);
 
     nRet = AX_SYS_Deinit();
     if (0 != nRet) {

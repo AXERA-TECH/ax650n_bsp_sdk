@@ -70,7 +70,7 @@ AX_S32 COMMON_ISP_RegisterSns(AX_U8 pipe, AX_U8 nDevId, SAMPLE_SNS_TYPE_E eSnsTy
 AX_S32 COMMON_ISP_UnRegisterSns(AX_U8 pipe);
 AX_SENSOR_REGISTER_FUNC_T *COMMON_ISP_GetSnsObj(SAMPLE_SNS_TYPE_E eSnsType);
 AX_S32 COMMON_ISP_SetSnsAttr(AX_U8 nPipeId, AX_U8 nDevId, AX_SNS_ATTR_T *ptSnsAttr, AX_SNS_CLK_ATTR_T *pstSnsClkAttr);
-
+AX_S32 COMMON_ISP_ResetSnsObj(AX_U8 pipe, AX_U8 nDevId, SAMPLE_SNS_TYPE_E eSnsType);
 
 AX_S32 COMMON_ISP_RegisterAeAlgLib(AX_U8 pipe, SAMPLE_SNS_TYPE_E eSnsType, AX_BOOL bUser3a,
                                    AX_ISP_AE_REGFUNCS_T *pAeFuncs);

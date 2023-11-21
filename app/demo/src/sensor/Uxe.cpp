@@ -16,8 +16,12 @@
 #define HDRKEY "hdr"
 #define BOARD_ID_LEN 128
 
-CUxe::CUxe(AX_BOOL bYUV444) : CBaseSensor(SENSOR_CONFIG_T(0, 0, AX_SNS_LINEAR_MODE, AX_VIN_DEV_OFFLINE, 30.0, 1)), m_bYUV444(bYUV444) {
-
+CUxe::CUxe(AX_IMG_FORMAT_E eImgFormat, AX_U32 nW /* = 3840 */, AX_U32 nH /* = 2160 */, AX_U32 nFps /* = 60 */)
+    : CBaseSensor(SENSOR_CONFIG_T(0, 0, AX_SNS_LINEAR_MODE, AX_VIN_DEV_OFFLINE, (AX_F32)nFps, 1))
+    , m_eImgFormat(eImgFormat)
+    , m_nW(nW)
+    , m_nH(nH)
+    , m_nFps(nFps) {
 }
 
 CUxe::~CUxe(AX_VOID) {
@@ -66,37 +70,57 @@ AX_BOOL CUxe::Open() {
 
     AX_S32 nRet = 0;
 
+    AX_LANE_COMBO_MODE_E emode;
+    AX_U32 nMipiDev = 0; //yuv 444
 
-    AX_MIPI_RX_DEV_E eMipiDev = AX_MIPI_RX_DEV_0; //yuv 444
+    // if (!(m_eImgFormat == AX_FORMAT_BAYER_RAW_8BPP)) {
+    //     m_tSnsCfg.nDevID = 4;
+    //     nMipiDev = 4;
+    // }
 
-    if (!m_bYUV444) {
-        m_tSnsCfg.nDevID = 4;
-        eMipiDev = AX_MIPI_RX_DEV_4;
+    // depends on HW connections
+    switch (m_eImgFormat) {
+        case AX_FORMAT_BAYER_RAW_8BPP: /* mipi 8 lane */
+            m_tSnsCfg.nDevID = 0;
+            nMipiDev = 0;
+            emode = AX_LANE_COMBO_MODE_0;
+            break;
+        case AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P010: /* mipi 8 lane */
+            m_tSnsCfg.nDevID = 4;
+            nMipiDev = 0;
+            emode = AX_LANE_COMBO_MODE_0;
+            break;
+        case AX_FORMAT_YUV420_SEMIPLANAR: /* mipi 4 lane */
+            m_tSnsCfg.nDevID = 4;
+            nMipiDev = 4;
+            emode = AX_LANE_COMBO_MODE_4;
+            break;
+        default:
+            break;
     }
 
     AX_U8 nDevID = m_tSnsCfg.nDevID;
 
     // MIPI proc
-    AX_LANE_COMBO_MODE_E emode = (m_bYUV444 == AX_TRUE ? AX_LANE_COMBO_MODE_0 : AX_LANE_COMBO_MODE_4);
     nRet = AX_MIPI_RX_SetLaneCombo(emode);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_SetLaneCombo failed, ret=0x%x.", nRet);
         return AX_FALSE;
     }
 
-    nRet = AX_MIPI_RX_SetAttr(eMipiDev, &m_tMipiRxDev);
+    nRet = AX_MIPI_RX_SetAttr(nMipiDev, &m_tMipiRxDev);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_SetAttr failed, ret=0x%x.", nRet);
         return AX_FALSE;
     }
 
-    nRet = AX_MIPI_RX_Reset(eMipiDev);
+    nRet = AX_MIPI_RX_Reset(nMipiDev);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_Reset failed, ret=0x%x.", nRet);
         return AX_FALSE;
     }
 
-    nRet = AX_MIPI_RX_Start(eMipiDev);
+    nRet = AX_MIPI_RX_Start(nMipiDev);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_Start failed, ret=0x%x.", nRet);
         return AX_FALSE;
@@ -146,20 +170,19 @@ AX_BOOL CUxe::Open() {
         LOG_M_E(SENSOR, "AX_VIN_SetDevBindPipe failed, ret=0x%x.", nRet);
         return AX_FALSE;
     }
-    if (m_bYUV444) {
-        nRet = AX_VIN_SetDevBindMipi(nDevID, eMipiDev);
-        if (0 != nRet) {
-            LOG_M_E(SENSOR, "AX_VIN_SetDevBindMipi failed, ret=0x%x.", nRet);
-            return AX_FALSE;
-        }
 
-        /* configure the attribute of early reporting of frame interrupts */
-        if (AX_VIN_DEV_WORK_MODE_1MULTIPLEX < m_tDevAttr.eDevWorkMode) {
-            nRet = AX_VIN_SetDevFrameInterruptAttr(nDevID, &m_tDevFrmIntAttr);
-            if (0 != nRet) {
-                LOG_M_E(SENSOR, "AX_VIN_SetDevFrameInterruptAttr failed, ret=0x%x.", nRet);
-                return AX_FALSE;
-            }
+    nRet = AX_VIN_SetDevBindMipi(nDevID, nMipiDev);
+    if (0 != nRet) {
+        LOG_M_E(SENSOR, "AX_VIN_SetDevBindMipi failed, ret=0x%x.", nRet);
+        return AX_FALSE;
+    }
+
+    /* configure the attribute of early reporting of frame interrupts */
+    if (AX_VIN_DEV_WORK_MODE_1MULTIPLEX < m_tDevAttr.eDevWorkMode) {
+        nRet = AX_VIN_SetDevFrameInterruptAttr(nDevID, &m_tDevFrmIntAttr);
+        if (0 != nRet) {
+            LOG_M_E(SENSOR, "AX_VIN_SetDevFrameInterruptAttr failed, ret=0x%x.", nRet);
+            return AX_FALSE;
         }
     }
 
@@ -210,7 +233,7 @@ AX_BOOL CUxe::Close() {
         }
     }
 
-    nRet = AX_MIPI_RX_Stop((AX_MIPI_RX_DEV_E)nDevID);
+    nRet = AX_MIPI_RX_Stop(nDevID);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_Stop failed, ret=0x%x.", nRet);
         return AX_FALSE;
@@ -255,11 +278,11 @@ AX_VOID CUxe::InitSnsLibraryInfo(AX_VOID) {
 
 AX_VOID CUxe::InitSnsAttr() {
     /* Referenced by AX_VIN_SetSnsAttr */
-    m_tSnsAttr.nWidth = 3840;
-    m_tSnsAttr.nHeight = 2160;
-    m_tSnsAttr.fFrameRate = 60.0; //m_tSnsCfg.fFrameRate;  // 60.0,
+    m_tSnsAttr.nWidth = m_nW;
+    m_tSnsAttr.nHeight = m_nH;
+    m_tSnsAttr.fFrameRate = (AX_F32)m_nFps;
     m_tSnsAttr.eSnsMode = AX_SNS_LINEAR_MODE; //m_tSnsCfg.eSensorMode;  //
-    if (m_bYUV444) {
+    if (m_eImgFormat == AX_FORMAT_BAYER_RAW_8BPP) {
         m_tSnsAttr.eRawType = AX_RT_RAW8;
     } else {
         m_tSnsAttr.eRawType = AX_RT_YUV422;
@@ -270,7 +293,7 @@ AX_VOID CUxe::InitSnsAttr() {
 
 AX_VOID CUxe::InitSnsClkAttr() { //?
     /* Referenced by AX_VIN_OpenSnsClk */
-    if (m_bYUV444) {
+    if (m_eImgFormat == AX_FORMAT_BAYER_RAW_8BPP) {
         m_tSnsClkAttr.nSnsClkIdx = 0;
     } else {
         m_tSnsClkAttr.nSnsClkIdx = 1;
@@ -282,14 +305,20 @@ AX_VOID CUxe::InitMipiRxAttr() {
     /* Referenced by AX_MIPI_RX_SetAttr */
     m_tMipiRxDev.eInputMode = AX_INPUT_MODE_MIPI;
     m_tMipiRxDev.tMipiAttr.ePhyMode = AX_MIPI_PHY_TYPE_DPHY;
-    if (m_bYUV444) {
+    if (m_eImgFormat == AX_FORMAT_BAYER_RAW_8BPP) {
         m_tMipiRxDev.tMipiAttr.eLaneNum = AX_MIPI_DATA_LANE_8;
         m_tMipiRxDev.tMipiAttr.nDataRate = 1900;
+    } else if (m_eImgFormat == AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P010) {
+        m_tMipiRxDev.tMipiAttr.eLaneNum = AX_MIPI_DATA_LANE_8;
+        if (60 == m_nFps) {
+            m_tMipiRxDev.tMipiAttr.nDataRate = 1600;
+        } else {
+            m_tMipiRxDev.tMipiAttr.nDataRate = 800;
+        }
     } else {
         m_tMipiRxDev.tMipiAttr.eLaneNum = AX_MIPI_DATA_LANE_4;
         m_tMipiRxDev.tMipiAttr.nDataRate = 1300;
     }
-
 
     m_tMipiRxDev.tMipiAttr.nDataLaneMap[0] = 0;
     m_tMipiRxDev.tMipiAttr.nDataLaneMap[1] = 1;
@@ -308,7 +337,7 @@ AX_VOID CUxe::InitDevAttr() {
     m_tDevAttr.bImgDataEnable = AX_TRUE;
     m_tDevAttr.bNonImgDataEnable = AX_FALSE;
     m_tDevAttr.eDevMode = AX_VIN_DEV_OFFLINE;
-    if (m_bYUV444) {
+    if (m_eImgFormat == AX_FORMAT_BAYER_RAW_8BPP) {
         m_tDevAttr.eDevWorkMode = AX_VIN_DEV_WORK_MODE_4MULTIPLEX;
         m_tDevAttr.eSnsIntfType = AX_SNS_INTF_TYPE_MIPI_RAW;
         m_tDevAttr.ePixelFmt = AX_FORMAT_BAYER_RAW_8BPP;
@@ -316,26 +345,26 @@ AX_VOID CUxe::InitDevAttr() {
         /* ROI config */
         m_tDevAttr.tDevImgRgn[0].nStartX = 0;
         m_tDevAttr.tDevImgRgn[0].nStartY = 0;
-        m_tDevAttr.tDevImgRgn[0].nWidth = 3840 * 3 / 2;
-        m_tDevAttr.tDevImgRgn[0].nHeight = 2160 / 2;
+        m_tDevAttr.tDevImgRgn[0].nWidth = m_nW * 3 / 2;
+        m_tDevAttr.tDevImgRgn[0].nHeight = m_nH / 2;
 
-        m_tDevAttr.tDevImgRgn[1].nStartX = 3840 * 3 / 2;
+        m_tDevAttr.tDevImgRgn[1].nStartX = m_nW * 3 / 2;
         m_tDevAttr.tDevImgRgn[1].nStartY = 0;
-        m_tDevAttr.tDevImgRgn[1].nWidth = 3840 * 3 / 2;
-        m_tDevAttr.tDevImgRgn[1].nHeight = 2160 / 2;
+        m_tDevAttr.tDevImgRgn[1].nWidth = m_nW * 3 / 2;
+        m_tDevAttr.tDevImgRgn[1].nHeight = m_nH / 2;
 
         m_tDevAttr.tDevImgRgn[2].nStartX = 0;
-        m_tDevAttr.tDevImgRgn[2].nStartY = 2160 / 2;
-        m_tDevAttr.tDevImgRgn[2].nWidth = 3840 * 3 / 2;
-        m_tDevAttr.tDevImgRgn[2].nHeight = 2160 / 2;
+        m_tDevAttr.tDevImgRgn[2].nStartY = m_nH / 2;
+        m_tDevAttr.tDevImgRgn[2].nWidth = m_nW * 3 / 2;
+        m_tDevAttr.tDevImgRgn[2].nHeight = m_nH / 2;
 
-        m_tDevAttr.tDevImgRgn[3].nStartX = 3840 * 3 / 2;
-        m_tDevAttr.tDevImgRgn[3].nStartY = 2160 / 2;
-        m_tDevAttr.tDevImgRgn[3].nWidth = 3840 * 3 / 2;
-        m_tDevAttr.tDevImgRgn[3].nHeight = 2160 / 2;
+        m_tDevAttr.tDevImgRgn[3].nStartX = m_nW * 3 / 2;
+        m_tDevAttr.tDevImgRgn[3].nStartY = m_nH / 2;
+        m_tDevAttr.tDevImgRgn[3].nWidth = m_nW * 3 / 2;
+        m_tDevAttr.tDevImgRgn[3].nHeight = m_nH / 2;
 
         for (AX_U8 i = 0; i < AX_HDR_CHN_NUM; i++) {
-            m_tDevAttr.nWidthStride[i] = 3840 * 3;
+            m_tDevAttr.nWidthStride[i] = m_nW * 3;
         }
 
         /* configure the attribute of early reporting of frame interrupts */
@@ -345,12 +374,20 @@ AX_VOID CUxe::InitDevAttr() {
         m_tDevFrmIntAttr.bImgRgnIntEn[3] = AX_TRUE;
     } else {
         m_tDevAttr.eSnsIntfType = AX_SNS_INTF_TYPE_MIPI_YUV;
-        m_tDevAttr.ePixelFmt = AX_FORMAT_YUV422_INTERLEAVED_YUYV;
+        m_tDevAttr.ePixelFmt = m_eImgFormat;
         m_tDevAttr.nConvYuv422To420En = 1;
         m_tDevAttr.nConvFactor = 2;
 
+        if (m_eImgFormat == AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P010) {
+            m_tDevAttr.tMipiIntfAttr.szImgVc[0] = 0;
+            m_tDevAttr.tMipiIntfAttr.szImgDt[0] = AX_MIPI_CSI_DT_YUV422_10BIT;
+        } else if (m_eImgFormat == AX_FORMAT_YUV420_SEMIPLANAR) {
+            m_tDevAttr.tMipiIntfAttr.szImgVc[0] = 0;
+            m_tDevAttr.tMipiIntfAttr.szImgDt[0] = AX_MIPI_CSI_DT_YUV422_8BIT;
+        }
+
         for (AX_U8 i = 0; i < AX_HDR_CHN_NUM; i++) {
-            m_tDevAttr.tDevImgRgn[i] = {0, 0, 3840, 2160};
+            m_tDevAttr.tDevImgRgn[i] = {0, 0, m_nW, m_nH};
         }
     }
 
@@ -375,7 +412,7 @@ AX_VOID CUxe::InitPipeAttr() {
     for (AX_U8 i = 0; i < m_tSnsCfg.nPipeCount; i++) {
         AX_U8 nPipe = m_tSnsCfg.arrPipeAttr[i].nPipeID;
         AX_VIN_PIPE_ATTR_T tPipeAttr;
-        tPipeAttr.tPipeImgRgn = {0, 0, 3840, 2160};
+        tPipeAttr.tPipeImgRgn = {0, 0, m_nW, m_nH};
         tPipeAttr.eBayerPattern = AX_BP_RGGB;
         tPipeAttr.ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP;  // m_tDevAttr.ePixelFmt;  // AX_FORMAT_BAYER_RAW_10BPP
         tPipeAttr.eSnsMode = AX_SNS_LINEAR_MODE;          // m_tSnsCfg.eSensorMode;  // AX_SNS_LINEAR_MODE
@@ -396,9 +433,9 @@ AX_VOID CUxe::InitChnAttr() {
         AX_VIN_CHN_ATTR_T arrChnAttr[AX_VIN_CHN_ID_MAX] =
         {
             {
-                .nWidth  = 3840, //(AX_U32)tPipeAttr.arrChannelAttr[0].nWidth,   // 3840
-                .nHeight = 2160, //(AX_U32)tPipeAttr.arrChannelAttr[0].nHeight,  // 2160
-                .nWidthStride = 3840,
+                .nWidth  = m_nW, //(AX_U32)tPipeAttr.arrChannelAttr[0].nWidth,   // 3840
+                .nHeight = m_nH, //(AX_U32)tPipeAttr.arrChannelAttr[0].nHeight,  // 2160
+                .nWidthStride = m_nW,
                 .ePixelFmt = AX_FORMAT_YUV420_SEMIPLANAR,
                 .nDepth = 3, //tPipeAttr.arrChannelAttr[0].nYuvDepth, //3
                 //.tFrameRateCtrl.tFrmRateCtrl = {0, 0},
@@ -439,4 +476,3 @@ AX_VOID CUxe::InitAbilities() {
 
 AX_VOID CUxe::InitTriggerAttr() {
 }
-

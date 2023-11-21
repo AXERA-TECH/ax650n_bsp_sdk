@@ -310,8 +310,6 @@ AX_BOOL CVideoEncoder::InitParams() {
              m_tVencChnAttr.stVencAttr.enMemSource, m_tVencChnAttr.stVencAttr.u8InFifoDepth, m_tVencChnAttr.stVencAttr.u8OutFifoDepth,
              m_tVideoConfig.fFramerate);
 
-    m_tVencChnAttr.stVencAttr.u32VideoRange = 1; /* 0: Narrow Range(NR), Y[16,235], Cb/Cr[16,240]; 1: Full Range(FR), Y/Cb/Cr[0,255] */
-
     /* GOP Setting */
     m_tVencChnAttr.stGopAttr.enGopMode = AX_VENC_GOPMODE_NORMALP;
     if (AX_FALSE == m_tVideoConfig.GetEncCfg(m_tVideoConfig.ePayloadType, m_CurEncCfg)) {
@@ -327,6 +325,11 @@ AX_BOOL CVideoEncoder::InitParams() {
             m_tVencChnAttr.stVencAttr.enProfile = AX_VENC_H264_MAIN_PROFILE;
             m_tVencChnAttr.stVencAttr.enLevel = AX_VENC_H264_LEVEL_5_2;
             m_tVencChnAttr.stVencAttr.enTier = AX_VENC_HEVC_MAIN_TIER;
+
+            if (m_tVideoConfig.eImgFormat == AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P010) {
+                m_tVencChnAttr.stVencAttr.enProfile = AX_VENC_H264_HIGH_10_PROFILE;
+                m_tVencChnAttr.stVencAttr.enStrmBitDepth = AX_VENC_STREAM_BIT_10;
+            }
 
             if (m_tVideoConfig.eRcType == AX_VENC_RC_MODE_H264CBR) {
                 m_tVencChnAttr.stRcAttr.enRcMode = AX_VENC_RC_MODE_H264CBR;
@@ -346,6 +349,11 @@ AX_BOOL CVideoEncoder::InitParams() {
             m_tVencChnAttr.stVencAttr.enProfile = AX_VENC_HEVC_MAIN_PROFILE;  // main profile
             m_tVencChnAttr.stVencAttr.enLevel = AX_VENC_HEVC_LEVEL_5_1;
             m_tVencChnAttr.stVencAttr.enTier = AX_VENC_HEVC_MAIN_TIER;
+
+            if (m_tVideoConfig.eImgFormat == AX_FORMAT_YUV420_SEMIPLANAR_10BIT_P010) {
+                m_tVencChnAttr.stVencAttr.enProfile = AX_VENC_HEVC_MAIN_10_PROFILE;
+                m_tVencChnAttr.stVencAttr.enStrmBitDepth = AX_VENC_STREAM_BIT_10;
+            }
 
             if (m_tVideoConfig.eRcType == AX_VENC_RC_MODE_H265CBR) {
                 m_tVencChnAttr.stRcAttr.enRcMode = AX_VENC_RC_MODE_H265CBR;
@@ -417,6 +425,14 @@ AX_VOID CVideoEncoder::FrameGetThreadFunc(CVideoEncoder* pCaller) {
     AX_S32 nChannel = pThis->GetChannel();
     AX_S32 ret = 0;
     while (pThis->m_bGetThreadRunning) {
+        m_mtx.lock();
+        if(m_bPauseGet) {
+            CElapsedTimer::GetInstance()->mSleep(10);
+            m_mtx.unlock();
+            continue;
+        }
+        m_mtx.unlock();
+
         ret = AX_VENC_GetStream(nChannel, &stStream, 2000);
 
         if (AX_SUCCESS != ret) {
@@ -635,7 +651,8 @@ AX_BOOL CVideoEncoder::UpdateRcInfo(RC_INFO_T& tRcInfo) {
 AX_BOOL CVideoEncoder::UpdateRotation(AX_U8 nRotation) {
     AX_U32 nNewWidth = 0;
     AX_U32 nNewHeight = 0;
-    m_bGetThreadRunning = AX_FALSE;
+
+    SetPauseFlag(AX_TRUE);
 
     if (!GetResolutionByRotate(nRotation, nNewWidth, nNewHeight)) {
         LOG_MM_E(VENC, "[%d] Can not get new resolution for rotate operation.", GetChannel());
@@ -654,7 +671,8 @@ AX_BOOL CVideoEncoder::UpdateRotation(AX_U8 nRotation) {
     tAttr.stVencAttr.u32PicHeightSrc = nNewHeight;
 
     AX_VENC_SetChnAttr(GetChannel(), &tAttr);
-    m_bGetThreadRunning = AX_TRUE;
+
+    SetPauseFlag(AX_FALSE);
 
     LOG_MM_C(VENC, "[%d] Reset res: (w: %d, h: %d) (MAX w: %d, h:%d) bFBC:%d", GetChannel(), tAttr.stVencAttr.u32PicWidthSrc,
              tAttr.stVencAttr.u32PicHeightSrc, tAttr.stVencAttr.u32MaxPicWidth, tAttr.stVencAttr.u32MaxPicHeight, bFBC);
@@ -693,4 +711,9 @@ AX_BOOL CVideoEncoder::UpdatePayloadType(AX_PAYLOAD_TYPE_E ePayloadType) {
     STAGE_START_PARAM_T tStartParam;
     tStartParam.bStartProcessingThread = m_tVideoConfig.bLink ? AX_FALSE : AX_TRUE;
     return Start(&tStartParam);
+}
+
+AX_VOID CVideoEncoder::SetPauseFlag(AX_BOOL bPause) {
+    std::lock_guard<std::mutex> lck(m_mtx);
+    m_bPauseGet = bPause;
 }

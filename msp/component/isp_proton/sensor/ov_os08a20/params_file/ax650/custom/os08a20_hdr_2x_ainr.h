@@ -17,12 +17,12 @@ static AX_ISP_VERSION_T ax_isp_version_param_hdr_2x = {
     /* nIspMinor1 */
     8,
     /* nIspMinor2 */
-    1,
+    3,
     /* szBuildTime */
     "",
 
     /* szIspVersion */
-    "AX650_ISP_V3.8.1",
+    "AX650_ISP_V3.8.3",
 };
 
 static AX_ISP_IQ_AINR_PARAM_T ainr_param_hdr_2x = {
@@ -400,16 +400,16 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_hdr_2x = {
                     "/opt/etc/OS08A20_HDR_3840x2160_10b_LCG_ISP1_A1-4X_0000_00000425982_230804_AX650.axmodel",
                     /* szModelName */
                     "OS08A20_HDR_3840x2160_10b_LCG_ISP1_A1-4X_0000_00000425982_230804_AX650.axmodel",
+                    /* szTemporalBaseNrName */
+                    "",
+                    /* szSpatialBaseNrName */
+                    "",
                     /* nHcgMode */
                     0,
                     /* nIsoThresholdMin */
                     100,
                     /* nIsoThresholdMax */
                     200,
-                    /* szTemporalBaseNrName */
-                    "",
-                    /* szSpatialBaseNrName */
-                    "",
                     /* nBiasIn */
                     {0, 0, 0, 0},
                     /* nBiasOut */
@@ -624,16 +624,16 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_hdr_2x = {
                     "",
                     /* szModelName */
                     "",
+                    /* szTemporalBaseNrName */
+                    "",
+                    /* szSpatialBaseNrName */
+                    "",
                     /* nHcgMode */
                     0,
                     /* nIsoThresholdMin */
                     1,
                     /* nIsoThresholdMax */
                     1000000,
-                    /* szTemporalBaseNrName */
-                    "",
-                    /* szSpatialBaseNrName */
-                    "",
                     /* nBiasIn */
                     {0, 0, 0, 0},
                     /* nBiasOut */
@@ -1407,43 +1407,6 @@ static AX_ISP_IQ_SCENE_PARAM_T scene_param_hdr_2x = {
         {2, 2, /*0 - 2*/},
         /* eAiWorkMode[2] */
         {3, 4, /*0 - 2*/},
-    },
-};
-
-static AX_ISP_IQ_LDC_PARAM_T ldc_param_hdr_2x = {
-    /* nLdcEnable */
-    0,
-    /* nType */
-    0,
-    /* tLdcV1Param */
-    {
-        /* bAspect */
-        0,
-        /* nXRatio */
-        0,
-        /* nYRatio */
-        0,
-        /* nXYRatio */
-        0,
-        /* nCenterXOffset */
-        0,
-        /* nCenterYOffset */
-        0,
-        /* nDistortionRatio */
-        0,
-        /* nSpreadCoef */
-        0,
-    },
-    /* tLdcV2Param */
-    {
-        /* nMatrix[3][3] */
-        {
-            {0, 0, 0, /*0 - 2*/},
-            {0, 0, 0, /*0 - 2*/},
-            {0, 0, 1, /*0 - 2*/},
-        },
-        /* nDistortionCoeff[8] */
-        {0, 0, 0, 0, 0, 0, 0, 0, /*0 - 7*/},
     },
 };
 

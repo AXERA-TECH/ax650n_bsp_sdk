@@ -165,7 +165,7 @@ static AX_U32 uvc_init_syscase_single_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_
                             &pCam->tSnsClkAttr, &pCam->tDevAttr,
                             &pCam->tPipeAttr, pCam->tChnAttr);
     pCam->nDevId = 0;
-    pCam->nRxDev = AX_MIPI_RX_DEV_0;
+    pCam->nRxDev = 0;
     pCam->nPipeId = 0;
     pCam->tSnsClkAttr.nSnsClkIdx = 0;
     pCam->tDevBindPipe.nNum =  1;
@@ -177,7 +177,7 @@ static AX_U32 uvc_init_syscase_single_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_
         pCam->tPipeInfo[j].bAiispEnable = pVinParam->bAiispEnable;
         if (pCam->tPipeInfo[j].bAiispEnable) {
             if (eHdrMode <= AX_SNS_LINEAR_MODE) {
-                strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_dual3dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
+                strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_ai3d-t2d_to_t3dnr_30fps.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
             } else {
                 strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_hdr_2x_ainr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
             }
@@ -207,19 +207,19 @@ static AX_U32 uvc_init_syscase_double_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_
                                 &pCam->tPipeAttr, pCam->tChnAttr);
         if (i == 0) {
             pCam->nDevId = 0;
-            pCam->nRxDev = AX_MIPI_RX_DEV_0;
+            pCam->nRxDev = 0;
             pCam->nPipeId = 0;
             pCam->tSnsClkAttr.nSnsClkIdx = 0;
         } else if (i == 1) {
             if (!strncmp(apd_plate_id, "ADP_RX_DPHY_2X4LANE", sizeof("ADP_RX_DPHY_2X4LANE") - 1)) {
                 if (!strncmp(apd_plate_id, "ADP_RX_DPHY_2X4LANE_N", sizeof("ADP_RX_DPHY_2X4LANE_N") - 1)) {
                     pCam->nDevId = 2;
-                    pCam->nRxDev = AX_MIPI_RX_DEV_2;
+                    pCam->nRxDev = 2;
                     pCam->nPipeId = 1;
                     pCam->tSnsClkAttr.nSnsClkIdx = 1;
                 } else {
                     pCam->nDevId = 4;
-                    pCam->nRxDev = AX_MIPI_RX_DEV_4;
+                    pCam->nRxDev = 4;
                     pCam->nPipeId = 1;
                     pCam->tSnsClkAttr.nSnsClkIdx = 1;
                 }
@@ -235,7 +235,7 @@ static AX_U32 uvc_init_syscase_double_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_
             pCam->tPipeInfo[j].bAiispEnable = pVinParam->bAiispEnable;
             if (pCam->tPipeInfo[j].bAiispEnable) {
                 if (eHdrMode <= AX_SNS_LINEAR_MODE) {
-                    strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_dual3dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
+                    strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_ai3d_t2dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
                 } else {
                     strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_hdr_2x_ainr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
                 }
@@ -493,11 +493,15 @@ AX_S32 video_init(struct uvc_device **dev, UVC_SYS_CASE_E sys_case, COMMON_SYS_A
         printf("COMMON_SYS_Init failed, error type = 0x%x\n", s32Ret);
         goto EXIT;
     }
-    s32Ret = COMMON_NPU_Init(AX_ENGINE_VIRTUAL_NPU_BIG_LITTLE);
-    if (s32Ret) {
-        printf("COMMON_NPU_Init fail, ret:0x%x", s32Ret);
-        goto EXIT;
+
+    if (aiisp_enable) {
+        s32Ret = COMMON_NPU_Init(AX_ENGINE_VIRTUAL_NPU_BIG_LITTLE);
+        if (s32Ret) {
+            printf("COMMON_NPU_Init fail, ret:0x%x", s32Ret);
+            goto EXIT;
+        }
     }
+
     s32Ret = COMMON_CAM_Init();
     if (AX_SUCCESS != s32Ret) {
         printf("COMMON_CAM_Init failed, error type = 0x%x\n", s32Ret);
@@ -741,10 +745,6 @@ AX_S32 venc_chn_attr_init(struct uvc_device *dev, AX_S32 input_width, AX_S32 inp
     stVencChnAttr.stVencAttr.stCropCfg.stRect.s32Y = stVencCfg.nOffsetCropY;
     stVencChnAttr.stVencAttr.stCropCfg.stRect.u32Width = stVencCfg.nOffsetCropW;
     stVencChnAttr.stVencAttr.stCropCfg.stRect.u32Height = stVencCfg.nOffsetCropH;
-
-    /*0: Narrow Range(NR), Y[16,235], Cb/Cr[16,240];
-      1: Full Range(FR), Y/Cb/Cr[0,255]*/
-    stVencChnAttr.stVencAttr.u32VideoRange = 1;
 
     stVencChnAttr.stVencAttr.enMemSource = AX_MEMORY_SOURCE_POOL;
 

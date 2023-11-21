@@ -332,6 +332,34 @@ AX_S32 COMMON_ISP_UnRegisterSns(AX_U8 pipe)
     return axRet;
 }
 
+AX_S32 COMMON_ISP_ResetSnsObj(AX_U8 pipe, AX_U8 nDevId, SAMPLE_SNS_TYPE_E eSnsType)
+{
+    AX_S32 axRet = 0;
+    AX_SENSOR_REGISTER_FUNC_T *ptSnsHdl = NULL;
+    AX_U32 nResetGpio;
+
+    /* AX ISP get sensor config */
+    ptSnsHdl = COMMON_ISP_GetSnsObj(eSnsType);
+    if (NULL == ptSnsHdl) {
+        COMM_ISP_PRT("AX_ISP Get Sensor Object Failed!\n");
+        return -1;
+    }
+    /* reset sensor */
+    nResetGpio = COMMON_VIN_GetSensorResetGpioNum(nDevId);
+    if (NULL != ptSnsHdl->pfn_sensor_reset) {
+        axRet = ptSnsHdl->pfn_sensor_reset(pipe, nResetGpio);
+        if (0 != axRet) {
+            COMM_ISP_PRT("sensor reset failed with %#x!\n", axRet);
+            return axRet;
+        }
+    } else {
+        COMM_ISP_PRT("not support sensor reset!\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 AX_S32 COMMON_ISP_SetSnsAttr(AX_U8 nPipeId, AX_U8 nDevId, AX_SNS_ATTR_T *ptSnsAttr, AX_SNS_CLK_ATTR_T *pstSnsClkAttr)
 {
     AX_S32 axRet = 0;

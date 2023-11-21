@@ -151,6 +151,7 @@ private:
     AX_VOID StartNtCtrl();
     AX_VOID StopNtCtrl();
     AX_BOOL SnapshotProcess(AX_U8 nPipe, AX_U8 nChannel, AX_SNS_HDR_MODE_E eHdrMode, const AX_IMG_INFO_T** pArrImgInfo, AX_BOOL bDummy);
+    AX_BOOL NotifySnapshotProcess(AX_U8 nPipe, AX_U8 nChannel);
 
     AX_VOID NotifyAll(AX_S32 nPipe, AX_U32 nChannel, AX_VOID* pFrame);
 

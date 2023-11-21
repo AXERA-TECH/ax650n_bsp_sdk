@@ -39,6 +39,14 @@
                 </div>
               </div>
               <div class="right_controls_container">
+                <div class="draw_option" >
+                  <el-tooltip effect="dark" :content="isEnable3ASR ? '关闭3A Sync Ratio' : '开启3A Sync Ratio'" placement="top-end" :enterable="false">
+                    <el-button
+                      :class="{'draw_button_enable':isEnable3ASR, 'draw_button_disable': !isEnable3ASR}"
+                      icon="el-icon-refresh" @click="change3ASR"
+                      v-show="pano_sns_id === 0"></el-button>
+                  </el-tooltip>
+                </div>
                 <div class="draw_option">
                   <el-tooltip effect="dark" :content="!isTalking ? '开始对讲' : '停止对讲'" placement="top-end"
                     :enterable="false">
@@ -94,8 +102,8 @@
             </el-footer>
           </el-container>
         </el-main>
-        <div class="preview_seperator_line" v-show="dual_mode === 1"></div>
-        <el-main class="preview_capture_left_container" v-show="dual_mode === 1">
+        <div class="preview_seperator_line" v-show="home_dual_mode === 1"></div>
+        <el-main class="preview_capture_left_container" v-show="home_dual_mode === 1">
           <el-container id="video_container_1" class="preview_container">
             <el-main ref="axMain1" class="video_container">
               <video id="myVideo1" v-show="streamOptions[1].showVideoStatus" ref="axVideoRef1" class="axVideo" autoplay
@@ -133,6 +141,14 @@
                 </div>
               </div>
               <div class="right_controls_container">
+                <div class="draw_option" >
+                  <el-tooltip effect="dark" :content="isEnable3ASR ? '关闭3A Sync Ratio' : '开启3A Sync Ratio'" placement="top-end" :enterable="false">
+                    <el-button
+                      :class="{'draw_button_enable':isEnable3ASR, 'draw_button_disable': !isEnable3ASR}"
+                      icon="el-icon-refresh" @click="change3ASR"
+                      v-show="pano_sns_id === 1"></el-button>
+                  </el-tooltip>
+                </div>
                 <div class="draw_option">
                   <el-tooltip effect="dark" :content="'抓拍'" placement="top-end">
                     <el-button size="mini" :class="{ 'draw_button_enable': true, 'draw_button_disable': false }"
@@ -565,7 +581,7 @@ import screenfull from 'screenfull'
 import { saveAs } from "file-saver"
 
 export default {
-  props: ["mode_option", "dual_mode"],
+  props: ["mode_option", "home_dual_mode", "pano_sns_id"],
   data() {
     return {
       image_count: 16,
@@ -770,7 +786,8 @@ export default {
       },
       max_try_num: 3,
       showViewer: false,
-      full_scr_id: undefined
+      full_scr_id: undefined,
+      isEnable3ASR: true
     }
   },
   created() {
@@ -1369,6 +1386,21 @@ export default {
       if (this.streamOptions[snsId].timerEncInfo) {
         clearInterval(this.streamOptions[snsId].timerEncInfo)
         this.streamOptions[snsId].timerEncInfo = undefined
+      }
+    },
+    async change3ASR (changeData = true) {
+      // request http to send this configure to server
+      if (changeData) {
+        console.log('enable 3ASR:' + !this.isEnable3ASR)
+        const { data: res } = await this.$http.post('preview/sync_ratio_3a', { sr3a: !this.isEnable3ASR })
+        console.log('post enable 3ASR return: ', res)
+        if (res.meta.status !== 200) return this.$message.error('设置3ASR状态失败')
+        this.isEnable3ASR = !this.isEnable3ASR
+      } else {
+        console.log('enable 3ASR:' + this.isEnable3ASR)
+        const { data: res } = await this.$http.post('preview/sync_ratio_3a', { sr3a: this.isEnable3ASR })
+        console.log('post enable 3ASR return: ', res)
+        if (res.meta.status !== 200) return this.$message.error('设置3ASR状态失败')
       }
     },
     doScreen(snsId) {

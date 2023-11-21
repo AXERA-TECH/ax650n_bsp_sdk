@@ -271,7 +271,6 @@ static AX_CHAR *key_str[AX_VO_INI_K_BUTT] = {
     "layer_primary_chnId",
     "layer_frame_rate",
     "layer_fifo_depth",
-    "layer_chns",
     "layer_BkClr",
     "layer_WB_mode",
     "layer_inplace_chnId",
@@ -309,6 +308,7 @@ static AX_CHAR *key_str[AX_VO_INI_K_BUTT] = {
     "disp_cursor_width",
     "disp_cursor_height",
     "disp_cursor_fb_index",
+    "disp_cursor_move",
     "disp_out_fmt",
 };
 
@@ -689,20 +689,6 @@ static AX_S32 VO_INI_GET_KEY_VAL(AX_CHAR *pstr, AX_VOID *pConfig,
         } else {
             pLayerConf = (SAMPLE_VO_LAYER_CONFIG_S *)pConfig;
             pLayerConf->stVoLayerAttr.u32FifoDepth = strtoul(stSplitStr.pStr[0], NULL, 0);
-        }
-        break;
-
-    case AX_VO_INI_K_L_CHNS:
-        if (type == AX_VO_INI_S_LAYER_DISPLAY) {
-            pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            u32ValNr = stSplitStr.u32StrNr;
-            for (i = 0; i < u32ValNr; i++) {
-                pLayerConf = &pVoConfig->stVoLayer[i];
-                pLayerConf->stVoLayerAttr.u32ChnNr = strtoul(stSplitStr.pStr[i], NULL, 0);
-            }
-        } else {
-            pLayerConf = (SAMPLE_VO_LAYER_CONFIG_S *)pConfig;
-            pLayerConf->stVoLayerAttr.u32ChnNr = strtoul(stSplitStr.pStr[0], NULL, 0);
         }
         break;
 
@@ -1149,42 +1135,70 @@ static AX_S32 VO_INI_GET_KEY_VAL(AX_CHAR *pstr, AX_VOID *pConfig,
     case AX_VO_INI_K_D_CURSOR_ENABLE:
         if (type == AX_VO_INI_S_LAYER_DISPLAY) {
             pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            pVoConfig->stCursorLayer.u32CursorLayerEn = strtoul(stSplitStr.pStr[0], NULL, 0) ? 1 : 0;
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32CursorLayerEn = strtoul(stSplitStr.pStr[i], NULL, 0) ? 1 : 0;
+            }
         }
         break;
 
     case AX_VO_INI_K_D_CURSOR_X:
         if (type == AX_VO_INI_S_LAYER_DISPLAY) {
             pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            pVoConfig->stCursorLayer.u32X = strtoul(stSplitStr.pStr[0], NULL, 0);
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32X = strtoul(stSplitStr.pStr[i], NULL, 0);
+            }
         }
         break;
 
     case AX_VO_INI_K_D_CURSOR_Y:
         if (type == AX_VO_INI_S_LAYER_DISPLAY) {
             pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            pVoConfig->stCursorLayer.u32Y = strtoul(stSplitStr.pStr[0], NULL, 0);
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32Y = strtoul(stSplitStr.pStr[i], NULL, 0);
+            }
         }
         break;
 
     case AX_VO_INI_K_D_CURSOR_WIDTH:
         if (type == AX_VO_INI_S_LAYER_DISPLAY) {
             pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            pVoConfig->stCursorLayer.u32Width = strtoul(stSplitStr.pStr[0], NULL, 0);
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32Width = strtoul(stSplitStr.pStr[i], NULL, 0);
+            }
         }
         break;
 
     case AX_VO_INI_K_D_CURSOR_HEIGHT:
         if (type == AX_VO_INI_S_LAYER_DISPLAY) {
             pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            pVoConfig->stCursorLayer.u32Height = strtoul(stSplitStr.pStr[0], NULL, 0);
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32Height = strtoul(stSplitStr.pStr[i], NULL, 0);
+            }
         }
         break;
 
     case AX_VO_INI_K_D_CURSOR_FBID:
         if (type == AX_VO_INI_S_LAYER_DISPLAY) {
             pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
-            pVoConfig->stCursorLayer.u32FBIndex = strtoul(stSplitStr.pStr[0], NULL, 0);
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32FBIndex = strtoul(stSplitStr.pStr[i], NULL, 0);
+            }
+        }
+        break;
+
+    case AX_VO_INI_K_D_CURSOR_MOVE:
+        if (type == AX_VO_INI_S_LAYER_DISPLAY) {
+            pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
+            u32ValNr = stSplitStr.u32StrNr;
+            for (i = 0; i < u32ValNr; i++) {
+                pVoConfig->stCursorLayer[i].u32CursorMoveEn = strtoul(stSplitStr.pStr[i], NULL, 0) ? 1 : 0;
+            }
         }
         break;
 

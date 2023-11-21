@@ -32,9 +32,10 @@ typedef enum {
 } SAMPLE_PIPE_MODE_E;
 
 typedef struct {
-    SAMPLE_PIPE_MODE_E  ePipeMode;
-    AX_BOOL             bAiispEnable;
-    AX_CHAR             szBinPath[128];
+    SAMPLE_PIPE_MODE_E      ePipeMode;
+    AX_BOOL                 bAiispEnable;
+    AX_CHAR                 szBinPath[128];
+    AX_VIN_COMB_MODE_E      eCombMode;
 } SAMPLE_PIPE_INFO_T;
 
 #endif //__COMMON_TYPE_H__

@@ -87,6 +87,7 @@ typedef struct axSAMPLE_COMM_VO_LAYER_CONFIG_S {
     /* for sys link */
     AX_MOD_INFO_T            stSrcMod;
     AX_MOD_INFO_T            stDstMod;
+    AX_S32                   s32Chns;
 } SAMPLE_VO_LAYER_CONFIG_S;
 
 typedef struct axSAMPLE_FB_CONFIG_S {
@@ -119,6 +120,7 @@ typedef struct axSAMPLE_COMM_VO_CURSOR_CONFIG_S {
     AX_U32                   u32Y;
     AX_U32                   u32Width;
     AX_U32                   u32Height;
+    AX_U32                   u32CursorMoveEn;
 } SAMPLE_VO_CURSOR_CONFIG_S;
 
 typedef struct axSAMPLE_COMM_VO_DEV_CONFIG_S {
@@ -159,7 +161,7 @@ typedef struct axSAMPLE_VO_CONFIG_S {
     SAMPLE_VO_GRAPHIC_CONFIG_S stGraphicLayer[SAMPLE_VO_DEV_MAX];
 
     /* for cursor layer */
-    SAMPLE_VO_CURSOR_CONFIG_S stCursorLayer;
+    SAMPLE_VO_CURSOR_CONFIG_S stCursorLayer[SAMPLE_VO_DEV_MAX];
 } SAMPLE_VO_CONFIG_S;
 
 AX_S32 SAMPLE_COMM_VO_StartDev(SAMPLE_VO_DEV_CONFIG_S *pstVoDevConf);

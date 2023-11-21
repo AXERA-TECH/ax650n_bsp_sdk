@@ -23,6 +23,7 @@
 #include "Mpeg4Encoder.h"
 #include "PoolConfig.h"
 #include "VideoEncoder.h"
+#include "Avs.h"
 
 namespace AX_IPC {
 
@@ -41,6 +42,7 @@ public:
     virtual AX_BOOL ProcessWebOprs(WEB_REQUEST_TYPE_E eReqType, const AX_VOID* pJsonReq, AX_VOID** pResult = nullptr) override;
     virtual AX_BOOL ProcessTestSuiteOpers(WEB_REQ_OPERATION_T& tOperation) override;
 
+    static AX_VOID CalibrateDone(AX_S32 result, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* pSyncRatio, AX_VOID* pPrivData);
 protected:
     virtual AX_BOOL InitSysMods(AX_VOID);
     virtual AX_BOOL DeInitSysMods(AX_VOID);
@@ -57,6 +59,8 @@ protected:
     virtual AX_S32 APP_ACAP_DeInit(AX_VOID);
     virtual AX_S32 APP_APLAY_Init(AX_VOID);
     virtual AX_S32 APP_APLAY_DeInit(AX_VOID);
+    virtual AX_S32 APP_VIN_Stitch_Attr_Init(AX_VOID);
+    virtual AX_S32 APP_VIN_Stitch_Attr_DeInit(AX_VOID);
 
 private:
     AX_BOOL InitAudio();
@@ -80,6 +84,17 @@ private:
     AX_VOID SortOperations(vector<WEB_REQ_OPERATION_T>& vecWebRequests);
     AX_VOID PostStartProcess(AX_VOID);
 
+    AX_BOOL InitAvs();
+    AX_VOID DeInitAvs();
+    AX_VOID StartAvs();
+    AX_VOID StopAvs();
+
+    AX_BOOL GetEncoder(AX_VOID **ppEncoder, AX_BOOL *pIsJenc, AX_S32 encoderChn);
+    AX_VOID UpdateEncoderResolution(AX_VOID *pEncoder, AX_BOOL bJenc, AX_S32 nSrcGrp, AX_S32 srcChn);
+
+    template<typename T1, typename T2>
+    AX_VOID UpdateEncoderResolution(T1* pEncoder, T2* pConfig, AX_S32 nSrcGrp, AX_S32 srcChn);
+
 public:
     CSensorMgr m_mgrSensor;
     vector<CIVPSGrpStage*> m_vecIvpsInstance;
@@ -90,6 +105,7 @@ public:
     vector<CMPEG4Encoder*> m_vecMpeg4Instance;
     CDetector m_detector;
     CCapture m_capture;
+    CAvs m_avs;
 
     std::vector<std::unique_ptr<IObserver>> m_vecRtspObs;
     std::vector<std::unique_ptr<IObserver>> m_vecWebObs;

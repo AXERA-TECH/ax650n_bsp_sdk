@@ -239,7 +239,15 @@ AX_VOID CJpegEncoder::FrameGetThreadFunc(AX_VOID* pCaller) {
     memset(&stStream, 0, sizeof(AX_VENC_STREAM_T));
 
     while (pThis->m_bGetThreadRunning) {
-        nRet = AX_VENC_GetStream(nChannel, &stStream, -1);
+        m_mtx.lock();
+        if(m_bPauseGet) {
+            CElapsedTimer::GetInstance()->mSleep(10);
+            m_mtx.unlock();
+            continue;
+        }
+        m_mtx.unlock();
+
+        nRet = AX_VENC_GetStream(nChannel, &stStream, 2000);
         if (AX_SUCCESS != nRet) {
             if (AX_ERR_VENC_FLOW_END == nRet) {
                 pThis->m_bGetThreadRunning = AX_FALSE;
@@ -271,7 +279,8 @@ AX_BOOL CJpegEncoder::UpdateRotation(AX_U8 nRotation) {
     LOG_MM_C(JENC, "+++");
     AX_U32 nNewWidth = 0;
     AX_U32 nNewHeight = 0;
-    m_bGetThreadRunning = AX_FALSE;
+
+    SetPauseFlag(AX_TRUE);
 
     if (!GetResolutionByRotate(nRotation, nNewWidth, nNewHeight)) {
         LOG_MM_E(JENC, "[%d] Can not get new resolution for rotate operation.", GetChannel());
@@ -293,7 +302,8 @@ AX_BOOL CJpegEncoder::UpdateRotation(AX_U8 nRotation) {
     tAttr.stVencAttr.u32MaxPicWidth = ALIGN_UP(nNewWidth, nStrideAlign);
     tAttr.stVencAttr.u32MaxPicHeight = ALIGN_UP(nNewHeight, nStrideAlign);
     AX_VENC_SetChnAttr(GetChannel(), &tAttr);
-    m_bGetThreadRunning = AX_TRUE;
+
+    SetPauseFlag(AX_FALSE);
 
     LOG_MM_C(JENC, "[%d] Reset res: (w: %d, h: %d) (MAX w: %d, h:%d) bFBC:%d", GetChannel(), tAttr.stVencAttr.u32PicWidthSrc,
              tAttr.stVencAttr.u32PicHeightSrc, tAttr.stVencAttr.u32MaxPicWidth, tAttr.stVencAttr.u32MaxPicHeight, bFBC);
@@ -310,4 +320,41 @@ AX_BOOL CJpegEncoder::GetResolutionByRotate(AX_U8 nRotation, AX_U32& nWidth, AX_
     }
 
     return AX_TRUE;
+}
+
+AX_BOOL CJpegEncoder::UpdateChnResolution(JPEG_CONFIG_T& tNewConfig) {
+    AX_U32 nStride = 2;
+    AX_U32 nWidth = tNewConfig.nWidth;
+    AX_U32 nHeight = tNewConfig.nHeight;
+    m_tCurResolution.nWidth = nWidth;
+    m_tCurResolution.nHeight = nHeight;
+    AX_BOOL bFBC;
+    /*Disable fbc when Rotation 90/270 */
+    /*In fbc mode, width shoudle be Align of 128 */
+    if (1 == m_nRotation || 3 == m_nRotation) {
+        std::swap(nWidth, nHeight);
+        bFBC = AX_FALSE;
+    } else {
+        bFBC = m_tJpegConfig.bFBC;
+    }
+    if (nWidth != m_tJpegConfig.nWidth || nHeight != m_tJpegConfig.nHeight) {
+        nStride = bFBC ? AX_ENCODER_FBC_WIDTH_ALIGN_VAL : 2;
+    }
+
+    AX_VENC_CHN_ATTR_T tAttr;
+    AX_VENC_GetChnAttr(GetChannel(), &tAttr);
+    tAttr.stVencAttr.u32PicWidthSrc = ALIGN_UP(nWidth, nStride);
+    tAttr.stVencAttr.u32PicHeightSrc = nHeight;
+
+    AX_VENC_SetChnAttr(GetChannel(), &tAttr);
+
+    LOG_MM_C(JENC, "[%d] Reset res: (w: %d, h: %d) max(w:%d, h:%d)", GetChannel(), tAttr.stVencAttr.u32PicWidthSrc,
+             tAttr.stVencAttr.u32PicHeightSrc, tAttr.stVencAttr.u32MaxPicWidth, tAttr.stVencAttr.u32MaxPicHeight);
+
+    return AX_TRUE;
+}
+
+AX_VOID CJpegEncoder::SetPauseFlag(AX_BOOL bPause) {
+    std::lock_guard<std::mutex> lck(m_mtx);
+    m_bPauseGet = bPause;
 }

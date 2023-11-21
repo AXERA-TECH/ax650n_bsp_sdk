@@ -62,6 +62,7 @@ export default {
         this.$message.success('登录成功')
         window.sessionStorage.setItem('token', res.data.token)
         window.sessionStorage.setItem('snsMode', res.data.snsMode)
+        window.sessionStorage.setItem('panoSnsId', res.data.panoSnsId)
         // window.sessionStorage.setItem('token', '1234@1234')
         // TODO: will check version to decide whether reload
         window.sessionStorage.setItem('reloadFlag', 'true')

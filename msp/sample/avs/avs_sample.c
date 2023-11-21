@@ -29,6 +29,7 @@
 
 #define SAMPLE_AVS_PIPE_NUM_MAX 4
 
+
 typedef struct _SAMPLE_AVS_BASE_PARA
 {
     AX_S32 s32GroupId;
@@ -61,6 +62,10 @@ typedef struct _SAMPLE_AVS_BASE_PARA
     AX_S32 s32PanoFOV;
     AX_S8 *pCalibrationFile;
     AX_S32 s32PrjMode;
+    AX_BOOL bInputCompress;
+    AX_S32 s32InputComLevel;
+    AX_BOOL bOutputCompress;
+    AX_S32 s32OutputComLevel;
 }SAMPLE_AVS_BASE_PARA_T;
 
 static struct option long_opts[] = {
@@ -104,7 +109,12 @@ static void *AVSGetFrameProc(void *arg) {
             continue;
         } else {
             if (pAVSBaseParam->bDumpYUV) {
-                SaveYUV(&stFrameInfo, fFileOut);
+                if (pAVSBaseParam->bOutputCompress) {
+                    SaveFBC(&stFrameInfo, fFileOut);
+                } else {
+                    SaveYUV(&stFrameInfo, fFileOut);
+                }
+
             }
             s32Ret = AX_AVS_ReleaseChnFrame(s32GrpId, s32ChnId, &stFrameInfo);
             if (s32Ret) {
@@ -177,22 +187,38 @@ static void *AVSSendFrameProc(void *arg) {
             stFrame.stVFrame.u32BlkId[1] = 0;//must set 0 if not used
             stFrame.stVFrame.u32BlkId[2] = 0;//must set 0 if not used
 
-            s32ReadSize = LoadFrameFromFile(fFileIn[i],
-                                        pAVSBaseParam->s32InputWidth,
-                                        pAVSBaseParam->s32InputWidth,
-                                        pAVSBaseParam->s32OutputWidth,
-                                        s32FrameFormat,
-                                        (AX_VOID*)stFrame.stVFrame.u64VirAddr[0]);
-
-            fseek(fFileIn[i], 0, SEEK_SET);
-
             stFrame.stVFrame.u64SeqNum = totalInputFrames;
             stFrame.stVFrame.enImgFormat = s32FrameFormat;
             stFrame.stVFrame.u32Width = pAVSBaseParam->s32InputWidth;
             stFrame.stVFrame.u32Height = pAVSBaseParam->s32InputHeight;
             stFrame.stVFrame.u32PicStride[0] = pAVSBaseParam->s32InputWidth;
-            stFrame.stVFrame.u64PhyAddr[1] = stFrame.stVFrame.u64PhyAddr[0] + stFrame.stVFrame.u32PicStride[0] * stFrame.stVFrame.u32Height;
-            stFrame.stVFrame.u64VirAddr[1] = stFrame.stVFrame.u64VirAddr[0] + stFrame.stVFrame.u32PicStride[0] * stFrame.stVFrame.u32Height;
+
+            if (pAVSBaseParam->bInputCompress) {
+                s32ReadSize = LoadFrameFromFbcFile(fFileIn[i],
+                                            pAVSBaseParam->s32InputWidth,
+                                            pAVSBaseParam->s32InputWidth,
+                                            pAVSBaseParam->s32InputHeight,
+                                            s32FrameFormat,
+                                            (AX_VOID*)stFrame.stVFrame.u64VirAddr[0],
+                                            pAVSBaseParam->s32InputComLevel);
+                stFrame.stVFrame.stCompressInfo.enCompressMode = AX_COMPRESS_MODE_LOSSY;
+                stFrame.stVFrame.stCompressInfo.u32CompressLevel = pAVSBaseParam->s32InputComLevel;
+                stFrame.stVFrame.u64PhyAddr[1] = stFrame.stVFrame.u64PhyAddr[0] + (TILE_ALIGN(pAVSBaseParam->s32InputWidth, 128) / 128)
+                    * (TILE_ALIGN(pAVSBaseParam->s32InputHeight, 2) / 2) * gTileSizeTable[pAVSBaseParam->s32InputComLevel];
+                stFrame.stVFrame.u64VirAddr[1] = stFrame.stVFrame.u64VirAddr[0] + (TILE_ALIGN(pAVSBaseParam->s32InputWidth, 128) / 128)
+                    * (TILE_ALIGN(pAVSBaseParam->s32InputHeight, 2) / 2) * gTileSizeTable[pAVSBaseParam->s32InputComLevel];
+            } else {
+                s32ReadSize = LoadFrameFromFile(fFileIn[i],
+                                            pAVSBaseParam->s32InputWidth,
+                                            pAVSBaseParam->s32InputWidth,
+                                            pAVSBaseParam->s32InputHeight,
+                                            s32FrameFormat,
+                                            (AX_VOID*)stFrame.stVFrame.u64VirAddr[0]);
+                stFrame.stVFrame.u64PhyAddr[1] = stFrame.stVFrame.u64PhyAddr[0] + stFrame.stVFrame.u32PicStride[0] * stFrame.stVFrame.u32Height;
+                stFrame.stVFrame.u64VirAddr[1] = stFrame.stVFrame.u64VirAddr[0] + stFrame.stVFrame.u32PicStride[0] * stFrame.stVFrame.u32Height;
+            }
+
+            fseek(fFileIn[i], 0, SEEK_SET);
 
             if (s32FrameFormat == AX_FORMAT_YUV420_SEMIPLANAR || s32FrameFormat == AX_FORMAT_YUV420_SEMIPLANAR_VU) {
                 stFrame.stVFrame.u32PicStride[1] = stFrame.stVFrame.u32PicStride[0];
@@ -248,6 +274,15 @@ static AX_S32 SampleAVSUsage(SAMPLE_AVS_BASE_PARA_T* pAVSBaseParam) {
         return -1;
     } else {
         memset(pAVSGrpAttr, 0, sizeof(AX_AVS_GRP_ATTR_T));
+    }
+
+    if (pAVSBaseParam->bInputCompress) {
+        s32InputFrameSize = AX_ALIGN_UP((TILE_ALIGN(s32InputWidth, 128) / 128) * (TILE_ALIGN(s32InputHeight, 2) / 2)
+                        * gTileSizeTable[pAVSBaseParam->s32InputComLevel] * 3 / 2, 4096);
+    }
+    if (pAVSBaseParam->bOutputCompress) {
+        s32OutputFrameSize = AX_ALIGN_UP((TILE_ALIGN(s32OutputStride, 128) / 128) * (TILE_ALIGN(s32OutputHeight, 2) / 2)
+                        * gTileSizeTable[pAVSBaseParam->s32OutputComLevel] * 3 / 2, 4096);
     }
 
     pAVSGrpAttr->u32PipeNum = s32PipeNum;
@@ -374,6 +409,11 @@ static AX_S32 SampleAVSUsage(SAMPLE_AVS_BASE_PARA_T* pAVSBaseParam) {
     stAVSChnAttr.stOutAttr.u32Width = s32OutputWidth;
     stAVSChnAttr.stOutAttr.u32Height = s32OutputHeight;
 
+    if (pAVSBaseParam->bOutputCompress) {
+        stAVSChnAttr.stCompressInfo.enCompressMode = AX_COMPRESS_MODE_LOSSY;
+        stAVSChnAttr.stCompressInfo.u32CompressLevel = pAVSBaseParam->s32OutputComLevel;
+    }
+
 /*
     Only support one channel output.
 */
@@ -464,6 +504,10 @@ static AX_S32 AVSParameterGet(AX_S32 argc, AX_CHAR **argv, SAMPLE_AVS_BASE_PARA_
     pAVSBaseParam->s32PanoFOV = ini_getint(ini, ax_strcat(cKey, "avs_attr", ":pano_fov"), 0);
     pAVSBaseParam->pCalibrationFile = (AX_S8*)ini_get_string(ini, ax_strcat(cKey, "avs_attr", ":calibration_file"), 0);
     pAVSBaseParam->s32PrjMode = ini_getint(ini, ax_strcat(cKey, "avs_attr", ":output_prj_mode"), 1);
+    pAVSBaseParam->bInputCompress = ini_getint(ini, ax_strcat(cKey, "avs_attr", ":input_compress"), 1);
+    pAVSBaseParam->bOutputCompress = ini_getint(ini, ax_strcat(cKey, "avs_attr", ":output_compress"), 1);
+    pAVSBaseParam->s32InputComLevel = ini_getint(ini, ax_strcat(cKey, "avs_attr", ":input_comlevel"), 1);
+    pAVSBaseParam->s32OutputComLevel = ini_getint(ini, ax_strcat(cKey, "avs_attr", ":output_comlevel"), 1);
 
 
     printf(cFmtstr, "Input left pipe", pAVSBaseParam->pInput[0]);
@@ -478,6 +522,12 @@ static AX_S32 AVSParameterGet(AX_S32 argc, AX_CHAR **argv, SAMPLE_AVS_BASE_PARA_
     printf(cFmtint, "Is dump yuv", pAVSBaseParam->bDumpYUV);
     printf(cFmtint, "Is frame sync", pAVSBaseParam->bFrameSync);
     printf(cFmtint, "Calibration mode", pAVSBaseParam->s32CalibrationMode);
+    if (pAVSBaseParam->bInputCompress) {
+        printf(cFmtint, "Input compress level", pAVSBaseParam->s32InputComLevel);
+    }
+    if (pAVSBaseParam->bOutputCompress) {
+        printf(cFmtint, "Output compress level", pAVSBaseParam->s32OutputComLevel);
+    }
     printf(cFmtint, "Output prj mode", pAVSBaseParam->s32PrjMode);
     if (pAVSBaseParam->s32CalibrationMode) {
         printf(cFmtint, "Input FOVX", pAVSBaseParam->s32InputFOV);

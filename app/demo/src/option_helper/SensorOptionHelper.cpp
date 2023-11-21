@@ -48,11 +48,34 @@ AX_BOOL CSensorOptionHelper::SwitchScenario(AX_IPC_SCENARIO_E eScenario) {
     return AX_TRUE;
 }
 
-/* Provided for dual-sensor stitching */
 AX_VOID CSensorOptionHelper::SetSensorCount(AX_U32 nCount) {
     m_nSensorCount = nCount;
 }
 
-AX_VOID CSensorOptionHelper::SetPanoMode(AX_U8 nMode) {
-    m_nPanoMode = nMode;
+AX_VOID CSensorOptionHelper::SetWebShowSnsMode(WEB_SHOW_SENSOR_MODE_E eWebShowSnsMode) {
+    m_eWebShowSnsMode = eWebShowSnsMode;
+}
+
+AX_VOID CSensorOptionHelper::SetPanoSensorId(AX_S32 nPanoSnsId) {
+    m_nPanoSensorId = nPanoSnsId;
+}
+
+AX_U32 CSensorOptionHelper::GetWebShowSnsCount() {
+    AX_U32 nCount = 0;
+
+    switch (m_eWebShowSnsMode) {
+        case E_WEB_SHOW_SENSOR_MODE_SINGLE:
+        case E_WEB_SHOW_SENSOR_MODE_PANO_SINGLE:
+            nCount = 1;
+            break;
+        case E_WEB_SHOW_SENSOR_MODE_DUAL:
+        case E_WEB_SHOW_SENSOR_MODE_PANO_DUAL:
+            nCount = 2;
+            break;
+        default:
+            LOG_M_E(SNS_OPTION_HELPER, "m_eWebShowSnsMode(%d) is invald!", m_eWebShowSnsMode);
+            break;
+    }
+
+    return nCount;
 }

@@ -33,7 +33,7 @@ AX_VOID SampleSetDefaultParams(SAMPLE_VENC_CMD_PARA_T *pstPara)
     pstPara->gopLen = 30;
     pstPara->virILen = pstPara->gopLen / 2;
     pstPara->bitRate = 2000;
-    pstPara->startQp = 16;
+    pstPara->startQp = -1;
     pstPara->qpMin = 16;
     pstPara->qpMax = 51;
     pstPara->qpMinI = 16;
@@ -98,6 +98,14 @@ AX_VOID SampleSetDefaultParams(SAMPLE_VENC_CMD_PARA_T *pstPara)
     pstPara->outFifoDep = 4;
     pstPara->bCoreCoWork = AX_FALSE;
     pstPara->strmBitDep = VENC_STREAM_8BIT; /* output stream bit depth */
+    /* VUI */
+    pstPara->bSignalPresent = AX_TRUE;
+    pstPara->videoFormat = 5;
+    pstPara->bFullRange = AX_TRUE;
+    pstPara->bColorPresent = AX_TRUE;
+    pstPara->colorPrimaries = 2;
+    pstPara->transferCharacter = 2;
+    pstPara->matrixCoeffs = 2;
 }
 
 AX_VOID SampleHelp(AX_CHAR *testApp)
@@ -270,6 +278,16 @@ static SAMPLE_OPTION_T options[] = {
     {"outFifoDep", '0', 1},
     {"bCoreCoWork", '0', 1},
     {"strmBitDep", '0', 1},
+
+    /* VUI */
+    {"bSignalPresent", '0', 1},
+    {"videoFormat", '0', 1},
+    {"bFullRange", '0', 1},
+    {"bColorPresent", '0', 1},
+    {"colorPrimaries", '0', 1},
+    {"transferCharacter", '0', 1},
+    {"matrixCoeffs", '0', 1},
+
 
     {NULL, 0, 0} /* Format of last line */
 };
@@ -809,6 +827,36 @@ AX_S32 SampleCmdLineParse(AX_S32 argc, AX_CHAR **argv, SAMPLE_VENC_CMD_PARA_T *p
                 cml->strmBitDep = atoi(optarg);
                 break;
             }
+            /* VUI */
+            if (strcmp(pPrm->longOpt, "bSignalPresent") == 0) {
+                cml->bSignalPresent = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "videoFormat") == 0) {
+                cml->videoFormat = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "bFullRange") == 0) {
+                cml->bFullRange = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "bColorPresent") == 0) {
+                cml->bColorPresent = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "colorPrimaries") == 0) {
+                cml->colorPrimaries = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "transferCharacter") == 0) {
+                cml->transferCharacter = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "matrixCoeffs") == 0) {
+                cml->matrixCoeffs = atoi(optarg);
+                break;
+            }
+
 
         default:
             SAMPLE_LOG_ERR("unknow options:%c.\n", prm.short_opt);

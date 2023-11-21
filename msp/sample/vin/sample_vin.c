@@ -70,7 +70,7 @@ COMMON_SYS_POOL_CFG_T gtSysCommPoolDoubleOs08a20MultiplePipeHdr[] = {
 };
 
 COMMON_SYS_POOL_CFG_T gtSysCommPoolSingleSc910gsMultiplePipeSdr[] = {
-    {3840, 2336, 3840, AX_FORMAT_YUV420_SEMIPLANAR, 60},       /* vin nv21/nv21 use */
+    {3840, 2336, 3840, AX_FORMAT_YUV420_SEMIPLANAR, 80},       /* vin nv21/nv21 use */
 };
 
 COMMON_SYS_POOL_CFG_T gtSysCommPoolFourOs08a20Sdr[] = {
@@ -253,7 +253,7 @@ static AX_U32 __sample_case_single_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_TYP
                             &pCam->tSnsClkAttr, &pCam->tDevAttr,
                             &pCam->tPipeAttr, pCam->tChnAttr);
     pCam->nDevId = 0;
-    pCam->nRxDev = AX_MIPI_RX_DEV_0;
+    pCam->nRxDev = 0;
     pCam->nPipeId = 0;
     pCam->tSnsClkAttr.nSnsClkIdx = 0;
     pCam->tDevBindPipe.nNum =  1;
@@ -265,7 +265,7 @@ static AX_U32 __sample_case_single_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_TYP
         pCam->tPipeInfo[j].bAiispEnable = pVinParam->bAiispEnable;
         if (pCam->tPipeInfo[j].bAiispEnable) {
             if (eHdrMode <= AX_SNS_LINEAR_MODE) {
-                strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_dual3dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
+                strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_ai3d_t2dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
             } else {
                 strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_hdr_2x_ainr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
             }
@@ -295,19 +295,19 @@ static AX_U32 __sample_case_double_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_TYP
                                 &pCam->tPipeAttr, pCam->tChnAttr);
         if (i == 0) {
             pCam->nDevId = 0;
-            pCam->nRxDev = AX_MIPI_RX_DEV_0;
+            pCam->nRxDev = 0;
             pCam->nPipeId = 0;
             pCam->tSnsClkAttr.nSnsClkIdx = 0;
         } else if (i == 1) {
             if (!strncmp(apd_plate_id, "ADP_RX_DPHY_2X4LANE", sizeof("ADP_RX_DPHY_2X4LANE") - 1)) {
                 if (!strncmp(apd_plate_id, "ADP_RX_DPHY_2X4LANE_N", sizeof("ADP_RX_DPHY_2X4LANE_N") - 1)) {
                     pCam->nDevId = 2;
-                    pCam->nRxDev = AX_MIPI_RX_DEV_2;
+                    pCam->nRxDev = 2;
                     pCam->nPipeId = 1;
                     pCam->tSnsClkAttr.nSnsClkIdx = 1;
                 } else {
                     pCam->nDevId = 4;
-                    pCam->nRxDev = AX_MIPI_RX_DEV_4;
+                    pCam->nRxDev = 4;
                     pCam->nPipeId = 1;
                     pCam->tSnsClkAttr.nSnsClkIdx = 1;
                 }
@@ -323,7 +323,7 @@ static AX_U32 __sample_case_double_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_TYP
             pCam->tPipeInfo[j].bAiispEnable = pVinParam->bAiispEnable;
             if (pCam->tPipeInfo[j].bAiispEnable) {
                 if (eHdrMode <= AX_SNS_LINEAR_MODE) {
-                    strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_dual3dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
+                    strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_ai3d_t2dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
                 } else {
                     strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_hdr_2x_ainr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
                 }
@@ -350,11 +350,11 @@ static AX_U32 __sample_case_double_os08a20_multiple_pipe(AX_CAMERA_T *pCamList, 
 
     SAMPLE_PIPE_INFO_T tSamplePipeInfo_sdr[] = {
         {SAMPLE_PIPE_MODE_VIDEO, AX_TRUE,  "/opt/etc/os08a20_sdr_ai2dnr.bin"},      /* ai2dnr + t2dnr */
-        {SAMPLE_PIPE_MODE_VIDEO, AX_TRUE,  "/opt/etc/os08a20_sdr_dual3dnr.bin"},    /* ai3dnr + t3dnr */
+        {SAMPLE_PIPE_MODE_VIDEO, AX_TRUE,  "/opt/etc/os08a20_sdr_ai3d_t2dnr.bin"},    /* ai3dnr + t3dnr */
         {SAMPLE_PIPE_MODE_VIDEO, AX_FALSE, "null.bin"},                             /* t3dnr */
         {SAMPLE_PIPE_MODE_VIDEO, AX_FALSE, "/opt/etc/os08a20_sdr_t2dnr.bin"},       /* t2dnr */
         {SAMPLE_PIPE_MODE_VIDEO, AX_TRUE,  "/opt/etc/os08a20_sdr_ai3d_t2dnr.bin"},  /* ai3dnr + t2dnr */
-        {SAMPLE_PIPE_MODE_VIDEO, AX_TRUE,  "/opt/etc/os08a20_sdr_dual3dnr_to_t3dnr.bin"},  /* dual3dnr to t3dnr */
+        {SAMPLE_PIPE_MODE_VIDEO, AX_TRUE,  "/opt/etc/os08a20_sdr_ai3d-t2d_to_t3dnr.bin"},  /* ai3d_t2dnr to t3dnr */
     };
     SAMPLE_PIPE_INFO_T tSamplePipeInfo_hdr_2x[] = {
         {SAMPLE_PIPE_MODE_VIDEO, AX_FALSE,  "null.bin"},                                  /* t3dnr */
@@ -381,7 +381,7 @@ static AX_U32 __sample_case_double_os08a20_multiple_pipe(AX_CAMERA_T *pCamList, 
                                 &pCam->tPipeAttr, pCam->tChnAttr);
         if (i == 0) {
             pCam->nDevId = 0;
-            pCam->nRxDev = AX_MIPI_RX_DEV_0;
+            pCam->nRxDev = 0;
             pCam->tSnsClkAttr.nSnsClkIdx = 0;
 
             pCam->tDevBindPipe.nNum =  3;
@@ -392,12 +392,12 @@ static AX_U32 __sample_case_double_os08a20_multiple_pipe(AX_CAMERA_T *pCamList, 
             if (!strncmp(apd_plate_id, "ADP_RX_DPHY_2X4LANE", sizeof("ADP_RX_DPHY_2X4LANE") - 1)) {
                 if (!strncmp(apd_plate_id, "ADP_RX_DPHY_2X4LANE_N", sizeof("ADP_RX_DPHY_2X4LANE_N") - 1)) {
                     pCam->nDevId = 2;
-                    pCam->nRxDev = AX_MIPI_RX_DEV_2;
+                    pCam->nRxDev = 2;
                     pCam->nPipeId = 1;
                     pCam->tSnsClkAttr.nSnsClkIdx = 1;
                 } else {
                     pCam->nDevId = 4;
-                    pCam->nRxDev = AX_MIPI_RX_DEV_4;
+                    pCam->nRxDev = 4;
                     pCam->nPipeId = 1;
                     pCam->tSnsClkAttr.nSnsClkIdx = 1;
                 }
@@ -444,7 +444,7 @@ static AX_U32 __sample_case_single_os08a20_its_capture(AX_CAMERA_T *pCamList, SA
                                 &pCam->tPipeAttr, pCam->tChnAttr);
         if (i == 0) {
             pCam->nDevId = 0;
-            pCam->nRxDev = AX_MIPI_RX_DEV_0;
+            pCam->nRxDev = 0;
             pCam->tSnsClkAttr.nSnsClkIdx = 0;
 
             pCam->tDevBindPipe.nNum =  3;
@@ -487,7 +487,7 @@ static AX_U32 __sample_case_single_uxe_capture(AX_CAMERA_T *pCamList, SAMPLE_SNS
 
     pCam->bDevOnly = AX_TRUE;
     pCam->nDevId = 0;
-    pCam->nRxDev = AX_MIPI_RX_DEV_0;
+    pCam->nRxDev = 0;
     pCam->nPipeId = 0;
     pCam->tSnsClkAttr.nSnsClkIdx = 0;
     pCam->tSnsClkAttr.eSnsClkRate = AX_SNS_CLK_24M;
@@ -567,7 +567,7 @@ static AX_U32 __sample_case_single_sc910gs_its_capture(AX_CAMERA_T *pCamList, SA
 
         if (i == 0) {
             pCam->nDevId = 0;
-            pCam->nRxDev = AX_MIPI_RX_DEV_0;
+            pCam->nRxDev = 0;
             pCam->tSnsClkAttr.nSnsClkIdx = 0;
 
             pCam->tDevBindPipe.nNum =  3;
@@ -580,6 +580,9 @@ static AX_U32 __sample_case_single_sc910gs_its_capture(AX_CAMERA_T *pCamList, SA
         __set_pipe_hdr_mode(&pCam->tDevBindPipe.nHDRSel[1], eHdrMode);
         __set_pipe_hdr_mode(&pCam->tDevBindPipe.nHDRSel[2], eHdrMode);
         __set_vin_attr(pCam, eSnsType, eHdrMode, eSysMode, pVinParam->bAiispEnable);
+        pCam->tSnsAttr.eRawType = AX_RT_RAW10;
+        pCam->tDevAttr.ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP;
+        pCam->tPipeAttr.ePixelFmt = AX_FORMAT_BAYER_RAW_10BPP;
         for (j = 0; j < pCam->tDevBindPipe.nNum; j++) {
             pCam->tPipeInfo[j].ePipeMode = tSamplePipeInfo[j].ePipeMode;
             pCam->tPipeInfo[j].bAiispEnable = tSamplePipeInfo[j].bAiispEnable;
@@ -610,7 +613,7 @@ static AX_U32 __sample_case_four_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_TYPE_
                                 &pCam->tPipeAttr, pCam->tChnAttr);
 
         pCam->nDevId = 0 + (i * 2);
-        pCam->nRxDev = AX_MIPI_RX_DEV_0 + (i * 2);
+        pCam->nRxDev = 0 + (i * 2);
         pCam->nPipeId = 0 + i;
         pCam->tSnsClkAttr.nSnsClkIdx = 0 + (i / 2);
 
@@ -623,7 +626,7 @@ static AX_U32 __sample_case_four_os08a20(AX_CAMERA_T *pCamList, SAMPLE_SNS_TYPE_
             pCam->tPipeInfo[j].bAiispEnable = pVinParam->bAiispEnable;
             if (pCam->tPipeInfo[j].bAiispEnable) {
                 if (eHdrMode <= AX_SNS_LINEAR_MODE) {
-                    strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_dual3dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
+                    strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_sdr_ai3d_t2dnr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
                 } else {
                     strncpy(pCam->tPipeInfo[j].szBinPath, "/opt/etc/os08a20_hdr_2x_ainr.bin", sizeof(pCam->tPipeInfo[j].szBinPath));
                 }

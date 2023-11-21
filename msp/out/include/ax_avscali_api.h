@@ -60,19 +60,13 @@ typedef struct axAVSCALI_SNS_INFO_T {
     AX_U32  nImgHeight;                           // Sensor out imgage height
 } AX_AVSCALI_SNS_T, *AX_AVSCALI_SNS_INFO_PTR;
 
-// define temply for compile
-typedef struct {
-    AX_U32       nRGainRatio;             /* Accuracy:U4.20 Range:[0, 16777215 (16*1024*1024)] */
-    AX_U32       nBGainRatio;             /* Accuracy:U4.20 Range:[0, 16777215 (16*1024*1024)] */
-} AX_ISP_IQ_AWB_SYNC_RATIO_DUMMY_T;
-
 typedef struct axAVSCALI_3A_SYNC_RATIO_T
 {
-    AX_U32                     nAeSyncRatio;
-    AX_ISP_IQ_AWB_SYNC_RATIO_DUMMY_T tAWBRatio;
+    AX_ISP_IQ_AE_SYNC_RATIO_T  tAESyncRatio;
+    AX_ISP_IQ_AWB_SYNC_RATIO_T tAWBSyncRatio;
 } AX_AVSCALI_3A_SYNC_RATIO_T, *AX_AVSCALI_3A_SYNC_RATIO_PTR;
 
-typedef AX_VOID (*AX_AVSCALI_CaliDone)(const AX_S32 nResult, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* p3ASyncRatio);
+typedef AX_VOID (*AX_AVSCALI_CaliDone)(const AX_S32 nResult, AX_AVSCALI_AVS_PARAMS_T* pAVSParams, AX_AVSCALI_3A_SYNC_RATIO_T* p3ASyncRatio, AX_VOID* pPrivData);
 
 typedef struct axAVSCALI_CALLBACK_T
 {
@@ -83,6 +77,7 @@ typedef struct axAVSCALI_INIT_PARAM_T {
     AX_AVSCALI_SNS_T        tSnsInfo;
     AX_AVSCALI_CALLBACK_T   tCallbacks;
     AX_CHAR                 strCaliDataPath[AX_AVSCALI_MAX_PATH_LEN]; // Calibration data save path
+    AX_VOID*                pPrivData;
 } AX_AVSCALI_INIT_PARAM_T, *AX_AVSCALI_INIT_PARAM_PTR;
 
 //////////////////////////////////////////////////////////////////////////////////////

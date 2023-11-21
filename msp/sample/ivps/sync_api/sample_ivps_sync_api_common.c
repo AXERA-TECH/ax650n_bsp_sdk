@@ -432,12 +432,6 @@ AX_S32 SAMPLE_Pyra_Rcn(const AX_VIDEO_FRAME_T *ptGauFrame, AX_VIDEO_FRAME_T *ptL
         ALOGI("num【%d】src=%llx src1=%llx", i,  tSrcFrame[i].nPhyAddr[0], tSrcFrame[i].nPhyAddr[1]);
     }
 
-    if (tSrcFrame[3].nWidth != tSrcFrame[1].nWidth) {
-        tSrcFrame[3].bMaskScaler = AX_TRUE;
-        tSrcFrame[3].nScalerRatio = tSrcFrame[3].nWidth / tSrcFrame[1].nWidth - 1;
-    }
-    ALOGI("mask up【%d】nScalerRatio=% d", tSrcFrame[3].bMaskScaler, tSrcFrame[3].nScalerRatio);
-
     if (bPyraMode) {
         nImgSize = ptGauFrame->u32Height * ptGauFrame->u32PicStride[0] * 1.5;
     } else {

@@ -334,7 +334,6 @@ typedef struct axVENC_ATTR_T
     AX_VENC_CROP_INFO_T stCropCfg; /* channel crop config */
 
     AX_VENC_LINK_MODE_E enLinkMode;
-    AX_U32 u32VideoRange; /* 0: Narrow Range(NR), Y[16,235], Cb/Cr[16,240]; 1: Full Range(FR), Y/Cb/Cr[0,255] */
 
     /**
      * whether flush output queue immediately when try to destroy channel,

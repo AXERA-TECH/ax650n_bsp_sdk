@@ -33,15 +33,19 @@ static __inline AX_U32 AX_VIN_GetImgBufferSize(AX_U32 uHeight, AX_U32 uWidth, AX
     case AX_FORMAT_BAYER_RAW_8BPP:
         uPixBits = 8;
         break;
-    case AX_FORMAT_BAYER_RAW_10BPP:
+
+    case AX_FORMAT_BAYER_RAW_10BPP_PACKED:
         uPixBits = 10;
         break;
-    case AX_FORMAT_BAYER_RAW_12BPP:
+    case AX_FORMAT_BAYER_RAW_12BPP_PACKED:
         uPixBits = 12;
         break;
-    case AX_FORMAT_BAYER_RAW_14BPP:
+    case AX_FORMAT_BAYER_RAW_14BPP_PACKED:
         uPixBits = 14;
         break;
+    case AX_FORMAT_BAYER_RAW_10BPP:
+    case AX_FORMAT_BAYER_RAW_12BPP:
+    case AX_FORMAT_BAYER_RAW_14BPP:
     case AX_FORMAT_BAYER_RAW_16BPP:
         uPixBits = 16;
         break;
@@ -82,6 +86,34 @@ static __inline AX_U32 AX_VIN_GetImgBufferSize(AX_U32 uHeight, AX_U32 uWidth, AX
         uPixBits = 8;
         break;
     }
+
+    if (pstCompressInfo->enCompressMode != AX_COMPRESS_MODE_NONE) {
+        switch (eImageFormat) {
+        case AX_FORMAT_BAYER_RAW_8BPP:
+            uPixBits = 8;
+            break;
+        case AX_FORMAT_BAYER_RAW_10BPP:
+        case AX_FORMAT_BAYER_RAW_10BPP_PACKED:
+            uPixBits = 10;
+            break;
+        case AX_FORMAT_BAYER_RAW_12BPP:
+        case AX_FORMAT_BAYER_RAW_12BPP_PACKED:
+            uPixBits = 12;
+            break;
+
+        case AX_FORMAT_BAYER_RAW_14BPP:
+        case AX_FORMAT_BAYER_RAW_14BPP_PACKED:
+            uPixBits = 14;
+            break;
+
+        case AX_FORMAT_BAYER_RAW_16BPP:
+            uPixBits = 16;
+            break;
+        default:
+            break;
+        }
+    }
+
     if (((uWidth * uPixBits) % 128) != 0) {
         uWidthBeat = ((uWidth * uPixBits) / 128) + 1;
     } else {
@@ -103,6 +135,9 @@ static __inline AX_U32 AX_VIN_GetImgBufferSize(AX_U32 uHeight, AX_U32 uWidth, AX
     case AX_FORMAT_BAYER_RAW_12BPP:
     case AX_FORMAT_BAYER_RAW_14BPP:
     case AX_FORMAT_BAYER_RAW_16BPP:
+    case AX_FORMAT_BAYER_RAW_10BPP_PACKED:
+    case AX_FORMAT_BAYER_RAW_12BPP_PACKED:
+    case AX_FORMAT_BAYER_RAW_14BPP_PACKED:
         uBufSize = uWidthBeat * 16 * uHeight;
         bFormatYuv = AX_FALSE;
         break;
@@ -180,7 +215,7 @@ static __inline AX_U32 AX_VIN_GetImgBufferSize(AX_U32 uHeight, AX_U32 uWidth, AX
  * PT_JPEG & PT_MJPEG width force 64 align and height force 2 align
  */
 static __inline AX_U32 AX_VDEC_GetPicBufferSize(AX_U32 uWidth, AX_U32 uHeight, AX_IMG_FORMAT_E eOutputFormat,
-                                                AX_FRAME_COMPRESS_INFO_T *pstCompressInfo, AX_PAYLOAD_TYPE_E enType)
+        AX_FRAME_COMPRESS_INFO_T *pstCompressInfo, AX_PAYLOAD_TYPE_E enType)
 {
     AX_U32 picSizeInMbs = 0;
     AX_U32 picSize = 0;
@@ -191,7 +226,7 @@ static __inline AX_U32 AX_VDEC_GetPicBufferSize(AX_U32 uWidth, AX_U32 uHeight, A
     AX_U32 uWidthAlign = 0;
     AX_U32 uAlignSize = (1 << (8));
     AX_U32 ax_fbc_tile128x2_size[AX_VDEC_FBC_COMPRESS_LEVEL_MAX] =
-        {0, 32, 64, 96, 128, 160, 192, 224, 256, 288};
+    {0, 32, 64, 96, 128, 160, 192, 224, 256, 288};
 
 
     // picSizeInMbs = (AX_COMM_ALIGN(uHeight, 16) >> 4) * (AX_COMM_ALIGN(uWidth, 16) >> 4);
@@ -242,7 +277,7 @@ static __inline AX_U32 AX_VDEC_GetPicBufferSize(AX_U32 uWidth, AX_U32 uHeight, A
             AX_U32 ax_tile128x2_size = 128 * 2 * uPixBits / 8;
 
             picSize = uWidthAlign * uHeightAlign
-                            * ax_fbc_tile128x2_size[pstCompressInfo->u32CompressLevel] / ax_tile128x2_size;
+                      * ax_fbc_tile128x2_size[pstCompressInfo->u32CompressLevel] / ax_tile128x2_size;
         } else {
             picSize = uHeightAlign * uWidthAlign;
         }
@@ -254,7 +289,7 @@ static __inline AX_U32 AX_VDEC_GetPicBufferSize(AX_U32 uWidth, AX_U32 uHeight, A
                 AX_U32 ax_tile128x2_size = 128 * 2 * uPixBits / 8;
 
                 picSize += uWidthAlign * uHeightAlign
-                            * ax_fbc_tile128x2_size[pstCompressInfo->u32CompressLevel] / ax_tile128x2_size;
+                           * ax_fbc_tile128x2_size[pstCompressInfo->u32CompressLevel] / ax_tile128x2_size;
             } else {
                 picSize += uWidthAlign * uHeightAlign;
             }

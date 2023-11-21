@@ -42,6 +42,7 @@ AX_BOOL CBaseSensor::InitISP(AX_VOID) {
     InitChnAttr();
     InitSnsLibraryInfo();
     InitTriggerAttr();
+    InitEnhance();
 
     if (m_cbAttrUpd) {
         m_cbAttrUpd(this);
@@ -60,6 +61,8 @@ AX_BOOL CBaseSensor::Init() {
 }
 
 AX_BOOL CBaseSensor::DeInit() {
+
+    DeInitEnhance();
     memset(&m_tSnsAttr, 0, sizeof(AX_SNS_ATTR_T));
     memset(&m_tDevAttr, 0, sizeof(AX_VIN_DEV_ATTR_T));
     memset(&m_tPrivAttr, 0,  sizeof(AX_VIN_PRIVATE_DATA_ATTR_T));
@@ -95,6 +98,15 @@ AX_BOOL CBaseSensor::OpenAll() {
     AX_S32 nRet = 0;
     AX_U8 nDevID = m_tSnsCfg.nDevID;
 
+    // SNS reset sensor obj
+    for (auto &m : m_mapPipe2Attr) {
+        AX_U8 nPipeID = m.first;
+        if (!ResetSensorObj(nDevID, nPipeID)) {
+            LOG_M_E(SENSOR, "ResetSensorObj failed, ret=0x%x.", nRet);
+            return AX_FALSE;
+        }
+    }
+
     // MIPI proc
     nRet = AX_MIPI_RX_SetLaneCombo(AX_LANE_COMBO_MODE_4);
     if (0 != nRet) {
@@ -102,13 +114,19 @@ AX_BOOL CBaseSensor::OpenAll() {
         return AX_FALSE;
     }
 
-    nRet = AX_MIPI_RX_SetAttr((AX_MIPI_RX_DEV_E)nDevID, &m_tMipiRxDev);
+    nRet = AX_MIPI_RX_SetAttr(nDevID, &m_tMipiRxDev);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_SetAttr failed, ret=0x%x.", nRet);
         return AX_FALSE;
     }
 
-    nRet = AX_MIPI_RX_Start((AX_MIPI_RX_DEV_E)nDevID);
+    nRet = AX_MIPI_RX_Reset(nDevID);
+    if (0 != nRet) {
+        LOG_M_E(SENSOR, "AX_MIPI_RX_Reset failed, ret=0x%x.", nRet);
+        return AX_FALSE;
+    }
+
+    nRet = AX_MIPI_RX_Start(nDevID);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_Start failed, ret=0x%x.", nRet);
         return AX_FALSE;
@@ -223,7 +241,7 @@ AX_BOOL CBaseSensor::OpenAll() {
     // SNS register
     for (auto &m : m_mapPipe2Attr) {
         AX_U8 nPipeID = m.first;
-        if (!RegisterSensor(nDevID, nPipeID)) {
+        if (!RegisterSensor(nPipeID, m_tSnsCfg.nDevNode)) {
             LOG_M_E(SENSOR, "RegisterSensor failed, ret=0x%x.", nRet);
             return AX_FALSE;
         }
@@ -443,7 +461,7 @@ AX_BOOL CBaseSensor::CloseAll() {
         }
     }
 
-    nRet = AX_MIPI_RX_Stop((AX_MIPI_RX_DEV_E)nDevID);
+    nRet = AX_MIPI_RX_Stop(nDevID);
     if (0 != nRet) {
         LOG_M_E(SENSOR, "AX_MIPI_RX_Stop failed, ret=0x%x.", nRet);
         return AX_FALSE;
@@ -582,45 +600,7 @@ AX_VOID CBaseSensor::RegisterIspAlgo(const ISP_ALGO_INFO_T &tAlg) {
     m_algWrapper.SetupAlgoInfo(tAlg);
 }
 
-AX_S8 CBaseSensor::GetI2cDevNode(AX_U8 nDevId) {
-    AX_CHAR szBoardID[16] = {0};
-    if (!CCommonUtils::GetBoardID(szBoardID, 16)) {
-        return 0;
-    }
-
-    if (!strncmp(szBoardID, "AX650A_Demo", sizeof("AX650A_Demo") - 1) || !strncmp(szBoardID, "AX650A_EVB", sizeof("AX650A_EVB") - 1)) {
-        if (APP_PANO_MODE()) {
-            if (4 == nDevId) {
-                return 3;
-            } else if (6 == nDevId) {
-                return 9;
-            }
-        } else {
-            if (nDevId == 0) {
-                return 1;
-            } else if (nDevId == 4) {
-                return 2;
-            }
-        }
-    } else if (!strncmp(szBoardID, "AX650N_Demo", sizeof("AX650N_Demo") - 1) ||
-               !strncmp(szBoardID, "AX650N_EVB", sizeof("AX650N_EVB") - 1)) {
-        if (nDevId == 0) {
-            return 1;
-        } else if (nDevId == 2) {
-            return 2;
-        }
-    } else if (!strncmp(szBoardID, "AX650A_SLT", sizeof("AX650A_SLT") - 1)) {
-        if (nDevId == 0) {
-            return 1;
-        } else if (nDevId == 4) {
-            return 3;
-        }
-    }
-
-    return 0;
-}
-
-AX_BOOL CBaseSensor::RegisterSensor(AX_U8 nDevId, AX_U8 nPipe) {
+AX_BOOL CBaseSensor::RegisterSensor(AX_U8 nPipe, AX_U8 nDevNode) {
     AX_S32 ret;
     AX_SNS_COMMBUS_T tSnsBusInfo;
     memset(&tSnsBusInfo, 0, sizeof(tSnsBusInfo));
@@ -644,9 +624,9 @@ AX_BOOL CBaseSensor::RegisterSensor(AX_U8 nDevId, AX_U8 nPipe) {
     }
 
     if (ISP_SNS_CONNECT_I2C_TYPE == m_eSnsBusType) {
-        tSnsBusInfo.I2cDev = GetI2cDevNode(nDevId);
+        tSnsBusInfo.I2cDev = nDevNode;
     } else {
-        tSnsBusInfo.SpiDev.bit4SpiDev = GetI2cDevNode(nDevId);
+        tSnsBusInfo.SpiDev.bit4SpiDev = nDevNode;
         tSnsBusInfo.SpiDev.bit4SpiCs = 0;
     }
 
@@ -690,6 +670,41 @@ AX_BOOL CBaseSensor::UnRegisterSensor(AX_U8 nPipe) {
     }
 
     return AX_TRUE;
+}
+
+AX_BOOL CBaseSensor::ResetSensorObj(AX_U8 nDevId, AX_U8 nPipe) {
+    AX_BOOL ret = AX_TRUE;
+
+    m_pSnsLib = dlopen(m_tSnsLibInfo.strLibName.c_str(), RTLD_LAZY);
+    if (!m_pSnsLib) {
+        LOG_M_E(SENSOR, "Load %s fail, %s", m_tSnsLibInfo.strLibName.c_str(), strerror(errno));
+        return AX_FALSE;
+    }
+
+    m_pSnsObj = (AX_SENSOR_REGISTER_FUNC_T *)dlsym(m_pSnsLib, m_tSnsLibInfo.strObjName.c_str());
+    if (!m_pSnsObj) {
+        LOG_M_E(SENSOR, "Find symbol(%s) fail, %s", m_tSnsLibInfo.strObjName.c_str(), strerror(errno));
+        ret = AX_FALSE;
+        goto __FAIL__;
+    }
+
+    if (m_pSnsObj->pfn_sensor_reset) {
+        if (0 != m_pSnsObj->pfn_sensor_reset(nPipe, COMMON_HW_GetSensorResetGpioNum(nDevId))) {
+            LOG_M_E(SENSOR, "sensor reset fail, ret = 0x%08X.", ret);
+            ret = AX_FALSE;
+            goto __FAIL__;
+        }
+    } else {
+        LOG_M_E(SENSOR, "sensor reset is not supported!");
+        ret = AX_FALSE;
+        goto __FAIL__;
+    }
+
+__FAIL__:
+    dlclose(m_pSnsLib);
+    m_pSnsLib = nullptr;
+    m_pSnsObj = nullptr;
+    return ret;
 }
 
 AX_VOID CBaseSensor::InitSensor(AX_U8 nPipe) {
@@ -1184,4 +1199,43 @@ AX_S32 CBaseSensor::COMMON_HW_GetSensorResetGpioNum(AX_U8 nDevId) {
     }
 
     return 64;
+}
+
+AX_U32 CBaseSensor::EnableMultiCamSync(AX_BOOL bEnable)
+{
+    AX_S32 nRet = 0;
+
+    for (auto &m : m_mapPipe2Attr) {
+        AX_U8 nPipeID = m.first;
+
+        AX_ISP_IQ_AWB_PARAM_T stIspAwbParam = {0};
+        nRet = AX_ISP_IQ_GetAwbParam(nPipeID, &stIspAwbParam);
+        if (0 != nRet) {
+            LOG_M_E(SENSOR, "[%d]AX_ISP_IQ_GetAwbParam failed, ret=0x%x.", nPipeID, nRet);
+            return nRet;
+        }
+        stIspAwbParam.nEnable = 1;
+        stIspAwbParam.tAutoParam.nMultiCamSyncMode = bEnable ? 1 : 0; /* 0：INDEPEND MODE； 1： MASTER SLAVE MODE; 2: OVERLAP MODE */
+        nRet = AX_ISP_IQ_SetAwbParam(nPipeID, &stIspAwbParam);
+        if (0 != nRet) {
+            LOG_M_E(SENSOR, "[%d]AX_ISP_IQ_SetAwbParam failed, ret=0x%x.", nPipeID, nRet);
+            return nRet;
+        }
+
+        AX_ISP_IQ_AE_PARAM_T stIspAeParam = {0};
+        nRet = AX_ISP_IQ_GetAeParam(nPipeID, &stIspAeParam);
+        if (0 != nRet) {
+            LOG_M_E(SENSOR, "[%d]AX_ISP_IQ_GetAeParam failed, ret=0x%x.", nPipeID, nRet);
+            return nRet;
+        }
+        stIspAeParam.nEnable = 1;
+        stIspAeParam.tAeAlgAuto.nMultiCamSyncMode = bEnable ? 3 : 0; /* 0：INDEPEND MODE； 1： MASTER SLAVE MODE; 2: OVERLAP MODE; 3: SPLICE MODE */
+        nRet = AX_ISP_IQ_SetAeParam(nPipeID, &stIspAeParam);
+        if (0 != nRet) {
+            LOG_M_E(SENSOR, "[%d]AX_ISP_IQ_SetAeParam failed, ret=0x%x.", nPipeID, nRet);
+            return nRet;
+        }
+    }
+
+    return 0;
 }

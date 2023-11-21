@@ -80,12 +80,23 @@ typedef struct axSAMPLE_VO_THREAD_PARAM {
 
 static SAMPLE_VO_THREAD_PARAM_S gSampleVoCtrlParam;
 
+static AX_VOID SAMPLE_VSYNC_CallBack(AX_U32 u32Seq, AX_U32 u32Sec, AX_U32 u32USec, AX_VOID *pPrivateData)
+{
+     SAMPLE_PRT("u32Seq:%d, u32Sec:%d, u32USec:%d\n", u32Seq, u32Sec, u32USec);
+}
+
+static AX_VSYNC_CALLBACK_FUNC_T g_sTVSyncCallBACK = {
+    .pfnVsyncEventCallback = SAMPLE_VSYNC_CallBack,
+    .pPrivateData = NULL,
+};
+
 static AX_VOID *SAMPLE_VO_CTRL_THREAD(AX_VOID *pData)
 {
     AX_CHAR key, key0, key1;
     AX_BOOL bQuit = AX_FALSE;
     AX_S32 s32Ret;
     AX_U32 u32LayerID, u32ChnID;
+    AX_U64 u64VBlankTime = 0;
     SAMPLE_VO_THREAD_PARAM_S *pstSampleVoCtrlParam = (SAMPLE_VO_THREAD_PARAM_S *)pData;
     SAMPLE_VO_CONFIG_S *pstVoConf = pstSampleVoCtrlParam->pstVoConf;
     AX_IVPS_CROP_INFO_T CropInfo = {0};
@@ -108,6 +119,11 @@ static AX_VOID *SAMPLE_VO_CTRL_THREAD(AX_VOID *pData)
         key = (key0 == '\n') ? key1 : key0;
 
         switch (key) {
+        case 'b':
+        case 'B':
+            s32Ret = AX_VO_GetVBlankTime(0, &u64VBlankTime);
+            SAMPLE_PRT("get vblank-time vo0 %s, u64VBlankTime:%lld\n", s32Ret ? "failed" : "success", u64VBlankTime);
+            break;
         case 'd':
         case 'D':
             s32Ret = AX_VO_DpmsOff(0);
@@ -117,6 +133,16 @@ static AX_VOID *SAMPLE_VO_CTRL_THREAD(AX_VOID *pData)
         case 'E':
             s32Ret = AX_VO_DpmsOn(0);
             SAMPLE_PRT("enable vo0 %s\n", s32Ret ? "failed" : "success");
+            break;
+        case 'h':
+        case 'H':
+            s32Ret = AX_VO_CrtcOff(0);
+            SAMPLE_PRT("crtc-disable vo0 %s\n", s32Ret ? "failed" : "success");
+            break;
+        case 'v':
+        case 'V':
+            s32Ret = AX_VO_CrtcOn(0);
+            SAMPLE_PRT("crtc-enable vo0 %s\n", s32Ret ? "failed" : "success");
             break;
         case 'p':
         case 'P':
@@ -138,6 +164,16 @@ static AX_VOID *SAMPLE_VO_CTRL_THREAD(AX_VOID *pData)
             s32Ret = AX_IVPS_SetGrpCrop(u32LayerID, &CropInfo);
             s32Ret = AX_VO_RefreshChn(u32LayerID, u32ChnID);
             SAMPLE_PRT("refresh layer%d-chn%d %s\n", u32LayerID, u32ChnID, s32Ret ? "failed" : "success");
+            break;
+        case 'x':
+        case 'X':
+            s32Ret = AX_VO_VSYNC_RegCallbackFunc(0, &g_sTVSyncCallBACK);
+            SAMPLE_PRT("register vsync-event to vo0 %s\n", s32Ret ? "failed" : "success");
+            break;
+        case 'y':
+        case 'Y':
+            s32Ret = AX_VO_VSYNC_UnRegCallbackFunc(0, &g_sTVSyncCallBACK);
+            SAMPLE_PRT("unregister vsync-event from vo0 %s\n", s32Ret ? "failed" : "success");
             break;
         case 'q':
         case 'Q':

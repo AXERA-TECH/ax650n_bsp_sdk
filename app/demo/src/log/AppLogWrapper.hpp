@@ -30,6 +30,12 @@ public:
         }
     };
 
+    AX_VOID SetSysModuleInited(AX_BOOL bInited) {
+        if (m_pSysLog) {
+            m_pSysLog->SetSysModuleInited(bInited);
+        }
+    };
+
     virtual AX_VOID LogArgStr(AX_S32 nLv, const AX_CHAR *pFmt, va_list va);
     virtual AX_VOID LogFmtStr(AX_S32 nLv, const AX_CHAR *pFmt, ...);
     virtual AX_VOID LogBufData(AX_S32 nLv, const AX_VOID *pBuf, AX_U32 nBufSize, AX_U32 nFlag);

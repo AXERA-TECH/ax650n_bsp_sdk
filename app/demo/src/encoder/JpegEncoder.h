@@ -22,8 +22,8 @@ typedef struct stJpegConfig {
     AX_U8 nPipeSrc;
     AX_S32 nChannel;
     AX_U32 nJpegType;
-    AX_S32 nWidth;
-    AX_S32 nHeight;
+    AX_U32 nWidth;
+    AX_U32 nHeight;
     AX_U32 nStride;
     AX_U32 nBufSize;
     AX_U8 nInFifoDepth;
@@ -42,6 +42,11 @@ typedef struct stJpegConfig {
     }
 
 } JPEG_CONFIG_T, *JPEG_CONFIG_PTR;
+
+typedef struct _APP_JENC_RESOLUTION_T {
+    AX_U32 nWidth{0};
+    AX_U32 nHeight{0};
+} APP_JENC_RESOLUTION_T;
 
 class CJpegEncoder : public CAXStage {
 public:
@@ -62,6 +67,7 @@ public:
     AX_VOID StopRecv();
     AX_VOID ResetChn();
     AX_BOOL UpdateRotation(AX_U8 nRotation);
+    AX_BOOL UpdateChnResolution(JPEG_CONFIG_T& tNewConfig);
 
     JPEG_CONFIG_T* GetChnCfg() {
         return &m_tJpegConfig;
@@ -78,6 +84,8 @@ public:
     AX_U8 GetSensorSrc() {
         return m_tJpegConfig.nPipeSrc;
     }
+
+    AX_VOID SetPauseFlag(AX_BOOL bGetFlag);
 
 protected:
     virtual AX_BOOL ProcessFrame(CAXFrame* pFrame) override;
@@ -98,8 +106,11 @@ private:
 
     std::thread m_hGetThread;
     AX_BOOL m_bGetThreadRunning;
+    AX_BOOL m_bPauseGet{AX_FALSE};
 
     std::vector<IObserver*> m_vecObserver;
     CFramerateCtrlHelper* m_pFramectrl{nullptr};
     AX_U8 m_nRotation{0};
+    APP_JENC_RESOLUTION_T m_tCurResolution;
+    std::mutex m_mtx;
 };

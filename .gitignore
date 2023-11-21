@@ -1,5 +1,20 @@
+# app
+app/demo/src/ppl/aicard
+app/demo/src/ppl/nvr
+app/demo/bin/aicard
+app/demo/bin/nvrdemo
+
 # third-party
-third-party/*
+third-party/
+
+# msp out
+msp/out/data/
+msp/out/bin/
+msp/out/etc/
+msp/out/lib/qt*
+
+# build out
+build/out/
 
 # vscode
 .vscode

@@ -31,4 +31,7 @@ protected:
     virtual AX_VOID InitChnAttr() override;
     virtual AX_VOID InitAbilities() override;
     virtual AX_VOID InitTriggerAttr() override;
+    // virtual AX_VOID InitEnhance() override;
+    // virtual AX_VOID DeInitEnhance() override;
+    // static AX_BOOL SnapshotProcess(AX_U8 nCapturePipeId, AX_U8 nChannel, AX_SNS_HDR_MODE_E eHdrMode, const AX_IMG_INFO_T** pImgInfo, AX_BOOL bDummy);
 };

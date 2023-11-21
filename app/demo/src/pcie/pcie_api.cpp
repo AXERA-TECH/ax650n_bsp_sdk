@@ -156,7 +156,7 @@ static AX_S32 MasterInit(AX_U16 nTargetSlaveCnt, AX_U16 nChannelCnt, AX_U32 nDma
     AX_S32 nDataChnCnt = nChannelCnt - SHARED_PORT_NUMBER * nTargetSlaveCnt;
     AX_S32 nChnNumPerDev = nDataChnCnt % nTargetSlaveCnt ? nDataChnCnt / nTargetSlaveCnt + 1 : nDataChnCnt / nTargetSlaveCnt;
     AX_S32 nAllShardChnNum = SHARED_PORT_NUMBER * nTargetSlaveCnt;
-    AX_S32 nVideoCount = nChnNumPerDev;
+    AX_S32 nAllSendCount = nDataChnCnt / 2;
     g_nPortCnt = nChnNumPerDev * nTargetSlaveCnt + nAllShardChnNum;
 
     if (g_nPortCnt > PORT_NO_MAX_NUM) {
@@ -188,14 +188,14 @@ static AX_S32 MasterInit(AX_U16 nTargetSlaveCnt, AX_U16 nChannelCnt, AX_U32 nDma
             /* command channels */
             nDevIndex = i / SHARED_PORT_NUMBER;
             nChannelIndex = i % SHARED_PORT_NUMBER;
-        } else if (i < nAllShardChnNum + nVideoCount) {
+        } else if (i < nAllShardChnNum + nAllSendCount) {
             /* send channels */
-            nDevIndex = (i - nAllShardChnNum) / (nChnNumPerDev / nTargetSlaveCnt);
-            nChannelIndex = (i - nAllShardChnNum) % (nChnNumPerDev / nTargetSlaveCnt) + SHARED_PORT_NUMBER;
+            nDevIndex = (i - nAllShardChnNum) / (nChnNumPerDev / 2);
+            nChannelIndex = (i - nAllShardChnNum) % (nChnNumPerDev / 2) + SHARED_PORT_NUMBER;
         } else {
             /* recv channels */
-            nDevIndex = (i - nAllShardChnNum - nVideoCount) / (nChnNumPerDev / nTargetSlaveCnt);
-            nChannelIndex = (i - nAllShardChnNum - nVideoCount) % (nChnNumPerDev / nTargetSlaveCnt) + SHARED_PORT_NUMBER + nChnNumPerDev / 2;
+            nDevIndex = (i - nAllShardChnNum - nAllSendCount) / (nChnNumPerDev / 2);
+            nChannelIndex = (i - nAllShardChnNum - nAllSendCount) % (nChnNumPerDev / 2) + SHARED_PORT_NUMBER + nChnNumPerDev / 2;
         }
 
         g_mapDev2ChnInfo[nDevIndex][nChannelIndex].mm_info.VirtualAddr = MM_VirtualAddr;

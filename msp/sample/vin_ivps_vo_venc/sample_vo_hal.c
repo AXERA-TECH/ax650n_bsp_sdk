@@ -53,7 +53,6 @@ static SAMPLE_VO_CONFIG_S stVoConf = {
                 .enSyncMode = AX_VO_LAYER_SYNC_NORMAL,
                 .u32PrimaryChnId = 0,
                 .u32FifoDepth = 0,
-                .u32ChnNr = 2,
                 .u32BkClr = 0,
                 .enWBMode = AX_VO_LAYER_WB_POOL,
                 .u32InplaceChnId = 0,
@@ -74,7 +73,6 @@ static SAMPLE_VO_CONFIG_S stVoConf = {
                 .enSyncMode = AX_VO_LAYER_SYNC_NORMAL,
                 .u32PrimaryChnId = 0,
                 .u32FifoDepth = 0,
-                .u32ChnNr = 16,
                 .u32BkClr = 0,
                 .enWBMode = AX_VO_LAYER_WB_POOL,
                 .u32InplaceChnId = 0,
@@ -398,7 +396,6 @@ AX_S32 VoInit(AX_MOD_INFO_T *pstModeInfo, AX_VO_SIZE_T *pstImgSize)
             pstVoLayerAttr->stImageSize.u32Height = pstImgSize->u32Height;
         } else {
             pstVoLayer->enVoMode = VO_MODE_1MUX;
-            pstVoLayerAttr->u32ChnNr = 1;
         }
 
         pstVoLayerAttr->stDispRect.u32Width = pstVoLayerAttr->stImageSize.u32Width;

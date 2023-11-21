@@ -21,6 +21,7 @@ SUBDIRS_CLEAN   = $(addsuffix .clean, $(SUBDIRS))
 SUBDIRS_INSTALL = $(addsuffix .install, $(SUBDIRS))
 
 .PHONY: $(SUBDIRS) $(SUBDIRS_INSTALL) $(SUBDIRS_CLEAN)
+.NOTPARALLEL: clean all
 
 all: $(SUBDIRS)
 	@$(ECHO) -e $(GREEN)"\nBuild All sample Modules success!!\n"  $(DONE)

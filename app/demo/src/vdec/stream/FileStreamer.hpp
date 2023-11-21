@@ -38,4 +38,6 @@ private:
     AVBSFContext *m_pAvBSFCtx{nullptr};
     AVPacket *m_pAvPkt{nullptr};
     CAXThread m_DemuxThread;
+    AX_U32 m_nMaxSendNaluIntervalMilliseconds{0};
+    AX_U32 m_nForceFps{0};
 };

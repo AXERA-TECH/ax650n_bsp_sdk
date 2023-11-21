@@ -34,10 +34,7 @@ typedef enum {
     AX_ISP_CTRL_SLEEP,
     AX_ISP_CTRL_WAKE_UP,
     AX_ISP_CTRL_IMAGE_MODE_SET,
-
     AX_ISP_CTRL_AE_FPS_BASE_SET,
-
-
     AX_ISP_CTRL_MAX,
 }AX_ISP_CTRL_CMD_E;
 
@@ -66,11 +63,11 @@ typedef struct {
     AX_SNS_HDR_MODE_E    eSnsMode;
     AX_BAYER_PATTERN_E   eBayerPattern;
     AX_U32               nFrameRate;
-    AX_ISP_STITCH_ATTR_T sStitchAttr;
+    AX_ISP_STITCH_ATTR_T tStitchAttr;
 } AX_ISP_AE_INITATTR_T;
 
 typedef struct _AX_ISP_AE_INPUT_INFO_T_ {
-    AX_ISP_AE_STAT_INFO_T sAeStat;
+    AX_ISP_AE_STAT_INFO_T tAeStat;
 } AX_ISP_AE_INPUT_INFO_T;
 
 typedef struct _AX_ISP_AE_RESULT_T_ {
@@ -109,7 +106,7 @@ typedef struct _AX_ISP_AE_REGFUNCS_T_ {
     AX_S32(*pfnAe_Init)(AX_U8 nPipeId, AX_ISP_AE_INITATTR_T *pAeInitParam, AX_ISP_AE_RESULT_T *pAeResult);
     AX_S32(*pfnAe_Run)(AX_U8 nPipeId, AX_ISP_AE_INPUT_INFO_T *pAeInputInfo, AX_ISP_AE_RESULT_T *pAeResult);
     AX_S32(*pfnAe_Exit)(AX_U8 nPipeId);
-    AX_S32(*pfnAe_Ctrl)(AX_U8 nPipeId, AX_ISP_CTRL_CMD_E eAeCtrlCmd, AX_ISP_AE_RESULT_T *pAeResult, void *pValue);
+    AX_S32(*pfnAe_Ctrl)(AX_U8 nPipeId, AX_ISP_CTRL_CMD_E eAeCtrlCmd, AX_ISP_AE_RESULT_T *pAeResult, AX_VOID *pValue);
 
 } AX_ISP_AE_REGFUNCS_T;
 
@@ -123,7 +120,7 @@ typedef struct _AX_ISP_AWB_INITATTR_T_ {
     AX_SNS_HDR_MODE_E       eSnsMode;
     AX_BAYER_PATTERN_E      eBayerPattern;
     AX_U32                  nFrameRate;
-    AX_ISP_STITCH_ATTR_T    sStitchAttr;
+    AX_ISP_STITCH_ATTR_T    tStitchAttr;
 } AX_ISP_AWB_INITATTR_T;
 
 typedef struct _AX_ISP_AWB_INPUT_INFO_T_ {

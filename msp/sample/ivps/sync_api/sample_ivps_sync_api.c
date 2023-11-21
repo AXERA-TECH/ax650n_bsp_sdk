@@ -43,8 +43,8 @@ AX_S32 SAMPLE_IVPS_SyncApi(const IVPS_ARG_T *ptArg, const SAMPLE_IVPS_GRP_T *pGr
         FrameBufGet(0, &tInput[0], pOverlayFile);
         char *pOverlayFile1 = FrameInfoGet(ptArg->pOverlayInfo1, &tInput[1]);
         FrameBufGet(0, &tInput[1], pOverlayFile1);
-#if 0
-        /* mask0 */
+
+        /* mask0: mask size == laps size*/
         tInput[2].u32Height = tInput[0].u32Height;
         tInput[2].u32PicStride[0] = tInput[0].u32PicStride[0];
         tInput[2].u32Width = tInput[0].u32Width;
@@ -59,27 +59,6 @@ AX_S32 SAMPLE_IVPS_SyncApi(const IVPS_ARG_T *ptArg, const SAMPLE_IVPS_GRP_T *pGr
         tInput[3].u32Height = tInput[0].u32Height;
         tInput[3].u32PicStride[0] = tInput[0].u32PicStride[0];
         tInput[3].u32Width = tInput[0].u32Width;
-        tInput[3].enImgFormat = AX_FORMAT_YUV400;
-        image_size = tInput[3].u32Height * tInput[3].u32PicStride[0];
-        tInput[3].u32FrameSize = image_size;
-        ret = AX_SYS_MemAlloc(&tInput[3].u64PhyAddr[0], (AX_VOID**)&tInput[3].u64VirAddr[0], image_size, 4, NULL);
-        memset((AX_VOID *)((AX_LONG)tInput[3].u64VirAddr[0]), 0xFF, tInput[3].u32Height * tInput[3].u32PicStride[0]);
-#endif
-        /* mask0 */
-        tInput[2].u32Height = 1024;
-        tInput[2].u32PicStride[0] = 1024;
-        tInput[2].u32Width = 1024;
-        tInput[2].enImgFormat = AX_FORMAT_YUV400;
-        image_size = tInput[2].u32Height * tInput[2].u32PicStride[0];
-        tInput[2].u32FrameSize = image_size;
-        ret = AX_SYS_MemAlloc(&tInput[2].u64PhyAddr[0], (AX_VOID**)&tInput[2].u64VirAddr[0], image_size, 4, NULL);
-        memset((AX_VOID *)((AX_LONG)tInput[2].u64VirAddr[0]), 0xFF, image_size * 0.5);
-        memset((AX_VOID *)((AX_LONG)(tInput[2].u64VirAddr[0] + image_size * 0.5)), 0x00, image_size * 0.5);
-
-        /* mask1 */
-        tInput[3].u32Height = 1024;
-        tInput[3].u32PicStride[0] = 1024;
-        tInput[3].u32Width = 1024;
         tInput[3].enImgFormat = AX_FORMAT_YUV400;
         image_size = tInput[3].u32Height * tInput[3].u32PicStride[0];
         tInput[3].u32FrameSize = image_size;

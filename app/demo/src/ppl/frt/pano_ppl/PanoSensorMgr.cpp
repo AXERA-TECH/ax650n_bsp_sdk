@@ -34,9 +34,6 @@ AX_BOOL CSensorMgr::Init() {
             LOG_M_E(SNS_MGR, "Failed to get sensor config %d", i);
             return AX_FALSE;
         }
-        if (0 == i) {
-            SET_APP_PANO_MODE(tSensorCfg.nPanoMode);
-        }
 
         CBaseSensor* pSensor = (CBaseSensor*)(CSensorFactory::GetInstance()->CreateSensor(tSensorCfg));
         if (nullptr == pSensor) {
@@ -58,10 +55,19 @@ AX_BOOL CSensorMgr::Init() {
         m_vecSensorIns.emplace_back(pSensor);
     }
 
+    SET_APP_WEB_SHOW_SENSOR_MODE(E_WEB_SHOW_SENSOR_MODE_PANO_SINGLE);
+    SET_APP_WEB_PANO_SENSOR_ID(0);
+
     return AX_TRUE;
 }
 
 AX_BOOL CSensorMgr::DeInit() {
+   for (auto pSensor : m_vecSensorIns) {
+        if (!pSensor->Close()) {
+            return AX_FALSE;
+        }
+    }
+
     for (ISensor* pSensor : m_vecSensorIns) {
         CSensorFactory::GetInstance()->DestorySensor(pSensor);
     }
@@ -75,6 +81,16 @@ AX_BOOL CSensorMgr::Start() {
             return AX_FALSE;
         }
 
+        if (0 != pSensor->EnableMultiCamSync(AX_TRUE)) {
+            return AX_FALSE;
+        }
+    }
+
+    if (0 != Enable3ASyncRatio(AX_TRUE)) {
+        return AX_FALSE;
+    }
+
+    for (auto pSensor : m_vecSensorIns) {
         if (!pSensor->StartIspLoopThread()) {
             return AX_FALSE;
         }
@@ -93,10 +109,6 @@ AX_BOOL CSensorMgr::Stop() {
     StopDispatchRawThread();
     for (auto pSensor : m_vecSensorIns) {
         if (!pSensor->StopIspLoopThread()) {
-            return AX_FALSE;
-        }
-
-        if (!pSensor->Close()) {
             return AX_FALSE;
         }
     }
@@ -624,12 +636,51 @@ AX_VOID CSensorMgr::ChangeSnsFps(AX_U32 nSnsID, AX_F32 fFrameRate) {
     pCurSensor->UpdateSnsAttr();
 }
 
-AX_VOID CSensorMgr::ChangeSnsMirrorFlip(AX_U32 nSnsID, AX_BOOL bMirror, AX_BOOL bFlip)
-{
+AX_VOID CSensorMgr::ChangeSnsMirrorFlip(AX_U32 nSnsID, AX_BOOL bMirror, AX_BOOL bFlip) {
     CBaseSensor* pCurSensor = GetSnsInstance(nSnsID);
     if (nullptr == pCurSensor) {
         return;
     }
 
     pCurSensor->ChangeSnsMirrorFlip(bMirror, bFlip);
+}
+
+AX_VOID CSensorMgr::SetAeSyncRatio(const AX_ISP_IQ_AE_SYNC_RATIO_T& tAeSyncRatio) {
+    m_tAeSyncRatio = tAeSyncRatio;
+}
+
+AX_VOID CSensorMgr::SetAwbSyncRatio(const AX_ISP_IQ_AWB_SYNC_RATIO_T& tAwbSyncRatio) {
+    m_tAwbSyncRatio = tAwbSyncRatio;
+}
+
+AX_S32 CSensorMgr::Enable3ASyncRatio(AX_BOOL bEnable) {
+    AX_S32 nRet = 0;
+    AX_U32 n3ARatioOffValue = 1 << 20;
+
+    AX_ISP_IQ_AE_SYNC_RATIO_T  tAeSyncRatio{0};
+    AX_ISP_IQ_AWB_SYNC_RATIO_T tAwbSyncRatio{0};
+
+    tAeSyncRatio.nAeSyncRatio = bEnable ? m_tAeSyncRatio.nAeSyncRatio : n3ARatioOffValue;
+    tAwbSyncRatio.nRGainRatio = bEnable ? m_tAwbSyncRatio.nRGainRatio : n3ARatioOffValue;
+    tAwbSyncRatio.nBGainRatio = bEnable ? m_tAwbSyncRatio.nBGainRatio : n3ARatioOffValue;
+
+    LOG_M_I(SNS_MGR, "bEnable: %d, nAeSyncRatio: %d, nRGainRatio: %d, nBGainRatio: %d",
+                    bEnable,
+                    tAeSyncRatio.nAeSyncRatio,
+                    tAwbSyncRatio.nRGainRatio,
+                    tAwbSyncRatio.nBGainRatio);
+
+    nRet = AX_ISP_IQ_SetAeSyncParam(&tAeSyncRatio);
+    if (0 != nRet) {
+        LOG_M_E(SNS_MGR, "AX_ISP_IQ_SetAeSyncParam fail, nRet:%d", nRet);
+        return nRet;
+    }
+
+    nRet = AX_ISP_IQ_SetAwbSyncParam(&tAwbSyncRatio);
+    if (0 != nRet) {
+        LOG_M_E(SNS_MGR, "AX_ISP_IQ_SetAwbSyncParam fail, nRet:%d", nRet);
+        return nRet;
+    }
+
+    return nRet;
 }

@@ -8,6 +8,8 @@
 #include "ax_sys_api.h"
 #include "avs_common_utils.h"
 
+AX_U32 gTileSizeTable[] = {0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320};
+
 AX_U32 GetFrameSize(AX_IMG_FORMAT_E inputFormat, AX_S32 strideSrc, AX_S32 heightSrc) {
     AX_U32 frameSize = 0;
 
@@ -118,6 +120,29 @@ AX_POOL CommonPoolInit(AX_U32 frameSize, AX_U32 blkCnt)
 	}
     SAMPLE_LOG("Init common pool, blk size %d\n", frameSize);
     return 0;
+}
+
+AX_U32 LoadFrameFromFbcFile(FILE *pFileIn, AX_S32 widthSrc, AX_S32 strideSrc, AX_S32 heightSrc, AX_IMG_FORMAT_E eFmt, AX_VOID *pVaddr, AX_S32 compress_level)
+{
+    AX_S32 lumaData = 0, chromaData = 0;
+    AX_S32 readSize = 0;
+
+    if (!pFileIn)
+        return -1;
+    if (!pVaddr)
+        return -1;
+
+    lumaData = (TILE_ALIGN(strideSrc, 128) / 128) * (TILE_ALIGN(heightSrc, 2) / 2) * gTileSizeTable[compress_level];
+
+    chromaData = lumaData / 2;
+
+    readSize = fread(pVaddr, 1, lumaData + chromaData, pFileIn);
+    if (readSize < (lumaData + chromaData)) {
+        SAMPLE_ERR_LOG("read fbc file fail, read size %d\n", readSize);
+        return -1;
+    }
+
+    return readSize;
 }
 
 AX_U32 LoadFrameFromFile(FILE *pFileIn, AX_S32 widthSrc, AX_S32 strideSrc, AX_S32 heightSrc, AX_IMG_FORMAT_E eFmt, AX_VOID *pVaddr)
@@ -319,6 +344,98 @@ void SaveYUV(AX_VIDEO_FRAME_INFO_T *frameInfo, FILE *fp_out)
         fwrite(p_ch, 1, coded_width_ch, fp_out);
         p_ch += pic_stride_ch;
     }
+
+
+END:
+    if (pLumaVirAddr) {
+        s32Ret = AX_SYS_Munmap(pLumaVirAddr, lumaMapSize);
+
+        if (s32Ret) {
+            SAMPLE_ERR_LOG("SaveYUV:AX_SYS_Munmap luma failed,s32Ret=0x%x\n", s32Ret);
+        } else {
+            SAMPLE_DEBUG_LOG("SaveYUV:AX_SYS_Munmap luma success,pLumaVirAddr=%p,lumaMapSize=%d\n", pLumaVirAddr, lumaMapSize);
+        }
+    }
+
+    if (pChromaVirAddr) {
+        s32Ret = AX_SYS_Munmap(pChromaVirAddr, chromaMapSize);
+
+        if (s32Ret) {
+            SAMPLE_ERR_LOG("SaveYUV:AX_SYS_Munmap chroma failed,s32Ret=0x%x\n", s32Ret);
+        } else {
+            SAMPLE_DEBUG_LOG("SaveYUV:AX_SYS_Munmap chroma success,pChromaVirAddr=%p,chromaMapSize=%d\n", pChromaVirAddr, chromaMapSize);
+        }
+    }
+
+    SAMPLE_DEBUG_LOG("write end\n");
+}
+
+
+void SaveFBC(AX_VIDEO_FRAME_INFO_T *frameInfo, FILE *fp_out)
+{
+    AX_U32 i;
+    AX_VOID *p_lu = NULL;
+    AX_VOID *p_ch = NULL;
+    AX_U64 lu_buss = 0;
+    AX_U64 ch_buss = 0;
+    AX_S32 s32Ret = 0;
+    AX_VOID *pLumaVirAddr = NULL;
+    AX_VOID *pChromaVirAddr = NULL;
+    AX_U32 lumaMapSize = 0;
+    AX_U32 chromaMapSize = 0;
+    AX_S32 strideSrc = frameInfo->stVFrame.u32PicStride[0];
+    AX_S32 heightSrc = frameInfo->stVFrame.u32Height;
+    AX_S32 compress_level = frameInfo->stVFrame.stCompressInfo.u32CompressLevel;
+
+    lumaMapSize = (TILE_ALIGN(strideSrc, 128) / 128) * (TILE_ALIGN(heightSrc, 2) / 2) * gTileSizeTable[compress_level];
+    pLumaVirAddr = AX_SYS_Mmap(frameInfo->stVFrame.u64PhyAddr[0], lumaMapSize);
+
+    if (!pLumaVirAddr) {
+        SAMPLE_ERR_LOG("SaveYUV:AX_SYS_Mmap luma failed, pLumaPhyAddr=%lld,lumaMapSize=%d\n", frameInfo->stVFrame.u64PhyAddr[0], lumaMapSize);
+        return;
+    } else {
+        SAMPLE_DEBUG_LOG("SaveYUV:AX_SYS_Mmap luma success,pLumaVirAddr=%p,lumaMapSize=%d\n", pLumaVirAddr, lumaMapSize);
+    }
+
+    chromaMapSize = lumaMapSize / 2;
+    pChromaVirAddr = AX_SYS_Mmap(frameInfo->stVFrame.u64PhyAddr[1], chromaMapSize);
+
+    if (!pChromaVirAddr) {
+        SAMPLE_ERR_LOG("SaveYUV:AX_SYS_Mmap chroma failed\n");
+        goto END;
+    } else {
+        SAMPLE_DEBUG_LOG("SaveYUV:AX_SYS_Mmap chroma success,pChromaVirAddr=%p,chromaMapSize=%d\n", pChromaVirAddr, chromaMapSize);
+    }
+
+    p_lu = pLumaVirAddr;
+    lu_buss = frameInfo->stVFrame.u64PhyAddr[0];
+    p_ch = pChromaVirAddr;
+    ch_buss = frameInfo->stVFrame.u64PhyAddr[1];
+
+    SAMPLE_DEBUG_LOG("p_lu: %p\n", p_lu);
+    SAMPLE_DEBUG_LOG("lu_buss: 0x%llx\n", lu_buss);
+    SAMPLE_DEBUG_LOG("p_ch: %p\n", p_ch);
+    SAMPLE_DEBUG_LOG("ch_buss: 0x%llx\n", ch_buss);
+
+    AX_U32 coded_width = frameInfo->stVFrame.u32Width;
+    AX_U32 coded_height = frameInfo->stVFrame.u32Height;
+    AX_U32 pic_stride = frameInfo->stVFrame.u32PicStride[0];
+    AX_U32 coded_width_ch = frameInfo->stVFrame.u32Width;
+    AX_U32 coded_h_ch = frameInfo->stVFrame.u32Height / 2;
+    AX_U32 pic_stride_ch = frameInfo->stVFrame.u32PicStride[1];
+    if (pic_stride_ch == 0) {
+        pic_stride_ch = pic_stride;
+    }
+    SAMPLE_DEBUG_LOG("SaveYUV:p_lu: %p, p_ch: %p, coded_width: %u, coded_height: %u, pic_stride: %u, "
+           "coded_width_ch: %u, coded_h_ch: %u, pic_stride_ch: %u, pixel_bytes: %u\n",
+           p_lu, p_ch, coded_width, coded_height, pic_stride, coded_width_ch, coded_h_ch, pic_stride_ch, 1);
+
+
+    SAMPLE_DEBUG_LOG("write Y\n");
+    fwrite(p_lu, 1, lumaMapSize, fp_out);
+
+    SAMPLE_DEBUG_LOG("write UV\n");
+    fwrite(p_ch, 1, chromaMapSize, fp_out);
 
 
 END:

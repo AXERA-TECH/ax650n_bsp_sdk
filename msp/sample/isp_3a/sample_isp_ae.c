@@ -1215,9 +1215,9 @@ static AX_S32 sample_ae_update_luma_and_hist
     }
 
     /* FIXME: need add hdr support */
-    luma_data = pAeInputInfo->sAeStat.tAeStatInfo0[0].tAeGrid0Stat.tGridStats;
-    nZoneRow = pAeInputInfo->sAeStat.tAeStatInfo0[0].tAeGrid0Stat.nZoneRowSize;
-    nZoneCol = pAeInputInfo->sAeStat.tAeStatInfo0[0].tAeGrid0Stat.nZoneColSize;
+    luma_data = pAeInputInfo->tAeStat.tAeStatInfo0[0].tAeGrid0Stat.tGridStats;
+    nZoneRow = pAeInputInfo->tAeStat.tAeStatInfo0[0].tAeGrid0Stat.nZoneRowSize;
+    nZoneCol = pAeInputInfo->tAeStat.tAeStatInfo0[0].tAeGrid0Stat.nZoneColSize;
     pAlgCtx->tStatus.nGridRow = nZoneRow;
     pAlgCtx->tStatus.nGridCol = nZoneCol;
     aeBlockNum = nZoneRow * nZoneCol;
@@ -1960,7 +1960,7 @@ AX_S32 sample_ae_run
 
     AX_S32 result = 0;
 
-    if ((pAeInputInfo->sAeStat.nSeqNum % (pAeInputInfo->sAeStat.nSkipNum + 1)) != 0)
+    if ((pAeInputInfo->tAeStat.nSeqNum % (pAeInputInfo->tAeStat.nSkipNum + 1)) != 0)
     {
         return result;
     }

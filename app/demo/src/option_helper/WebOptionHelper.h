@@ -15,6 +15,7 @@
 #include <mutex>
 #include "AXSingleton.h"
 #include "AXTypeConverter.hpp"
+#include "ISensor.hpp"
 #include "IVESStage.h"
 #include "OSDHandler.h"
 #include "WebServer.h"
@@ -214,6 +215,16 @@ public:
     AI_EVENTS_OPTION_T& GetAiEvent(AX_U8 nSnsID);
     AX_VOID SetAiEvent(AX_U8 nSnsID, AI_EVENTS_OPTION_T& tAiEvent);
     AX_VOID SetIvpsGrp2VideoIndex(std::map<std::pair<AX_U8, AX_U8>, std::pair<AX_U8, AX_U8>> pairVides2Ivps);
+
+    AX_BOOL SetRes2ResOption(SNS_TYPE_E eSnsType, AX_U32 nChnID, AX_U8 nIndex, AX_U32 nWidth, AX_U32 nHeight);
+
+    std::map<AX_U8, std::map<AX_U8, WEB_VIDEO_ATTR_T>>& GetSns2VideoAttr(AX_VOID) {
+        return m_mapSns2VideoAttr;
+    }
+
+    std::map<AX_U8, std::map<AX_U8, std::vector<std::string>>>& GetSnsType2ResOptions(AX_VOID) {
+        return m_mapSnsType2ResOptions;
+    }
 
 private:
     CWebOptionHelper(AX_VOID);

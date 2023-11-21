@@ -58,6 +58,12 @@ AX_VOID AX_SYS_LogOutput_Ex(AX_LOG_TARGET_E target, AX_LOG_LEVEL_E level, AX_CHA
 #define AX_LOG_NOTICE(fmt,...) \
     AX_SYS_LogPrint(SYS_LOG_NOTICE, "[N][%32s][%4d]: " fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
 
+#define AX_LOG_EMERG_EX(tag,id,fmt,...) \
+    AX_SYS_LogPrint_Ex(SYS_LOG_EMERGENCY, tag, id, "[M][%32s][%4d]: " fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
+#define AX_LOG_ALERT_EX(tag,id,fmt,...) \
+    AX_SYS_LogPrint_Ex(SYS_LOG_ALERT, tag, id, "[A][%32s][%4d]: " fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
+#define AX_LOG_CRIT_EX(tag,id,fmt,...) \
+    AX_SYS_LogPrint_Ex(SYS_LOG_CRITICAL, tag, id, "[C][%32s][%4d]: " fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
 #define AX_LOG_ERR_EX(tag,id,fmt,...) \
     AX_SYS_LogPrint_Ex(SYS_LOG_ERROR, tag, id, "[E][%32s][%4d]: " fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__);
 #define AX_LOG_WARN_EX(tag,id,fmt,...) \

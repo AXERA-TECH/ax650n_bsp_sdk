@@ -47,7 +47,7 @@ AX_VOID COS08b10::InitSnsAttr() {
 
 AX_VOID COS08b10::InitSnsClkAttr() {
     /* Referenced by AX_VIN_OpenSnsClk */
-    m_tSnsClkAttr.nSnsClkIdx = m_tSnsCfg.nSnsID;
+    m_tSnsClkAttr.nSnsClkIdx = m_tSnsCfg.nClkID;
     m_tSnsClkAttr.eSnsClkRate = AX_SNS_CLK_24M;
 }
 

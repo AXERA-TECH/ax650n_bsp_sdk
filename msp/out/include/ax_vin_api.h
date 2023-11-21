@@ -24,6 +24,7 @@ extern "C"
 #define AX_SHUTTER_SEQ_NUM                                  (10)
 #define AX_SYNC_SIGNAL_PIN_NUM                              (4)
 #define AX_FLASH_PIN_NUM                                    (10)
+#define AX_STROBE_PIN_NUM                                   (5)
 #define AX_IMAGE_REGION_ROI_NUM                             (4)
 
 #define AX_MIPI_CSI_DT_BLACKING_DATA                        (0x11)
@@ -279,6 +280,8 @@ typedef struct AX_VIN_POWER_SYNC_ATTR_T_ {
     AX_S16                      nFreqTolRight;      /* frequency Tolerance range, Standard value + nFreqTolRight */
     AX_U16                      nElecFreq;          /* the outside electric signal frequency */
     AX_U16                      nSyncTriggerFreq;
+    AX_U16                      nSyncDelayElcUs;
+    AX_U32                      nStrobeGpioNum[AX_STROBE_PIN_NUM];
 } AX_VIN_POWER_SYNC_ATTR_T;
 
 typedef struct _AX_VIN_SYNC_SIGNAL_ATTR_T_ {
@@ -423,6 +426,12 @@ typedef struct _AX_VIN_NR_ATTR_T_ {
     AX_VIN_AINR_ATTR_T      tAinrAttr;
 } AX_VIN_NR_ATTR_T;
 
+typedef struct _AX_VIN_MOTION_ATTR_T_ {
+    AX_BOOL                     bMotionEst;         /* motion estimate, switch of generating motion vector */
+    AX_BOOL                     bMotionComp;        /* motion compensation for 3DNR ref frame */
+    AX_BOOL                     bMotionShare;       /* add motion vector in metadata for other module */
+} AX_VIN_MOTION_ATTR_T;
+
 typedef struct _AX_VIN_PIPE_ATTR_T_ {
     AX_VIN_PIPE_WORK_MODE_E     ePipeWorkMode;      /* pipe work mode */
     AX_WIN_AREA_T               tPipeImgRgn;        /* image region acquired by pipe */
@@ -433,8 +442,9 @@ typedef struct _AX_VIN_PIPE_ATTR_T_ {
     AX_BOOL                     bAiIspEnable;       /* AIISP master enable */
     AX_FRAME_COMPRESS_INFO_T    tCompressInfo;
     AX_FRAME_RATE_CTRL_T        tFrameRateCtrl;     /* suggest using macro AX_VIDEO_FRC_RATIO() */
-    AX_BOOL                     bMotionComp;        /* motion compensation */
+    AX_VIN_COMB_MODE_E          eCombMode;          /* indicate pipe combined mode info */
     AX_VIN_NR_ATTR_T            tNrAttr;
+    AX_VIN_MOTION_ATTR_T        tMotionAttr;
 } AX_VIN_PIPE_ATTR_T;
 
 
@@ -460,6 +470,7 @@ typedef enum _AX_VIN_PIPE_DUMP_NODE_E_ {
     AX_VIN_PIPE_DUMP_NODE_MIN   = -1,
     AX_VIN_PIPE_DUMP_NODE_IFE   = 0,    /* write data from ife to ddr */
     AX_VIN_PIPE_DUMP_NODE_ITP,          /* write data from itp to ddr */
+    AX_VIN_PIPE_DUMP_NODE_AINR,         /* write data from ainr to ddr */
     AX_VIN_PIPE_DUMP_NODE_MAIN,         /* write data from main chn */
     AX_VIN_PIPE_DUMP_NODE_SUB1,         /* write data from sub1 chn */
     AX_VIN_PIPE_DUMP_NODE_SUB2,         /* write data from sub2 chn */
@@ -514,9 +525,9 @@ typedef struct _AX_PIPE_STITCH_T_ {
 } AX_PIPE_STITCH_T;
 
 typedef struct _AX_STITCH_GRP_ATTR_T_ {
-    AX_BOOL bStitch;
-    AX_U32 nPipeNum;
-    AX_PIPE_STITCH_T szPipeStitch[AX_VIN_STITCH_MAX_PIPE_NUM];
+    AX_U8 bStitch;
+    AX_U8 nPipeNum;
+    AX_PIPE_STITCH_T tPipeStitch[AX_VIN_STITCH_MAX_PIPE_NUM];
 } AX_VIN_STITCH_GRP_ATTR_T;
 
 /************************************************************************************
@@ -528,7 +539,7 @@ AX_S32 AX_VIN_Init(AX_VOID);
 AX_S32 AX_VIN_Deinit(AX_VOID);
 AX_S32 AX_VIN_SetPoolAttr(const AX_POOL_FLOORPLAN_T *pPoolFloorPlan);
 
-AX_S32 AX_VIN_SetStitchGrpAttr(AX_U8 StitchGrp, AX_VIN_STITCH_GRP_ATTR_T *pstStitchAttr);
+AX_S32 AX_VIN_SetStitchGrpAttr(AX_U8 StitchGrp, const AX_VIN_STITCH_GRP_ATTR_T *pstStitchAttr);
 AX_S32 AX_VIN_GetStitchGrpAttr(AX_U8 StitchGrp, AX_VIN_STITCH_GRP_ATTR_T *pstStitchAttr);
 
 /* DEV  API */

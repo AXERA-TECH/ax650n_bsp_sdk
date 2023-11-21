@@ -54,10 +54,19 @@ AX_BOOL CSensorMgr::Init() {
         m_vecSensorIns.emplace_back(pSensor);
     }
 
+    WEB_SHOW_SENSOR_MODE_E eWebSnsShowMode = (1 == nSensorCount) ? E_WEB_SHOW_SENSOR_MODE_SINGLE : E_WEB_SHOW_SENSOR_MODE_DUAL;
+    SET_APP_WEB_SHOW_SENSOR_MODE(eWebSnsShowMode);
+
     return AX_TRUE;
 }
 
 AX_BOOL CSensorMgr::DeInit() {
+   for (auto pSensor : m_vecSensorIns) {
+        if (!pSensor->Close()) {
+            return AX_FALSE;
+        }
+    }
+
     for (ISensor* pSensor : m_vecSensorIns) {
         CSensorFactory::GetInstance()->DestorySensor(pSensor);
     }
@@ -89,10 +98,6 @@ AX_BOOL CSensorMgr::Stop() {
     StopDispatchRawThread();
     for (auto pSensor : m_vecSensorIns) {
         if (!pSensor->StopIspLoopThread()) {
-            return AX_FALSE;
-        }
-
-        if (!pSensor->Close()) {
             return AX_FALSE;
         }
     }
@@ -402,7 +407,14 @@ AX_VOID CSensorMgr::RawDispatchThreadFunc(RAW_DISPATCH_THREAD_PARAM_T* pThreadPa
     }
     AX_S32 timeOutMs = 3000;
 
+    SnapshotProcCallback pSanpshotProc = nullptr;
+    CBaseSensor* pCurSensor = GetSnsInstance(nSnsID);
+    if (nullptr != pCurSensor) {
+        pSanpshotProc = pCurSensor->GetSnapshotFunc();
+    }
+
     AX_S32 nRet = 0;
+    AX_BOOL bRet = AX_FALSE;
     pThreadParam->bThreadRunning = AX_TRUE;
     AX_IMG_INFO_T tImg[4] = {0};
     AX_U64 nSeq = 0;
@@ -433,8 +445,17 @@ AX_VOID CSensorMgr::RawDispatchThreadFunc(RAW_DISPATCH_THREAD_PARAM_T* pThreadPa
                     continue;
                 }
                 if (APP_SAMPLE_PIPE_MODE_FLASH_SNAP == tImg[0].tIspInfo.tExpInfo.nPipeId) {
-                    if (!SnapshotProcess(nPipe, 0, eHdrMode, (const AX_IMG_INFO_T**)&tImg, bDummp)) {
-                        LOG_M_E(SNS_MGR, "[%d] Get snapshot frame failed.", nPipe);
+                    if (pSanpshotProc == nullptr) {
+                        bRet = SnapshotProcess(nPipe, 0, eHdrMode, (const AX_IMG_INFO_T**)&tImg, bDummp);
+                    } else {
+                        bRet = pSanpshotProc(nPipe, 0, eHdrMode, (const AX_IMG_INFO_T**)&tImg, bDummp);
+                    }
+                    if (bRet) {
+                        if (!NotifySnapshotProcess(nPipe, 0)) {
+                            LOG_M_E(SNS_MGR, "[%d] Get snapshot frame failed.", nPipe);
+                        }
+                    } else {
+                        LOG_M_E(SNS_MGR, "[%d] snapshot process failed.", nPipe);
                     }
                 } else {
                     nRet = AX_VIN_SendRawFrame(nPipe, AX_VIN_FRAME_SOURCE_ID_IFE, eHdrMode, (const AX_IMG_INFO_T**)&tImg, 0);
@@ -454,10 +475,18 @@ AX_VOID CSensorMgr::RawDispatchThreadFunc(RAW_DISPATCH_THREAD_PARAM_T* pThreadPa
                 if (!mapPipe2FrmCtrl[nPipe].get()->FramerateCtrl()) {
                     /* Snapshot pipe frames will send raw frames with manual AE parameters in user mode */
                     if (bSnapshot) {
-                        if (!SnapshotProcess(nPipe, 0, eHdrMode, (const AX_IMG_INFO_T**)&tImg, bDummp)) {
-                            LOG_M_E(SNS_MGR, "[%d] Get snapshot frame failed.", nPipe);
+                        if (pSanpshotProc == nullptr) {
+                            bRet = SnapshotProcess(nPipe, 0, eHdrMode, (const AX_IMG_INFO_T**)&tImg, bDummp);
+                        } else {
+                            bRet = pSanpshotProc(nPipe, 0, eHdrMode, (const AX_IMG_INFO_T**)&tImg, bDummp);
                         }
-
+                        if (bRet) {
+                            if (!NotifySnapshotProcess(nPipe, 0)) {
+                                LOG_M_E(SNS_MGR, "[%d] Get snapshot frame failed.", nPipe);
+                            }
+                        } else {
+                            LOG_M_E(SNS_MGR, "[%d] snapshot process failed.", nPipe);
+                        }
                     } else {
                         nRet = AX_VIN_SendRawFrame(nPipe, AX_VIN_FRAME_SOURCE_ID_IFE, eHdrMode, (const AX_IMG_INFO_T**)&tImg, 0);
                         if (AX_SUCCESS != nRet) {
@@ -626,6 +655,7 @@ AX_BOOL CSensorMgr::UpdateAttrCB(ISensor* pInstance) {
 AX_BOOL CSensorMgr::SnapshotProcess(AX_U8 nPipe, AX_U8 nChannel, AX_SNS_HDR_MODE_E eHdrMode, const AX_IMG_INFO_T** pArrImgInfo,
                                     AX_BOOL bDummy) {
     AX_S32 nRet = AX_SUCCESS;
+    AX_IMG_INFO_T t1stYuvFrame = {0};
 
     AX_U8 nPrevPipe = 0;
     for (auto pSensor : m_vecSensorIns) {
@@ -702,20 +732,13 @@ AX_BOOL CSensorMgr::SnapshotProcess(AX_U8 nPipe, AX_U8 nChannel, AX_SNS_HDR_MODE
         LOG_M_D(SNS_MGR, "Send snapshot raw to IFE pipe %d.", nPipe);
     }
 
-    AX_IMG_INFO_T* pVinImg = new (std::nothrow) AX_IMG_INFO_T();
-    if (nullptr == pVinImg) {
-        LOG_M_E(SNS_MGR, "Allocate buffer for YuvGetThread failed.");
-        return AX_FALSE;
-    }
-
-    nRet = AX_VIN_GetYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, pVinImg, 3000);
+    nRet = AX_VIN_GetYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, &t1stYuvFrame, 3000);
     if (AX_SUCCESS != nRet) {
         LOG_M_E(SNS_MGR, "[%d][%d] AX_VIN_GetYuvFrame failed, ret=0x%x.", nPipe, nChannel, nRet);
-        SAFE_DELETE_PTR(pVinImg);
         return AX_FALSE;
     }
 
-    AX_VIN_ReleaseYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, pVinImg);
+    AX_VIN_ReleaseYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, &t1stYuvFrame);
 
     /* 2. second send raw frame*/
     if (bDummy) {
@@ -746,6 +769,46 @@ AX_BOOL CSensorMgr::SnapshotProcess(AX_U8 nPipe, AX_U8 nChannel, AX_SNS_HDR_MODE
         LOG_M_D(SNS_MGR, "Send snapshot raw to IFE pipe %d.", nPipe);
     }
 
+#if 0
+    nRet = AX_VIN_GetYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, pVinImg, 3000);
+    if (AX_SUCCESS != nRet) {
+        LOG_M_E(SNS_MGR, "[%d][%d] AX_VIN_GetYuvFrame failed, ret=0x%x.", nPipe, nChannel, nRet);
+        SAFE_DELETE_PTR(pVinImg);
+        return AX_FALSE;
+    }
+
+    CAXFrame* pAXFrame = new (std::nothrow) CAXFrame();
+    pAXFrame->nGrp = nPipe;
+    pAXFrame->nChn = nChannel;
+    pAXFrame->stFrame.stVFrame = pVinImg->tFrameInfo;
+    pAXFrame->pFrameRelease = this;
+    pAXFrame->pUserDefine = pVinImg;
+    pAXFrame->bMultiplex = AX_FALSE;
+
+    m_mtxFrame[nPipe][nChannel].lock();
+    if (m_qFrame[nPipe][nChannel].size() >= 5) {
+        LOG_MM_W(SNS_MGR, "[%d][%d] queue size is %d, drop this frame", nPipe, nChannel, m_qFrame[nPipe][nChannel].size());
+        AX_VIN_ReleaseYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, pVinImg);
+        SAFE_DELETE_PTR(pVinImg);
+        SAFE_DELETE_PTR(pAXFrame);
+
+        m_mtxFrame[nPipe][nChannel].unlock();
+        return AX_FALSE;
+    }
+
+    m_qFrame[nPipe][nChannel].push_back(pAXFrame);
+    m_mtxFrame[nPipe][nChannel].unlock();
+
+    NotifyAll(nPipe, nChannel, pAXFrame);
+#endif
+
+    return AX_TRUE;
+}
+
+AX_BOOL CSensorMgr::NotifySnapshotProcess(AX_U8 nPipe, AX_U8 nChannel) {
+
+    AX_S32 nRet = AX_SUCCESS;
+    AX_IMG_INFO_T* pVinImg = new (std::nothrow) AX_IMG_INFO_T();
     nRet = AX_VIN_GetYuvFrame(nPipe, (AX_VIN_CHN_ID_E)nChannel, pVinImg, 3000);
     if (AX_SUCCESS != nRet) {
         LOG_M_E(SNS_MGR, "[%d][%d] AX_VIN_GetYuvFrame failed, ret=0x%x.", nPipe, nChannel, nRet);

@@ -154,17 +154,19 @@ typedef struct {
 } AX_ISP_IQ_HDR_DGST_PARAM_T;
 
 typedef struct {
+    AX_U16 nNoiseLutScale;                                /* manual noise lut scale, Accuracy: U4.12 Range: [0x0, 0xFFFF] */
     AX_U16 nCoarseMotMaskNoiseLvl[AX_ISP_HDR_FRAME_SIZE]; /* manual coarse motion mask noise level for motion detect, Accuracy: U1.11 Range: [0x0, 0x800] */
-    AX_U16 nCoarseMotMaskSen[AX_ISP_HDR_FRAME_SIZE]; /* manual coarse motion mask sensitivity for motion detect, Accuracy: U1.11 Range: [0x0, 0x800] */
-    AX_U16 nCoarseExpMaskSen[AX_ISP_HDR_FRAME_SIZE]; /* manual coarse exposure mask sensitivity for motion exposure mask, Accuracy: U1.11 Range: [0x0, 0x800] */
+    AX_U16 nCoarseMotMaskSen[AX_ISP_HDR_FRAME_SIZE];      /* manual coarse motion mask sensitivity for motion detect, Accuracy: U1.11 Range: [0x0, 0x800] */
+    AX_U16 nCoarseExpMaskSen[AX_ISP_HDR_FRAME_SIZE];      /* manual coarse exposure mask sensitivity for motion exposure mask, Accuracy: U1.11 Range: [0x0, 0x800] */
 } AX_ISP_IQ_HDR_MANUAL_PARAM_T;
 
 typedef struct {
     AX_U8  nParamGrpNum;                       /* Accuracy: U8.0 Range: [0x0, 0xF]  */
     AX_U32 nRefVal[AX_ISP_AUTO_TABLE_MAX_NUM]; /* Gain: Accuracy: U22.10 Range: [0x400, 0xFFFFFFFF]; Lux: Accuracy: U22.10 Range: [0, 0xFFFFFFFF] */
-    AX_U16 nCoarseMotMaskNoiseLvl[AX_ISP_AUTO_TABLE_MAX_NUM][AX_ISP_HDR_FRAME_SIZE]; /* auto coarse motion mask noise level, Accuracy: U1.11 Range: [0x0, 0x800] */
-    AX_U16 nCoarseMotMaskSen[AX_ISP_AUTO_TABLE_MAX_NUM][AX_ISP_HDR_FRAME_SIZE]; /* auto coarse motion mask sensitivity, Accuracy: U1.11 Range: [0x0, 0x800] */
-    AX_U16 nCoarseExpMaskSen[AX_ISP_AUTO_TABLE_MAX_NUM][AX_ISP_HDR_FRAME_SIZE]; /* auto coarse exposure mask sensitivity, Accuracy: U1.11 Range: [0x0, 0x800] */
+    AX_U16 nNoiseLutScale[AX_ISP_AUTO_TABLE_MAX_NUM];                                   /* auto noise lut scale, Accuracy: U4.12 Range: [0x0, 0xFFFF] */
+    AX_U16 nCoarseMotMaskNoiseLvl[AX_ISP_AUTO_TABLE_MAX_NUM][AX_ISP_HDR_FRAME_SIZE];    /* auto coarse motion mask noise level, Accuracy: U1.11 Range: [0x0, 0x800] */
+    AX_U16 nCoarseMotMaskSen[AX_ISP_AUTO_TABLE_MAX_NUM][AX_ISP_HDR_FRAME_SIZE];         /* auto coarse motion mask sensitivity, Accuracy: U1.11 Range: [0x0, 0x800] */
+    AX_U16 nCoarseExpMaskSen[AX_ISP_AUTO_TABLE_MAX_NUM][AX_ISP_HDR_FRAME_SIZE];         /* auto coarse exposure mask sensitivity, Accuracy: U1.11 Range: [0x0, 0x800] */
 } AX_ISP_IQ_HDR_AUTO_PARAM_T;
 
 typedef struct {
@@ -172,7 +174,6 @@ typedef struct {
     AX_U8 nAutoMode;  /* Accuracy: U1.0 Range: [0x0, 0x1] */
     AX_U8 nRefMode;   /* Accuracy: U1.0 Range: [0x0, 0x1] */
     AX_U8 nDebugMode; /* Accuracy: U3.0 Range: [0x0, 0x7] */
-    AX_U16 nNoiseLutScale; /* Accuracy: U4.12 Range: [0x0, 0xFFFF] */
     AX_ISP_IQ_HDR_MOT_DET_PARAM_T tMotDetParam;
     AX_ISP_IQ_HDR_EXP_MASK_PARAM_T tExpMaskParam;
     AX_ISP_IQ_HDR_DGST_PARAM_T tDgstParam;
@@ -1945,11 +1946,11 @@ typedef struct {
 typedef struct {
     AX_CHAR szModelPath[AICE_MAX_PATH_SIZE];  /* model path, absolute path(with model name) */
     AX_CHAR szModelName[AICE_MAX_PATH_SIZE];  /* model name, only name */
+    AX_CHAR szTemporalBaseNrName[AICE_MAX_PATH_SIZE];
+    AX_CHAR szSpatialBaseNrName[AICE_MAX_PATH_SIZE];
     AX_U8 nHcgMode;         /* model param, based on the real param of model. Accuracy: U2 Range: [0, 3] 0:LCG,1:HCG,2:LCG NOT SURPPORT*/
     AX_U32 nIsoThresholdMin; /* Accuracy: U32 Range: [1, 0xFFFFFFFF] <= */
     AX_U32 nIsoThresholdMax; /* Accuracy: U32 Range: [1, 0xFFFFFFFF] > */
-    AX_CHAR szTemporalBaseNrName[AICE_MAX_PATH_SIZE];
-    AX_CHAR szSpatialBaseNrName[AICE_MAX_PATH_SIZE];
     AX_S16 nBiasIn[AICE_BIAS_SIZE];                                 /* Accuracy: S7.8 Range: [-32768, 32767] */
     AX_S16 nBiasOut[AICE_BIAS_SIZE];                                /* Accuracy: S7.8 Range: [-32768, 32767] */
 } AX_ISP_IQ_AICE_AUTO_META_T;
@@ -2175,6 +2176,61 @@ typedef struct
 } AX_ISP_IQ_LDC_PARAM_T;
 
 /************************************************************************************
+ *  DIS IQ Param
+ ************************************************************************************/
+typedef enum
+{
+    AX_ISP_IQ_DIS_TYPE_V1,
+} AX_ISP_IQ_DIS_TYPE_E;
+
+typedef struct {
+    AX_U8                       nDelayFrameNum;      /* delay num, the more, the smoother. defalut 0. Accuracy: U8 Range: [0, 15] */
+    AX_U8                       nHistoryFrameNum;    /* history frame, the more, the smoother. defalut 2. Accuracy: U8 Range: [1, 16] */
+    AX_U8                       nCropRatio;          /* crop ratio for warped image, defalut 204. Accuracy: U0.8 Range: [127, 255] */
+} AX_ISP_IQ_DIS_V1_PARAM_T;
+
+typedef struct {
+    AX_U8                       bDisEnable;          /* EIS enable, 0: disable, 1:enable, default:0. Accuracy: U1 Range: [0, 1] */
+    AX_U8                       nDisType;            /* DIS type, Accuracy: U8.0 Range: [0, AX_ISP_IQ_DIS_TYPE_V1] */
+    AX_ISP_IQ_DIS_V1_PARAM_T    tDisV1Param;         /* DIS version 1 */
+} AX_ISP_IQ_DIS_PARAM_T;
+
+/************************************************************************************
+ *  ME IQ Param
+ ************************************************************************************/
+typedef struct {
+    AX_U8                       nParamGrpNum;                                 /* Accuracy: U8 Range: [0, AX_ISP_AUTO_TABLE_MAX_NUM]  */
+    AX_U32                      nRefVal[AX_ISP_AUTO_TABLE_MAX_NUM];           /* Gain: Accuracy: U22.10 Range: [0x400, 0xFFFFFFFF]; Lux: Accuracy: U22.10 Range: [0, 0xFFFFFFFF] */
+    AX_U16                      nZeroMotion[AX_ISP_AUTO_TABLE_MAX_NUM];       /* zeros noise motion, defalut 0. Accuracy: U9.3 Range: [0, 4095] */
+    AX_U8                       nFpdAlpha[AX_ISP_AUTO_TABLE_MAX_NUM];         /* A param of response function. defalut 2. Accuracy: U0.6 Range: [0, 63] */
+    AX_U16                      nFpdResponseThres[AX_ISP_AUTO_TABLE_MAX_NUM]; /* response threshold. defalut 50. Accuracy: U10.4 Range: [0, 16383] */
+    AX_S8                       nFpdScaleRange[AX_ISP_AUTO_TABLE_MAX_NUM];    /* scale response value. defalut 0. Accuracy: S5 Range: [-15, 15] */
+    AX_U8                       nFpdNmsRadius[AX_ISP_AUTO_TABLE_MAX_NUM];     /* nms radius. defalut 4. Accuracy: U6 Range: [0, 63] */
+} AX_ISP_IQ_ME_AUTO_T;
+
+typedef struct {
+    AX_U16                      nZeroMotion;         /* zeros noise motion, defalut 0. Accuracy: U9.3 Range: [0, 4095] */
+    AX_U8                       nFpdAlpha;           /* A param of response function. defalut 2. Accuracy: U0.6 Range: [0, 63] */
+    AX_U16                      nFpdResponseThres;   /* response threshold. defalut 50. Accuracy: U10.4 Range: [0, 16383] */
+    AX_S8                       nFpdScaleRange;      /* scale response value. defalut 0. Accuracy: S5 Range: [-15, 15] */
+    AX_U8                       nFpdNmsRadius;       /* nms radius. defalut 4. Accuracy: U6 Range: [0, 63] */
+} AX_ISP_IQ_ME_MANUAL_T;
+
+typedef struct {
+    AX_U8                        nClipMotionMode;    /* control block ofl range. defalut 1. Accuracy: U2 Range: [0, 3] */
+    AX_U8                        nFpdNmsTopk;        /* nms topk. defalut 2. Accuracy: U2 Range: [1, 3] */
+    AX_U8                        nLayerNum;          /* pyramid layers, not supported dynamic modification. defalut 6. Accuracy: U8 Range: [1, 6] */
+} AX_ISP_IQ_ME_GLOBAL_T;
+
+typedef struct {
+    AX_U8                        nRefMode;           /* choose ref mode, Accuracy: U8 Range: [0, 1], 0: use lux as ref, 1: use gain as ref */
+    AX_U8                        nAutoMode;          /* for ref auto or manual adjust mode, Accuracy: U8 Range: [0, 1], 0: manual, 1:auto, default:1 */
+    AX_ISP_IQ_ME_GLOBAL_T        tGlbParam;
+    AX_ISP_IQ_ME_MANUAL_T        tManualParam;
+    AX_ISP_IQ_ME_AUTO_T          tAutoParam;
+} AX_ISP_IQ_ME_PARAM_T;
+
+/************************************************************************************
  *  ISP IQ API
  ************************************************************************************/
 AX_S32 AX_ISP_IQ_SetBlcParam(AX_U8 nPipeId, AX_ISP_IQ_BLC_PARAM_T *pIspBlcParam);
@@ -2303,6 +2359,12 @@ AX_S32 AX_ISP_IQ_GetSceneParam(AX_U8 nPipeId, AX_ISP_IQ_SCENE_PARAM_T *pIspScene
 
 AX_S32 AX_ISP_IQ_SetLdcParam(AX_U8 nPipeId, AX_ISP_IQ_LDC_PARAM_T *pIspLDCParam);
 AX_S32 AX_ISP_IQ_GetLdcParam(AX_U8 nPipeId, AX_ISP_IQ_LDC_PARAM_T *pIspLDCParam);
+
+AX_S32 AX_ISP_IQ_SetDisParam(AX_U8 nPipeId, AX_ISP_IQ_DIS_PARAM_T *pIspDisParam);
+AX_S32 AX_ISP_IQ_GetDisParam(AX_U8 nPipeId, AX_ISP_IQ_DIS_PARAM_T *pIspDisParam);
+
+AX_S32 AX_ISP_IQ_SetMeParam(AX_U8 nPipeId, AX_ISP_IQ_ME_PARAM_T *pIspMeParam);
+AX_S32 AX_ISP_IQ_GetMeParam(AX_U8 nPipeId, AX_ISP_IQ_ME_PARAM_T *pIspMeParam);
 
 #ifdef __cplusplus
 }

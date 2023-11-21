@@ -17,7 +17,7 @@
 
 #define ISP_VERSION_MAJOR 3
 #define ISP_VERSION_MINOR 8
-#define ISP_VERSION_MINOR2 1
+#define ISP_VERSION_MINOR2 3
 
 #define __MAKE_VERSION(a,x,y) #a"."#x"."#y
 #define MAKE_VERSION(a,x,y)     __MAKE_VERSION(a,x,y)

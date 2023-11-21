@@ -268,6 +268,8 @@ typedef struct _AX_SENSOR_DEFAULT_PARAM_T_ {
     AX_ISP_IQ_AE_PARAM_T        *ptAeDftParam;
     AX_ISP_IQ_AWB_PARAM_T       *ptAwbDftParam;
     AX_ISP_IQ_LDC_PARAM_T       *ptLdc;
+    AX_ISP_IQ_DIS_PARAM_T       *ptDis;
+    AX_ISP_IQ_ME_PARAM_T        *ptMe;
 } AX_SENSOR_DEFAULT_PARAM_T;
 
 typedef struct _AX_SENSOR_REGISTER_FUNC_T_ {

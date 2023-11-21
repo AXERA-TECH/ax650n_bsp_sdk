@@ -17,6 +17,7 @@ DEBUG_OUT_PATH := $(ROOTFS_TARGET_PATH)/debug_ko
 all: modules
 
 .PHONY: modules install clean
+.NOTPARALLEL: clean install
 
 modules: $(KBUILD_MAKEFILE)
 ifeq ($(koversion),yes)

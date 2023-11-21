@@ -157,6 +157,7 @@ public:
     AX_VOID SetSendFlag(AX_BOOL bSend) {
         m_bSend = bSend;
     }
+    AX_VOID SetPauseFlag(AX_BOOL bGetFlag);
 
 protected:
     virtual AX_BOOL ProcessFrame(CAXFrame* pFrame) override;
@@ -180,10 +181,12 @@ private:
     std::thread m_hGetThread;
     AX_BOOL m_bGetThreadRunning;
     AX_BOOL m_bSend{AX_TRUE};
+    AX_BOOL m_bPauseGet{AX_FALSE};
 
     std::vector<IObserver*> m_vecObserver;
 
     /* Update resolution should be small than creation resolution ,so <m_tCurResolution> recorde the current resolution*/
     APP_VIDEO_RESOLUTION_T m_tCurResolution;
     AX_U8 m_nRotation{0};
+    std::mutex m_mtx;
 };

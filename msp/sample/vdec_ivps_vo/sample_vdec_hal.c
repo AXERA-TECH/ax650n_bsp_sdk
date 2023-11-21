@@ -28,6 +28,7 @@
 #include "sample_vdec_hal.h"
 
 #include "common_vdec_api.h"
+#define SAMPLE_VDEC_STAND_FPS    (30)
 
 extern AX_S32 gLoopDecodeNumber;
 extern AX_S32 gLoopExit;
@@ -35,7 +36,6 @@ extern AX_S32 gWriteFrames;
 
 AX_POOL GrpPoolId[AX_VDEC_MAX_GRP_NUM];
 static SAMPLE_VDEC_CONTEXT_T stVdecCtx;
-
 
 AX_S32 FramePoolInit(AX_VDEC_GRP VdGrp, AX_U32 FrameSize, AX_POOL *PoolId, AX_U32 u32FrameBufCnt)
 {
@@ -187,6 +187,7 @@ void *VdecFrameFunc(void *arg)
     AX_POOL_SOURCE_E enFrameBufSrc = POOL_SOURCE_PRIVATE;
     SAMPLE_VDEC_POLLING_ARGS_T *pstPollingArgs = NULL;
     AX_U32 u32FrameBufCnt = 0;
+    AX_U32 uFrameRate = 0;
 
     SAMPLE_VDEC_CONTEXT_T *pstCtx = &stVdecCtx;
 
@@ -426,6 +427,9 @@ void *VdecFrameFunc(void *arg)
                                 VdGrp, s32Ret);
                 goto ERR_RET_STOP_RECV;
             }
+
+            uFrameRate = pstBitStreamInfo->nFps ? pstBitStreamInfo->nFps : SAMPLE_VDEC_STAND_FPS;
+            SAMPLE_LOG("VdGrp:%d uFrameRate: %d, nFps: %d\n", VdGrp, uFrameRate, pstBitStreamInfo->nFps);
         } else {
             fseek(pstBitStreamInfo->stBsInfo.fInput, 0, SEEK_SET);
         }
@@ -457,7 +461,12 @@ void *VdecFrameFunc(void *arg)
                 tStrInfo.u32StreamPackLen = (AX_U32)sReadLen;  /*stream len*/
                 tStrInfo.bEndOfFrame = AX_TRUE;
                 tStrInfo.bEndOfStream = AX_FALSE;
-                tStrInfo.u64PTS = 0;
+
+                if (pstCtx->grpSendFrmNum[VdGrp] == 0) {
+                    AX_SYS_GetCurPTS(&tStrInfo.u64PTS);
+                } else {
+                    tStrInfo.u64PTS += (1000000 / uFrameRate);
+                }
             } else {
                 if (sLoopDecNum == 1) {
                     tStrInfo.pu8Addr = NULL;
@@ -520,11 +529,13 @@ void *VdecFrameFunc(void *arg)
                 else {
                     SAMPLE_CRIT_LOG("VdGrp=%d, AX_VDEC_SendStream FAILED! ret:0x%x %s\n",
                                     VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
+                    goto ERR_RET_STOP_RECV;
                 }
             }
 
             usleep(10 *1000);
-            uSendPicNum ++;
+            pstCtx->grpSendFrmNum[VdGrp]++;
+            uSendPicNum = pstCtx->grpSendFrmNum[VdGrp];
 
             if (VdGrp == pstCmd->uStartGrpId) {
                 printf("%-8d", uSendPicNum);
@@ -1008,23 +1019,25 @@ AX_S32 VdecExitFunc(AX_VDEC_GRP VdGrp)
     }
 
 
-    while (1) {
-        s32Ret = AX_VDEC_DestroyGrp(VdGrp);
-        if (s32Ret == AX_ERR_VDEC_BUSY) {
-            SAMPLE_WARN_LOG("VdGrp=%d, AX_VDEC_DestroyGrp FAILED! ret:0x%x %s",
-                           VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
-            usleep(10000);
+    if(stVdecCtx.GrpStatus[VdGrp] != AX_VDEC_GRP_DESTROYED) {
+        while (1) {
+            s32Ret = AX_VDEC_DestroyGrp(VdGrp);
+            if (s32Ret == AX_ERR_VDEC_BUSY) {
+                SAMPLE_WARN_LOG("VdGrp=%d, AX_VDEC_DestroyGrp FAILED! ret:0x%x %s",
+                               VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
+                usleep(10000);
 
-            continue;
+                continue;
+            }
+
+            if (s32Ret != AX_SUCCESS) {
+                SAMPLE_CRIT_LOG("VdGrp=%d, AX_VDEC_DestroyGrp FAILED! ret:0x%x %s",
+                                VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
+                goto ERR_RET;
+            }
+
+            break;
         }
-
-        if (s32Ret != AX_SUCCESS) {
-            SAMPLE_CRIT_LOG("VdGrp=%d, AX_VDEC_DestroyGrp FAILED! ret:0x%x %s",
-                            VdGrp, s32Ret, AX_VdecRetStr(s32Ret));
-            goto ERR_RET;
-        }
-
-        break;
     }
 
     return AX_SUCCESS;

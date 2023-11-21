@@ -50,6 +50,9 @@ typedef struct STREAMER_ATTR_S {
     AX_BOOL bSyncObs;    /* exit sending stream to next observers when one observer returns fail */
     AX_S32 nCookie;      /* stream cookie, set equal to vdGrp of VDEC */
 
+    AX_U32 nForceFps; /* mandatory fps */
+    AX_S32 nMaxSendNaluIntervalMilliseconds; /* UT: > 0, send nalu to VDEC interval for [0, nMaxSendNaluIntervalMilliseconds] */
+
     STREAMER_ATTR_S(AX_VOID) {
         bLoop = AX_TRUE;
         bSyncObs = AX_FALSE;
@@ -57,6 +60,9 @@ typedef struct STREAMER_ATTR_S {
         nMaxHeight = 0;
         nCacheTime = 0;
         nCookie = 0;
+
+        nForceFps = 0;
+        nMaxSendNaluIntervalMilliseconds = 0;
     }
 } STREAMER_ATTR_T;
 

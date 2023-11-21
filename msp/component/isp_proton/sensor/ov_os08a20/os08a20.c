@@ -360,6 +360,8 @@ static AX_S32 os08a20_get_isp_default_params(ISP_PIPE_ID nPipeId, AX_SENSOR_DEFA
         ptDftParam->ptScene         = &scene_param_sdr;
         ptDftParam->ptDehaze        = &dehaze_param_sdr;
         ptDftParam->ptLdc           = &ldc_param_sdr;
+        ptDftParam->ptDis           = &dis_param_sdr;
+        ptDftParam->ptMe            = &me_param_sdr;
         break;
 
     case AX_SNS_HDR_2X_MODE:
@@ -396,6 +398,8 @@ static AX_S32 os08a20_get_isp_default_params(ISP_PIPE_ID nPipeId, AX_SENSOR_DEFA
         ptDftParam->ptScene         = &scene_param_hdr_2x;
         ptDftParam->ptDehaze        = &dehaze_param_hdr_2x;
         ptDftParam->ptLdc           = &ldc_param_hdr_2x;
+        ptDftParam->ptDis           = &dis_param_hdr_2x;
+        ptDftParam->ptMe            = &me_param_hdr_2x;
         break;
 
     case AX_SNS_HDR_3X_MODE:

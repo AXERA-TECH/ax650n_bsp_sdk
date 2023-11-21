@@ -244,6 +244,9 @@ AX_BOOL CBoxBuilder::InitStreamer(const STREAM_CONFIG_T &streamConfig) {
         stAttr.nCookie = (AX_S32)i;
         stAttr.bLoop = AX_TRUE;
 
+        stAttr.nForceFps = streamConfig.nDefaultFps;
+        stAttr.nMaxSendNaluIntervalMilliseconds = CBoxConfig::GetInstance()->GetUTConfig().nMaxSendNaluIntervalMilliseconds;
+
         m_arrStreamer[i] = CStreamerFactory::GetInstance()->CreateHandler(stAttr.strPath);
         if (!m_arrStreamer[i]) {
             return AX_FALSE;

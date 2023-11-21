@@ -295,7 +295,7 @@ AX_S32 COMMON_VIN_StopDev(AX_U8 devId, AX_BOOL bEnableDev)
     return 0;
 }
 
-AX_S32 COMMON_VIN_CreateDev(AX_U8 devId, AX_MIPI_RX_DEV_E nRxDev, AX_VIN_DEV_ATTR_T *pDevAttr,
+AX_S32 COMMON_VIN_CreateDev(AX_U8 devId, AX_U32 nRxDev, AX_VIN_DEV_ATTR_T *pDevAttr,
                             AX_VIN_DEV_BIND_PIPE_T *ptDevBindPipe, AX_FRAME_INTERRUPT_ATTR_T *ptDevFrmIntAttr)
 {
     AX_S32 nRet = 0;

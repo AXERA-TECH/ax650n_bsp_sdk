@@ -60,7 +60,7 @@ extern "C"
 
 AX_S32 COMMON_VIN_StartMipi(AX_U8 devId, AX_MIPI_RX_DEV_T *ptMipiRx);
 AX_S32 COMMON_VIN_StopMipi(AX_U8 devId);
-AX_S32 COMMON_VIN_CreateDev(AX_U8 devId, AX_MIPI_RX_DEV_E nRxDev, AX_VIN_DEV_ATTR_T *pDevAttr,
+AX_S32 COMMON_VIN_CreateDev(AX_U8 devId, AX_U32 nRxDev, AX_VIN_DEV_ATTR_T *pDevAttr,
                             AX_VIN_DEV_BIND_PIPE_T *ptDevBindPipe, AX_FRAME_INTERRUPT_ATTR_T *ptDevFrmIntAttr);
 AX_S32 COMMON_VIN_DestroyDev(AX_U8 devId);
 AX_S32 COMMON_VIN_StartDev(AX_U8 devId, AX_BOOL bEnableDev, AX_VIN_DEV_ATTR_T *pDevAttr);

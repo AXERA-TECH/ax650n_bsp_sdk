@@ -12,6 +12,8 @@
 #include "ax_isp_iq_api.h"
 #include "ax_isp_api.h"
 
+
+
 static AX_ISP_VERSION_T ax_isp_version_param_sdr = {
 
     /* nIspMajor */
@@ -19,12 +21,12 @@ static AX_ISP_VERSION_T ax_isp_version_param_sdr = {
     /* nIspMinor1 */
     8,
     /* nIspMinor2 */
-    1,
+    3,
     /* szBuildTime */
     "",
 
     /* szIspVersion */
-    "AX650_ISP_V3.8.1",
+    "AX650_ISP_V3.8.3",
 };
 
 static AX_ISP_IQ_DEPURPLE_PARAM_T depurple_param_sdr = {
@@ -6616,7 +6618,7 @@ static AX_ISP_IQ_YCRT_PARAM_T ycrt_param_sdr = {
 
 static AX_ISP_IQ_AINR_PARAM_T ainr_param_sdr = {
     /* nEnable */
-    1,
+    0,
     /* nAutoMode */
     0,
     /* bUpdateTable */
@@ -6864,7 +6866,7 @@ static AX_ISP_IQ_AINR_PARAM_T ainr_param_sdr = {
     /* tDummyParam */
     {
         /* nModelNum */
-        1,
+        0,
         /* tModelTable */
         {
             /* tModelTable[0] */
@@ -6872,9 +6874,9 @@ static AX_ISP_IQ_AINR_PARAM_T ainr_param_sdr = {
                 /* tMeta */
                 {
                     /* szModelPath */
-                    "/opt/etc/DUMMY_SDR2D_3840x2336_12b_LCG_ISP1_A1-16X_F000_00000410895_230720_AX650.axmodel",
+                    "",
                     /* szModelName */
-                    "DUMMY_SDR2D_3840x2336_12b_LCG_ISP1_A1-16X_F000_00000410895_230720_AX650.axmodel",
+                    "",
                     /* szTemporalBaseNrName */
                     "",
                     /* szSpatialBaseNrName */
@@ -6978,7 +6980,7 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_sdr = {
     /* tAutoParam */
     {
         /* nAutoModelNum */
-        1,
+        0,
         /* tAutoModelTable */
         {
             /* tAutoModelTable[0] */
@@ -6986,19 +6988,19 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_sdr = {
                 /* tMeta */
                 {
                     /* szModelPath */
-                    "/opt/etc/SC910_SDR_3840x2336_12b_LCG_ISP1_A4-8X_0000_00000412258_230721_AX650.axmodel",
+                    "",
                     /* szModelName */
-                    "SC910_SDR_3840x2336_12b_LCG_ISP1_A4-8X_0000_00000412258_230721_AX650.axmodel",
+                    "",
+                    /* szTemporalBaseNrName */
+                    "",
+                    /* szSpatialBaseNrName */
+                    "",
                     /* nHcgMode */
                     0,
                     /* nIsoThresholdMin */
                     1,
                     /* nIsoThresholdMax */
                     1000000,
-                    /* szTemporalBaseNrName */
-                    "",
-                    /* szSpatialBaseNrName */
-                    "",
                     /* nBiasIn */
                     {0, 0, 0, 0},
                     /* nBiasOut */
@@ -7213,16 +7215,16 @@ static AX_ISP_IQ_AICE_PARAM_T aice_param_sdr = {
                     "",
                     /* szModelName */
                     "",
+                    /* szTemporalBaseNrName */
+                    "",
+                    /* szSpatialBaseNrName */
+                    "",
                     /* nHcgMode */
                     0,
                     /* nIsoThresholdMin */
                     1,
                     /* nIsoThresholdMax */
                     1000000,
-                    /* szTemporalBaseNrName */
-                    "",
-                    /* szSpatialBaseNrName */
-                    "",
                     /* nBiasIn */
                     {0, 0, 0, 0},
                     /* nBiasOut */
@@ -7243,13 +7245,13 @@ static AX_ISP_IQ_AWB_PARAM_T awb_param_sdr = {
         /* tGain */
         {
             /* nGainR */
-            503,
+            434,
             /* nGainGr */
             256,
             /* nGainGb */
             256,
             /* nGainB */
-            429,
+            492,
         },
         /* tManualLightSource */
         {
@@ -10410,6 +10412,24 @@ static AX_ISP_IQ_AWB_PARAM_T awb_param_sdr = {
                 },
             },
         },
+        /* tInitParam */
+        {
+            /* tGains */
+            {
+                /* nGainR */
+                500,
+                /* nGainGr */
+                256,
+                /* nGainGb */
+                256,
+                /* nGainB */
+                500,
+            },
+            /* nDampRatio */
+            10000,
+            /* nFrameSkipping */
+            2,
+        },
         /* nMode */
         0,
         /* nIndex */
@@ -10925,7 +10945,7 @@ static AX_ISP_IQ_RLTM_PARAM_T rltm_param_sdr = {
         /* nDitherScale */
         64,
         /* nGtmSwEn */
-        0,
+        1,
         /* nGtmSwDgain */
         256,
         /*nHistWtBrightLow[4]*/
@@ -14132,7 +14152,7 @@ static AX_ISP_IQ_RAW3DNR_PARAM_T raw3dnr_param_sdr = {
     {
         /* eWorkMode */
         /* 0:AX_RAW3DNR_FIRST_3D, 1:AX_RAW3DNR_FIRST_2D, 2:AX_RAW3DNR_ONLY_2D */
-        AX_RAW3DNR_FIRST_3D,
+        AX_RAW3DNR_ONLY_2D,
         /* nSfMeshEnable */
         0,
         /* nRefMaskUpdMode */
@@ -17880,13 +17900,13 @@ static AX_ISP_IQ_CA_PARAM_T ca_param_sdr = {
 //ae
 static AX_ISP_IQ_AE_PARAM_T ae_param_sdr = {
     /* nEnable */
-    1,
+    0,
     /* tExpManual */
     {
         /* nIspGain */
         1024,
         /* nAGain */
-        1024,
+        6024,
         /* nDgain */
         1024,
         /* nHcgLcg */
@@ -17896,7 +17916,7 @@ static AX_ISP_IQ_AE_PARAM_T ae_param_sdr = {
         /* nSysTotalGain */
         1024,
         /* nShutter */
-        30000,
+        10000,
         /* nIrisPwmDuty */
         102400,
         /* nHdrRealRatioLtoS */
@@ -17940,6 +17960,12 @@ static AX_ISP_IQ_AE_PARAM_T ae_param_sdr = {
         4076,
         /* nLuxk */
         93391,
+        /* nCompensationMode */
+        1,
+        /* nPreChargeSize */
+        0,
+        /* nPreCharge[25] */
+        {0,/*0 - 0*/},
         /* nMaxIspGain */
         16384,
         /* nMinIspGain */
@@ -18599,9 +18625,9 @@ static AX_ISP_IQ_SCENE_PARAM_T scene_param_sdr = {
     /* tManualParam */
     {
         /* eTnrWorkMode 0: AX_RAW3DNR_FIRST_3D, 1: AX_RAW3DNR_FIRST_2D, 2: AX_RAW3DNR_ONLY_2D */
-        AX_RAW3DNR_FIRST_3D,
+        AX_RAW3DNR_ONLY_2D,
         /* eAiWorkMode 0: AX_AI_CLOSE 1: AX_AI_SDR_NR 2: AX_AI_SDR_2DNR 3: AX_AI_HDR_NR 4: AX_AI_HDR_CE */
-        AX_AI_SDR_NR,
+        AX_AI_CLOSE,
     },
     /* tAutoParam */
     {

@@ -19,6 +19,8 @@
 #define MAX_PIPE_PER_DEVICE (3)
 #define LIGHT_STROBE (0)
 #define LIGHT_FLASH (2)
+#define ENHANCE_MAX_PATH_SIZE (256)
+#define ENHANCE_TABLE_CNT (8)
 
 using std::string;
 using std::vector;
@@ -34,22 +36,24 @@ typedef enum {
     E_SNS_TYPE_SC1345, /* Not supported */
     E_SNS_TYPE_SC530AI,
     E_SNS_TYPE_SC230AI,
-    E_SNS_TYPE_PANO_DUAL_OS04A10,
     /* HDR Split Mode: Long Frame */
     E_SNS_TYPE_LF_START = 100,
     E_SNS_TYPE_OS04A10_LF,
     E_SNS_TYPE_SC530AI_LF,
     E_SNS_TYPE_SC230AI_LF,
     E_SNS_TYPE_OS08A20_LF,
-    E_SNS_TYPE_LF_END = 199,
+    E_SNS_TYPE_LF_END = 151,
     /* HDR Split Mode: Short Frame */
-    E_SNS_TYPE_SF_START = 200,
+    E_SNS_TYPE_SF_START = 152,
     E_SNS_TYPE_OS04A10_SF,
     E_SNS_TYPE_SC530AI_SF,
     E_SNS_TYPE_SC230AI_SF,
     E_SNS_TYPE_OS08A20_SF,
-    E_SNS_TYPE_SF_END = 299,
-    E_SNS_TYPE_MAX,
+    E_SNS_TYPE_SF_END = 203,
+    /* PANO */
+    E_SNS_TYPE_OS04A10_DUAL_PANO = 204,
+    E_SNS_TYPE_PANO_END = 254,
+    E_SNS_TYPE_MAX = 255,
 } SNS_TYPE_E;
 
 typedef enum {
@@ -135,6 +139,12 @@ typedef struct _CHANNEL_CONFIG_T {
     }
 } CHANNEL_CONFIG_T, *CHANNEL_CONFIG_PTR;
 
+typedef struct _ENHANCE_CONFIG_T {
+    AX_U32 nRefValue;
+    AX_CHAR szModel[ENHANCE_MAX_PATH_SIZE];
+    AX_CHAR szMask[ENHANCE_MAX_PATH_SIZE];
+} ENHANCE_CONFIG_T, *ENHANCE_CONFIG_PTR;
+
 typedef struct _PIPE_CONFIG_T {
     AX_U8 nPipeID;
     AX_F32 fPipeFramerate;
@@ -148,7 +158,8 @@ typedef struct _PIPE_CONFIG_T {
     AX_BOOL bDummyEnable;
     AX_U32 nTuningPort;
     vector<string> vecTuningBin{};
-
+    AX_U32 nEnhanceModelCnt;
+    ENHANCE_CONFIG_T tEnhanceModelTable[ENHANCE_TABLE_CNT];
     _PIPE_CONFIG_T() {
         nPipeID = 0;
         fPipeFramerate = 30;
@@ -166,6 +177,8 @@ typedef struct _SENSOR_CONFIG_T {
     AX_U8 nPanoMode;
     AX_U8 nSnsID;
     AX_U8 nDevID;
+    AX_U8 nDevNode;
+    AX_U8 nClkID;
     AX_SNS_MASTER_SLAVE_E nMasterSlaveSel;
     SNS_TYPE_E eSensorType;
     AX_SNS_HDR_MODE_E eSensorMode;
@@ -180,6 +193,8 @@ typedef struct _SENSOR_CONFIG_T {
         nPanoMode = 0;
         nSnsID = 0;
         nDevID = 0;
+        nDevNode = 1;
+        nClkID = 0;
         fFrameRate = 30;
         eDevMode = AX_VIN_DEV_OFFLINE;
         eSnsOutputMode = AX_SNS_NORMAL;

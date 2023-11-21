@@ -14,7 +14,6 @@
 #include "CmdLineParser.h"
 #include "ElapsedTimer.hpp"
 #include "GlobalDef.h"
-#include "ISensor.hpp"
 #include "OptionHelper.h"
 #include "OsdConfig.h"
 #include "PrintHelper.h"
@@ -124,13 +123,16 @@ AX_BOOL CWebOptionHelper::InitOnce() {
     m_mapSns2FramerateOpt[E_SNS_TYPE_SC910GS] = "[25]";
 
     /* PANO DUAL OS04A10*/
-    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10][0].push_back("3712x832");
+    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10_DUAL_PANO][0].push_back("3712x832");
+    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10_DUAL_PANO][0].push_back("2432x768");
+    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10_DUAL_PANO][0].push_back("1280x364");
 
-    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10][1].push_back("1280x364");
+    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10_DUAL_PANO][1].push_back("2432x768");
+    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10_DUAL_PANO][1].push_back("1280x364");
 
-    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10][2].push_back("1280x364");
+    m_mapSnsType2ResOptions[E_SNS_TYPE_OS04A10_DUAL_PANO][2].push_back("1280x364");
 
-    m_mapSns2FramerateOpt[E_SNS_TYPE_OS04A10] = "[30]";
+    m_mapSns2FramerateOpt[E_SNS_TYPE_OS04A10_DUAL_PANO] = "[30]";
 
     return AX_TRUE;
 }
@@ -199,13 +201,16 @@ AX_BOOL CWebOptionHelper::GetCapSettingStr(AX_CHAR* pOutBuf, AX_U32 nSize) {
         return AX_FALSE;
     }
 
-    AX_BOOL bDualSnsMode = APP_SENSOR_COUNT() == 1 ? AX_FALSE : AX_TRUE;
+    AX_U8 nDualSnsMode = (APP_WEB_SHOW_SENSOR_COUNT() == 1) ? 0 : 1;
+    AX_U8 nImgDualSnsMode = ((APP_WEB_SHOW_SENSOR_MODE() == E_WEB_SHOW_SENSOR_MODE_PANO_DUAL) || 0 == nDualSnsMode) ? 0 : 1;
+    m_mapCapabilities["img"] =(APP_WEB_SHOW_SENSOR_MODE() == E_WEB_SHOW_SENSOR_MODE_PANO_SINGLE) ? 0 : 1;
+
     AX_S32 nCount = snprintf(pOutBuf, nSize,
-                             "{support_dual_sns: %d, support_page_sys: %d, support_page_cam: %d, support_page_img: %d, support_page_ai: "
+                             "{support_dual_sns: %d, img_page_support_dual_sns: %d, support_page_sys: %d, support_page_cam: %d, support_page_img: %d, support_page_ai: "
                              "%d, support_page_audio: %d, "
                              "support_page_video: %d, "
                              "support_page_overlay: %d, support_page_storage: %d, support_page_playback: %d}",
-                             bDualSnsMode, m_mapCapabilities["sys"], m_mapCapabilities["cam"], m_mapCapabilities["img"],
+                             nDualSnsMode, nImgDualSnsMode, m_mapCapabilities["sys"], m_mapCapabilities["cam"], m_mapCapabilities["img"],
                              m_mapCapabilities["ai"], m_mapCapabilities["audio"], m_mapCapabilities["video"], m_mapCapabilities["overlay"],
                              m_mapCapabilities["storage"], m_mapCapabilities["playback"]);
 
@@ -1337,6 +1342,19 @@ AX_BOOL CWebOptionHelper::ParseWebRequest(WEB_REQUEST_TYPE_E eReqType, const AX_
 
             break;
         }
+        case E_REQ_TYPE_SWITCH_3A_SYNCRATIO: {
+            MprJson* pJson = (MprJson*)pJsonReq;
+            cchar* szEnable = mprGetJson(pJson, "sr3a");
+            LOG_M_I(WEB_OPTION, "3A sync ratio szEnable: %s", szEnable);
+            AX_BOOL b3ASREnable = ((szEnable && strcmp(szEnable, "true") == 0) ? AX_TRUE : AX_FALSE);
+
+            WEB_REQ_OPERATION_T tOperation;
+            tOperation.b3ASyncRationOn = b3ASREnable;
+            tOperation.SetOperaType(E_WEB_OPERATION_TYPE_SWITCH_3A_SYNCRATIO);
+            vecWebOpr.emplace_back(tOperation);
+
+            break;
+        }
 
         default:
             LOG_MM_E(WEB_OPTION, "Invalid web request: unknown type(%d)", eReqType);
@@ -1697,4 +1715,17 @@ AX_VOID CWebOptionHelper::SetIvpsGrp2VideoIndex(std::map<std::pair<AX_U8, AX_U8>
 std::pair<AX_U8, AX_U8> CWebOptionHelper::OverlayChnIndex2IvpsGrp(AX_S32 nSnsID, AX_U32 nIndex) {
     pair<AX_U8, AX_U8> pairIvps = make_pair(nSnsID, nIndex);
     return m_pairVides2Ivps[pairIvps];
+}
+
+AX_BOOL CWebOptionHelper::SetRes2ResOption(SNS_TYPE_E eSnsType, AX_U32 nChnID, AX_U8 nIndex, AX_U32 nWidth, AX_U32 nHeight) {
+    if (eSnsType >= E_SNS_TYPE_MAX) {
+        LOG_MM_E(WEB_OPTION, "Invalid eSnsType: %d", eSnsType);
+        return AX_FALSE;
+    }
+
+    string strResolution = to_string(nWidth) + "x" + to_string(nHeight);
+
+    m_mapSnsType2ResOptions[eSnsType][nChnID][nIndex] = strResolution;
+
+    return AX_TRUE;
 }

@@ -39,3 +39,5 @@ AX_S32 SampleTestSuperFrameStrategy(AX_S32 VeChn, AX_VOID *handle);
 AX_S32 SampleTestSliceSplit(AX_S32 VeChn, AX_VOID *handle);
 
 AX_S32 SampleTestResetChn(AX_S32 VeChn, AX_VOID *handle);
+
+AX_S32 SampleDynVui(AX_S32 VencChn, AX_VOID *handle);

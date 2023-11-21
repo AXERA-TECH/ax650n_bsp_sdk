@@ -233,13 +233,13 @@ typedef enum
     AX_FORMAT_BAYER_RAW_14BPP_PACKED                = 0x87,
 
     /* RGB Format */
-    AX_FORMAT_RGB565                                = 0xA0,      /* BBRBGR..., RGB565 16bpp */
-    AX_FORMAT_RGB888                                = 0xA1,      /* BBRBGR..., RGB888 24bpp */
+    AX_FORMAT_RGB565                                = 0xA0,      /* BGRBGR..., RGB565 16bpp */
+    AX_FORMAT_RGB888                                = 0xA1,      /* BGRBGR..., RGB888 24bpp */
     AX_FORMAT_KRGB444                               = 0xA2,
     AX_FORMAT_KRGB555                               = 0xA3,
     AX_FORMAT_KRGB888                               = 0xA4,
-    AX_FORMAT_BGR888                                = 0xA5,      /* RGBRGRB..., BGR888 32bpp */
-    AX_FORMAT_BGR565                                = 0xA6,      /* RGBRGRB..., BGR565 16bpp */
+    AX_FORMAT_BGR888                                = 0xA5,      /* RGBRGB..., BGR888 32bpp */
+    AX_FORMAT_BGR565                                = 0xA6,      /* RGBRGB..., BGR565 16bpp */
 
     AX_FORMAT_ARGB4444                              = 0xC5,      /* BGRABGRA..., ARGB4444 16bpp */
     AX_FORMAT_ARGB1555                              = 0xC6,      /* BGRABGRA..., ARGB1555 16bpp */
@@ -266,6 +266,7 @@ typedef enum
 typedef enum {
     AX_FRM_FLG_NONE  = 0x0,
     AX_FRM_FLG_USR_PIC  = (0x1 << 0), /* for vdec user picture */
+    AX_FRM_FLG_FR_CTRL  = (0x1 << 1), /* for vo frame ctrl */
     AX_FRM_FLG_BUTT
 } AX_FRAME_FLAG_E;
 
@@ -562,15 +563,6 @@ typedef enum {
     AX_PYRA_MODE_BUTT,
 } AX_PYRA_MODE_E;
 
-typedef enum {
-    AX_PYRA_SCALER_RATIO_1_1 = 0,       /* upscale:1/1 */
-    AX_PYRA_SCALER_RATIO_1_2,           /* upscale:1/2 */
-    AX_PYRA_SCALER_RATIO_1_4,           /* upscale:1/4 */
-    AX_PYRA_SCALER_RATIO_1_8,           /* upscale:1/8 */
-    AX_PYRA_SCALER_RATIO_1_16,          /* upscale:1/16 */
-    AX_PYRA_SCALER_RATIO_BUTT,
-} AX_PYRA_SCALER_RATIO_E;
-
 typedef struct {
     AX_BOOL                     bEnable;
     AX_U16                      nWidth;
@@ -586,9 +578,12 @@ typedef struct {
     AX_S16                      nCropY0;
     AX_U16                      nCropWidth;
     AX_U16                      nCropHeight;
-
-    AX_BOOL                     bMaskScaler;
-    AX_PYRA_SCALER_RATIO_E      nScalerRatio;
 } AX_PYRA_FRAME_T;
+
+typedef enum _AX_VIN_COMB_MODE_E_ {
+    AX_VIN_COMB_MODE_NONE = 0,         /* no combined  */
+    AX_VIN_COMB_MODE0,                 /* combined mode0 type */
+    AX_VIN_COMB_MODE_MAX
+} AX_VIN_COMB_MODE_E;
 
 #endif //_AX_GLOBAL_TYPE_H_

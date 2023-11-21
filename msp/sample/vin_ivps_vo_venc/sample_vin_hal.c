@@ -114,7 +114,7 @@ static AX_U32 __vin_cfg_cams_params(SAMPLE_VIN_HAL_CASE_E eVinCase,
                                 &gCams[0].tPipeAttr, gCams[0].tChnAttr);
 
         gCams[0].nDevId = 0;
-        gCams[0].nRxDev = AX_MIPI_RX_DEV_0;
+        gCams[0].nRxDev = 0;
         gCams[0].nPipeId = 0;
         gCams[0].tSnsClkAttr.nSnsClkIdx = 0;
         gCams[0].tDevBindPipe.nNum =  1;

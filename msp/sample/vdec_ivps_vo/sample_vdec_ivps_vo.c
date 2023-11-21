@@ -80,6 +80,7 @@ static SAMPLE_VO_CONFIG_S g_stVoConf = {
     .stVoDev = {
         {
             .u32VoDev = 0,
+	    .enMode = AX_VO_MODE_ONLINE,
             .enVoIntfType = AX_VO_INTF_HDMI,
             .enIntfSync = AX_VO_OUTPUT_1080P60,
         },
@@ -102,13 +103,14 @@ static SAMPLE_VO_CONFIG_S g_stVoConf = {
                 .enSyncMode = AX_VO_LAYER_SYNC_NORMAL,
                 .u32PrimaryChnId = 0,
                 .u32FifoDepth = 0,
-                .u32ChnNr = 1,
                 .u32BkClr = 0,
                 .enWBMode = AX_VO_LAYER_WB_POOL,
                 .u32InplaceChnId = 0,
                 .u32PoolId = 0,
                 .u32DispatchMode = AX_VO_LAYER_OUT_TO_LINK,
                 .enPartMode = AX_VO_PART_MODE_MULTI,
+                .enEngineMode = AX_VO_ENGINE_MODE_FORCE,
+                .u32EngineId = 0,
                 .f32FrmRate = 60,
             },
             .u64KeepChnPrevFrameBitmap0 = ~0x0UL,

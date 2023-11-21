@@ -31,6 +31,7 @@ typedef struct _APP_ISP_IMAGE_ATTR_T {
 } APP_ISP_IMAGE_ATTR_T;
 
 typedef AX_BOOL (*SensorAttrUpdCallback)(ISensor* pInstance);
+typedef AX_BOOL (*SnapshotProcCallback)(AX_U8 nPipe, AX_U8 nChannel, AX_SNS_HDR_MODE_E eHdrMode, const AX_IMG_INFO_T** pArrImgInfo, AX_BOOL bDummy);
 
 using namespace std;
 class CBaseSensor : public ISensor {
@@ -92,6 +93,12 @@ public:
     AX_BOOL UpdateSnsAttr();
     AX_BOOL TriggerFlash();
     AX_BOOL ChangeSnsMirrorFlip(AX_BOOL bMirror, AX_BOOL bFlip);
+    AX_U32  EnableMultiCamSync(AX_BOOL bEnable);
+
+    SnapshotProcCallback GetSnapshotFunc() {
+        return m_cbSanpshotProc;
+    }
+
 
 protected:
     virtual AX_VOID InitSnsLibraryInfo(AX_VOID) = 0;
@@ -104,11 +111,13 @@ protected:
     virtual AX_VOID InitChnAttr() = 0;
     virtual AX_VOID InitAbilities() = 0;
     virtual AX_VOID InitTriggerAttr() = 0;
+    virtual AX_VOID InitEnhance() {};
+    virtual AX_VOID DeInitEnhance() {};
 
 protected:
-    virtual AX_S8 GetI2cDevNode(AX_U8 nDeviceID);
-    virtual AX_BOOL RegisterSensor(AX_U8 nPipe, AX_U8 nDevId);
+    virtual AX_BOOL RegisterSensor(AX_U8 nPipe, AX_U8 nDevNode);
     virtual AX_BOOL UnRegisterSensor(AX_U8 nPipe);
+    virtual AX_BOOL ResetSensorObj(AX_U8 nDevId, AX_U8 nPipe);
     AX_VOID IspLoopThreadFunc(SENSOR_PIPE_MAPPING_T* pPipeMapping);
     AX_BOOL SetAeToManual(AX_U8 nPipe);
 
@@ -147,4 +156,6 @@ protected:
     AX_BOOL m_arrIspThreadRunning[MAX_PIPE_PER_DEVICE]{AX_FALSE, AX_FALSE, AX_FALSE};
     std::thread m_arrIspLoopThread[MAX_PIPE_PER_DEVICE];
     APP_ISP_IMAGE_ATTR_T m_tImageAttr;
+
+    SnapshotProcCallback m_cbSanpshotProc{nullptr};
 };

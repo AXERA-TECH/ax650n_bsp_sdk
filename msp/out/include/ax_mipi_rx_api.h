@@ -55,18 +55,6 @@ typedef enum {
 } AX_MIPI_PHY_TYPE_E;
 
 typedef enum {
-    AX_MIPI_RX_DEV_0 = 0,
-    AX_MIPI_RX_DEV_1 = 1,
-    AX_MIPI_RX_DEV_2 = 2,
-    AX_MIPI_RX_DEV_3 = 3,
-    AX_MIPI_RX_DEV_4 = 4,
-    AX_MIPI_RX_DEV_5 = 5,
-    AX_MIPI_RX_DEV_6 = 6,
-    AX_MIPI_RX_DEV_7 = 7,
-    AX_MIPI_RX_DEV_MAX
-} AX_MIPI_RX_DEV_E;
-
-typedef enum {
     AX_MIPI_DATA_LANE_1 = 1,
     AX_MIPI_DATA_LANE_2 = 2,
     AX_MIPI_DATA_LANE_4 = 4,
@@ -111,15 +99,15 @@ AX_S32 AX_MIPI_RX_Init(AX_VOID);
 AX_S32 AX_MIPI_RX_DeInit(AX_VOID);
 AX_S32 AX_MIPI_RX_SetLaneCombo(AX_LANE_COMBO_MODE_E eMode);
 
-AX_S32 AX_MIPI_RX_Reset(AX_MIPI_RX_DEV_E eMipiDev);
-AX_S32 AX_MIPI_RX_UnReset(AX_MIPI_RX_DEV_E eMipiDev);
-AX_S32 AX_MIPI_RX_SetAttr(AX_MIPI_RX_DEV_E eMipiDev, const AX_MIPI_RX_DEV_T *pDevAttr);
-AX_S32 AX_MIPI_RX_GetAttr(AX_MIPI_RX_DEV_E eMipiDev, AX_MIPI_RX_DEV_T *pDevAttr);
-AX_S32 AX_MIPI_RX_Start(AX_MIPI_RX_DEV_E eMipiDev);
-AX_S32 AX_MIPI_RX_Stop(AX_MIPI_RX_DEV_E eMipiDev);
+AX_S32 AX_MIPI_RX_Reset(AX_U32 nDevId);
+AX_S32 AX_MIPI_RX_UnReset(AX_U32 nDevId);
+AX_S32 AX_MIPI_RX_SetAttr(AX_U32 nDevId, const AX_MIPI_RX_DEV_T *pDevAttr);
+AX_S32 AX_MIPI_RX_GetAttr(AX_U32 nDevId, AX_MIPI_RX_DEV_T *pDevAttr);
+AX_S32 AX_MIPI_RX_Start(AX_U32 nDevId);
+AX_S32 AX_MIPI_RX_Stop(AX_U32 nDevId);
 
-AX_S32 AX_MIPI_RX_EnableClk(AX_MIPI_RX_DEV_E eMipiDev);
-AX_S32 AX_MIPI_RX_DisableClk(AX_MIPI_RX_DEV_E eMipiDev);
+AX_S32 AX_MIPI_RX_EnableClk(AX_U32 nDevId);
+AX_S32 AX_MIPI_RX_DisableClk(AX_U32 nDevId);
 
 #ifdef __cplusplus
 }

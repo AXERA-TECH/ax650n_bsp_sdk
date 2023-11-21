@@ -209,6 +209,7 @@ int uvc_img_cache_clear(struct uvc_device *dev)
 
     dev->img_cache.img_head = 0;
     dev->img_cache.img_tail = 0;
+    dev->img_cache.has_lost = AX_FALSE;
 
     printf("%s ---\n", __func__);
     return 0;
@@ -1811,8 +1812,8 @@ static void uvc_events_init(struct uvc_device *dev)
 
     if (dev->bulk) {
         /* FIXME Crude hack, must be negotiated with the driver. */
-        dev->probe.dwMaxPayloadTransferSize = payload_size;
-        dev->commit.dwMaxPayloadTransferSize = payload_size;
+        dev->probe.dwMaxPayloadTransferSize = payload_size - HEADER_SIZE;
+        dev->commit.dwMaxPayloadTransferSize = payload_size - HEADER_SIZE;
     }
 
     memset(&sub, 0, sizeof sub);
@@ -2062,6 +2063,7 @@ int main(int argc, char *argv[])
             break;
 
         case 'b':
+            bulk_mode = 1;
             break;
 
         case 'd':

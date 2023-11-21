@@ -45,7 +45,7 @@ typedef enum {
     AX_ID_ISP_GAMMA     = 0x10,
     AX_ID_ISP_DEHAZE    = 0x11,
     AX_ID_ISP_CSC       = 0x12,
-    AX_ID_ISP_OFL       = 0x13,
+    AX_ID_ISP_ME        = 0x13,
     AX_ID_ISP_REMAP     = 0x14,
     AX_ID_ISP_HDR       = 0x15,
     AX_ID_ISP_RAW3DNR   = 0x16,
@@ -61,6 +61,7 @@ typedef enum {
     AX_ID_ISP_3DLUT     = 0x20,
     AX_ID_ISP_SCENE     = 0x21,
     AX_ID_ISP_LDC       = 0x22,
+    AX_ID_ISP_DIS       = 0x23,
     AX_ID_ISP_BUTT,
 } AX_ISP_SUB_ID_E;
 

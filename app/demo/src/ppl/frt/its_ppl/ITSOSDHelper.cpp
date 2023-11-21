@@ -409,13 +409,19 @@ AX_VOID COSDHelper::UpdateOSDStr(OSD_REGION_PARAM_T* pThreadParam) {
     nFontColor |= (1 << 24);
 
     pArgbData = (AX_U16*)malloc(nPicSize);
+    if (nullptr == pArgbData) {
+        LOG_MM_E(OSD, "no enough memory for pArgbData");
+        return;
+    }
 
     do {
-        if (nullptr == m_osdWrapper.GenARGB(pThreadParamHandle, (wchar_t*)&wszOsdStr[0], (AX_U16*)pArgbData, nPixWidth, nPixHeight,
+        if (pThreadParam->tOsdCfg.bEnable) {
+            if (nullptr == m_osdWrapper.GenARGB(pThreadParamHandle, (wchar_t*)&wszOsdStr[0], (AX_U16*)pArgbData, nPixWidth, nPixHeight,
                                             nPicOffset, 0, nFontSize, AX_TRUE, nFontColor, 0xFFFFFF, 0xFF000000, eAlign)) {
-            LOG_MM_E(OSD, "[%d][%d]Failed to generate bitmap for string: %s.", nIvpsGrp, pThreadParam->tOsdCfg.nZIndex,
-                     pThreadParam->tOsdCfg.tStrAttr.szStr);
-            break;
+                LOG_MM_E(OSD, "[%d][%d]Failed to generate bitmap for string: %s.", nIvpsGrp, pThreadParam->tOsdCfg.nZIndex,
+                        pThreadParam->tOsdCfg.tStrAttr.szStr);
+                break;
+            }
         }
 
         tDisp.arrDisp[0].eType = AX_IVPS_RGN_TYPE_OSD;
@@ -446,10 +452,14 @@ AX_VOID COSDHelper::UpdateOSDStr(OSD_REGION_PARAM_T* pThreadParam) {
     } while (0);
 
     /* Free osd resource */
-    free(pArgbData);
-    pArgbData = nullptr;
+    if (nullptr != pArgbData) {
+        free(pArgbData);
+        pArgbData = nullptr;
+    }
 
-    m_osdWrapper.ReleaseInstance(&pThreadParamHandle);
+    if (nullptr != pThreadParamHandle) {
+        m_osdWrapper.ReleaseInstance(&pThreadParamHandle);
+    }
 
     return;
 }
@@ -648,6 +658,10 @@ AX_BOOL COSDHelper::UpdateOSDRect(const std::vector<AX_APP_ALGO_BOX_T>& vecBox) 
                 stPolygon.tRect.nY = tBox.fY * nSrcHeight;
                 stPolygon.tRect.nW = tBox.fW * nSrcWidth;
                 stPolygon.tRect.nH = tBox.fH * nSrcHeight;
+
+                if (stPolygon.tRect.nW == 0 || stPolygon.tRect.nH == 0) {
+                    continue;
+                }
 
                 vecRgn.push_back(stPolygon);
             }

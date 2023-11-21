@@ -18,6 +18,8 @@ include $(HOME_PATH)/build/config.mak
 ################################################################################
 
 .PHONY : all clean install lib
+.NOTPARALLEL: clean all
+
 all: lib
 	@echo -e $(GREEN)"\nBuild $@ success!!\n"  $(DONE)
 

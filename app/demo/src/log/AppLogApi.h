@@ -82,6 +82,7 @@ AX_S32 AX_APP_Log_Init(const APP_LOG_ATTR_T *pstAttr);
 AX_VOID AX_APP_Log_DeInit(AX_VOID);
 AX_S32 AX_APP_GetLogLevel(AX_VOID);
 AX_VOID AX_APP_SetLogLevel(AX_S32 nLv);
+AX_VOID AX_APP_Log_SetSysModuleInited(AX_BOOL bInited);
 AX_VOID AX_APP_LogFmtStr(AX_S32 nLv, const AX_CHAR *pFmt, ...);
 AX_VOID AX_APP_LogBufData(AX_S32 nLv, const AX_VOID *pBuf, AX_U32 nBufSize, AX_U32 nFlag);
 

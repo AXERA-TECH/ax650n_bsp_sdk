@@ -56,7 +56,7 @@ STREAM_CONFIG_T CBoxConfig::GetStreamConfig(AX_VOID) {
         sprintf(szKey, "chn%d depth", i);
         conf.nChnDepth[i] = m_Ini.GetIntValue(SECT, szKey, 8);
     }
-    conf.nDefaultFps = m_Ini.GetIntValue(SECT, "default fps", 30);
+    conf.nDefaultFps = m_Ini.GetIntValue(SECT, "default fps", 0);
     conf.nInputMode = m_Ini.GetIntValue(SECT, "input mode", 0);
 
     conf.nUserPool = m_Ini.GetIntValue(SECT, "user pool", 1);
@@ -127,8 +127,7 @@ DETECT_CONFIG_T CBoxConfig::GetDetectConfig(AX_VOID) {
             conf.tChnParam[i].bTrackEnable = (AX_BOOL)vec[1];
             if (conf.nVnpuMode == 0) {
                 conf.tChnParam[i].nVNPU = 0;
-            }
-            else {
+            } else {
                 conf.tChnParam[i].nVNPU = vec[2];
             }
         } else {
@@ -230,6 +229,14 @@ COMPRESS_CONFIG_T CBoxConfig::GetCompressConfig(AX_VOID) {
     }
 
     conf.nLv = m_Ini.GetIntValue(SECT, "compress level", 0);
+
+    return conf;
+}
+
+UT_CONFIG_T CBoxConfig::GetUTConfig(AX_VOID) {
+    UT_CONFIG_T conf;
+    const AX_CHAR *SECT = "UT";
+    conf.nMaxSendNaluIntervalMilliseconds = m_Ini.GetIntValue(SECT, "PlaybackMaxSendNaluIntervalMilliseconds", 0);
 
     return conf;
 }

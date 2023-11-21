@@ -28,6 +28,7 @@ AX_BOOL CVo::Init(const VO_ATTR_T& stAttr) {
     LOG_M_D(VO, "%s: +++", __func__);
 
     AX_U32 nHz;
+    AX_U32 u32ChnNr;
     AX_VO_RECT_T stArea;
     if (!GetDispInfoFromIntfSync(stAttr.enIntfSync, stArea, nHz)) {
         return AX_FALSE;
@@ -47,7 +48,6 @@ AX_BOOL CVo::Init(const VO_ATTR_T& stAttr) {
         VO_CHN voChn = GetVideoChn(i);
         m_arrChns[voChn].u32FifoDepth = m_stAttr.arrChns[i].nDepth;
         m_arrChns[voChn].u32Priority = m_stAttr.arrChns[i].nPriority;
-        m_arrChns[voChn].bKeepPrevFr = AX_TRUE;
     }
 
 #ifdef __DUMMY_VO__
@@ -98,7 +98,7 @@ AX_BOOL CVo::Init(const VO_ATTR_T& stAttr) {
         stLayerAttr.enSyncMode = AX_VO_LAYER_SYNC_NORMAL;
         stLayerAttr.f32FrmRate = (AX_F32)(nHz);
         stLayerAttr.u32FifoDepth = m_stAttr.nLayerDepth;
-        stLayerAttr.u32ChnNr = m_arrChns.size();
+        u32ChnNr = m_arrChns.size();
         stLayerAttr.u32BkClr = m_stAttr.nBgClr;
         stLayerAttr.u32PrimaryChnId = LOGO_CHN;
         stLayerAttr.enBgFillMode = AX_VO_BG_FILL_ONCE;
@@ -113,9 +113,9 @@ AX_BOOL CVo::Init(const VO_ATTR_T& stAttr) {
             LOG_M_E(VO, "AX_VO_SetVideoLayerAttr(layer %d) fail, ret = 0x%x", m_stAttr.voLayer, ret);
             throw 1;
         } else {
-            LOG_M_C(VO, "layer %d: [(%d, %d) %dx%d], dispatch mode %d, layer depth %d, ChnNr %d, part mode %d, tolerance %d",
+            LOG_M_C(VO, "layer %d: [(%d, %d) %dx%d], dispatch mode %d, layer depth %d, part mode %d, tolerance %d",
                     m_stAttr.voLayer, stLayerAttr.stDispRect.u32X, stLayerAttr.stDispRect.u32Y, stLayerAttr.stDispRect.u32Width,
-                    stLayerAttr.stDispRect.u32Height, stLayerAttr.u32DispatchMode, stLayerAttr.u32FifoDepth, stLayerAttr.u32ChnNr,
+                    stLayerAttr.stDispRect.u32Height, stLayerAttr.u32DispatchMode, stLayerAttr.u32FifoDepth,
                     stLayerAttr.enPartMode, stLayerAttr.u32Toleration);
         }
 
@@ -140,7 +140,7 @@ AX_BOOL CVo::Init(const VO_ATTR_T& stAttr) {
                 AX_VO_DisableChn(layer, j);
             }
         };
-        for (VO_CHN voChn = 0; voChn < stLayerAttr.u32ChnNr; ++voChn) {
+        for (VO_CHN voChn = 0; voChn < u32ChnNr; ++voChn) {
             ret = AX_VO_SetChnAttr(m_stAttr.voLayer, voChn, &m_arrChns[voChn]);
             if (0 != ret) {
                 LOG_M_E(VO, "AX_VO_SetChnAttr(layer %d chn %d) fail, ret = 0x%x", m_stAttr.voLayer, voChn, ret);
@@ -305,6 +305,7 @@ AX_BOOL CVo::InitLayout(AX_U32 nVideoCount) {
     memset(&stChnAttr, 0, sizeof(stChnAttr));
     stChnAttr.u32FifoDepth = 1; /* default depth: 1 */
     stChnAttr.u32Priority = 0;
+    stChnAttr.bKeepPrevFr = AX_TRUE;
 
     if (m_rcLogo.bShow) {
         /**

@@ -229,6 +229,14 @@ typedef struct axSAMPLE_VENC_CMD_PARA_T
     AX_U8 outFifoDep;
     AX_BOOL bCoreCoWork;
     AX_U8 strmBitDep; /* output bit depth of stream */
+    /* VUI */
+    AX_BOOL bSignalPresent;
+    AX_U8 videoFormat;
+    AX_BOOL bFullRange;
+    AX_BOOL bColorPresent;
+    AX_U8 colorPrimaries;
+    AX_U8 transferCharacter;
+    AX_U8 matrixCoeffs;
 } SAMPLE_VENC_CMD_PARA_T;
 
 typedef struct axSAMPLE_VENC_SENDFRAME_PARA_T
