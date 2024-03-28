@@ -24,6 +24,7 @@ cd ax650n_bsp_sdk
 Download the third-party zip file and decompress it into third-party dir
 
 - [百度网盘](https://pan.baidu.com/s/1ikttjzp6aixdfed639_9dA?pwd=aq70)
+- [Google Drive](https://drive.google.com/file/d/1cr9lvVKpfDc3JPyzEXuUQGyRUVqmXMBc/view?usp=sharing)
 
 ```
 $ tree -L 2
