@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -64,6 +64,16 @@ extern "C" {
 /* Difference between FrameLevelMaxQp and MaxQp */
 #define VENC_MAX_QP_DELTA_LOW  (0)
 #define VENC_MAX_QP_DELTA_HIGH (4)
+
+#define VENC_MIN_CHANGE_POS (20)
+#define VENC_MAX_CHANGE_POS (100)
+#define VENC_DEF_CHANGE_POS (90)
+
+#define VENC_MIN_STILL_PERCENT (10)
+#define VENC_MAX_STILL_PERCENT (100)
+#define VENC_DEF_STILL_PERCENT (25)
+
+#define VENC_MAX_STILL_QP_DEF (36)
 
 /* rc mode */
 typedef enum
@@ -187,6 +197,7 @@ typedef struct axVENC_H264_VBR_T
     AX_U32 u32MinIQp;                 /* Range:[0, 51]; the min I qp */
     AX_S32 s32IntraQpDelta;           /* Range:[-51, 51]; QP difference between target QP and intra frame QP */
     AX_VENC_QPMAP_META_T stQpmapInfo; /* Qpmap related info */
+    AX_U32 u32ChangePos;              /* Range:[20, 100] */
 } AX_VENC_H264_VBR_T;
 
 /* the attribute of h264e cvbr*/
@@ -233,6 +244,10 @@ typedef struct axVENC_H264_AVBR_T
     AX_U32 u32MinIQp;                 /* Range:[0, 51]; the min I qp */
     AX_S32 s32IntraQpDelta;           /* Range:[-51, 51]; QP difference between target QP and intra frame QP */
     AX_VENC_QPMAP_META_T stQpmapInfo; /* Qpmap related info */
+
+    AX_U32 u32ChangePos;              /* Range:[20, 100] */
+    AX_U32 u32MinStillPercent;        /* Range:[10, 100] */
+    AX_U32 u32MaxStillQp;             /* Range:[u32MinIQp, u32MaxIQp]; def 36 */
 } AX_VENC_H264_AVBR_T;
 
 /* the attribute of h264e fixqp*/

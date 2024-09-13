@@ -17,6 +17,6 @@
 
 int SampleIVPS_Init();
 AX_S32 SampleIvpsExit();
-
+AX_S32 SampleIvpsReset();
 
 #endif /* _SAMPLE_IVPS_HAL_H_ */

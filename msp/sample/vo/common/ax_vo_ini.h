@@ -72,7 +72,7 @@ typedef enum {
     AX_VO_INI_K_D_CURSOR_FBID,
     AX_VO_INI_K_D_CURSOR_MOVE,
     AX_VO_INI_K_D_OUT_FMT,
-
+    AX_VO_INI_K_D_BLD_BUF_MODE,
     AX_VO_INI_K_BUTT
 } AX_VO_INI_KEY_E;
 

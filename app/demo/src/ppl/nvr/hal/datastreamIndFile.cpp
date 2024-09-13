@@ -20,7 +20,7 @@
 
 using namespace std;
 
-AX_BOOL CDataStreamIndFile::Init(const AX_CHAR* pFilePath, AXIF_OPEN_FLAG_E eOpenFlag, AX_S32 nDate /*= 0*/, AX_S32 nTime /*= 0*/) {
+AX_BOOL CDataStreamIndFile::Init(const AX_CHAR* pFilePath, AXIF_OPEN_FLAG_E eOpenFlag, AX_S32 nDate /*= 0*/, AX_S32 nTime /*= 0*/, AX_BOOL bGopMode /*= AX_FALSE*/) {
     LOG_MM_I(DSIF, "+++");
 
     if (nullptr == pFilePath) {
@@ -37,6 +37,7 @@ AX_BOOL CDataStreamIndFile::Init(const AX_CHAR* pFilePath, AXIF_OPEN_FLAG_E eOpe
         /* Start read frame with specified time */
         m_nStartDate = nDate;
         m_nStartTime = nTime;
+        m_bGopMode = bGopMode;
 
         m_pIFrmOffsetBuf = (AX_U8*)malloc(MAX_IFRAME_OFFSET_BUFF_SIZE);
     }
@@ -328,7 +329,7 @@ AXIF_FILE_INFO_EX_T CDataStreamIndFile::FindInfo(AX_S32 nInfoIndex, AX_BOOL bFil
     return CDSIFIterator::END_VALUE;
 }
 
-AX_BOOL CDataStreamIndFile::FindFrameLocationByIndex(AX_S32 nFrmIndex, AXIF_FRAME_LOCATION_T& tLocation) {
+AX_BOOL CDataStreamIndFile::FindFrameLocationByGlobalIndex(AX_S32 nGlobalFrmIndex, AXIF_FRAME_LOCATION_T& tLocation) {
     AX_S32 nFrmStartInd = 0;
     AX_S32 nFrmEndInd = -1;
     AX_S32 nFileIndex = 0;
@@ -339,11 +340,11 @@ AX_BOOL CDataStreamIndFile::FindFrameLocationByIndex(AX_S32 nFrmIndex, AXIF_FRAM
         info = *itStart;
         nFrmStartInd = nFrmEndInd + 1;
         nFrmEndInd = nFrmStartInd + info.tInfo.uFrameCount - 1;
-        if (nFrmIndex >= nFrmStartInd && nFrmIndex <= nFrmEndInd) {
+        if (nGlobalFrmIndex >= nFrmStartInd && nGlobalFrmIndex <= nFrmEndInd) {
             tLocation.strDataFile = info.tInfo.szFilePath;
             tLocation.nFileIndex = nFileIndex;
-            tLocation.nGlobalFrameIndex = nFrmIndex;
-            tLocation.nFrameIndexWithinFile = nFrmIndex - nFrmStartInd;
+            tLocation.nGlobalFrameIndex = nGlobalFrmIndex;
+            tLocation.nFrameIndexWithinFile = nGlobalFrmIndex - nFrmStartInd;
             tLocation.nFileStartFrmIndex = nFrmStartInd;
             tLocation.nFileEndFrmIndex = nFrmEndInd;
 
@@ -351,6 +352,40 @@ AX_BOOL CDataStreamIndFile::FindFrameLocationByIndex(AX_S32 nFrmIndex, AXIF_FRAM
         } else {
             nFileIndex++;
         }
+    }
+
+    return AX_FALSE;
+}
+
+AX_BOOL CDataStreamIndFile::FindFrameLocationByFrmIndexWithinFile(AX_S32 nFileIndex, AX_S32 nFrmIndex, AXIF_FRAME_LOCATION_T& tLocation) {
+    AX_S32 nFrmStartInd = 0;
+    AX_S32 nFrmEndInd = -1;
+    CDSIFIterator itStart = info_begin();
+    CDSIFIterator itEnd = info_end();
+    AXIF_FILE_INFO_EX_T info;
+    AX_S32 nCurrFileIndex = 0;
+    for (; itStart != itEnd; ++itStart) {
+        info = *itStart;
+        nFrmStartInd = nFrmEndInd + 1;
+        nFrmEndInd = nFrmStartInd + info.tInfo.uFrameCount - 1;
+
+        if (nCurrFileIndex++ != nFileIndex) {
+            continue;
+        }
+
+        if (nFrmIndex < 0 || (AX_U32)nFrmIndex >= info.tInfo.uFrameCount) {
+            LOG_MM_E(DSIF, "Can not locate frame (file index %d, frm index %d) within file %s(max frm count %d)", nFileIndex, nFrmIndex, info.tInfo.szFilePath, info.tInfo.uFrameCount);
+            return AX_FALSE;
+        }
+
+        tLocation.strDataFile = info.tInfo.szFilePath;
+        tLocation.nFileIndex = nFileIndex;
+        tLocation.nGlobalFrameIndex = nFrmStartInd + nFrmIndex;
+        tLocation.nFrameIndexWithinFile = nFrmIndex;
+        tLocation.nFileStartFrmIndex = nFrmStartInd;
+        tLocation.nFileEndFrmIndex = nFrmEndInd;
+
+        return AX_TRUE;
     }
 
     return AX_FALSE;
@@ -370,10 +405,11 @@ AX_BOOL CDataStreamIndFile::FindFrameLocationByTime(time_t nTargetSeconds, AXIF_
         info = *itStart;
         nFileStartSec = info.tInfo.tStartTime.uSec;
         nFileEndSec = info.tInfo.tEndTime.uSec;
-
         std::unique_ptr<CDataStreamFile> dsf = make_unique<CDataStreamFile>();
         if (!dsf || !dsf->Open(info.tInfo.szFilePath, AX_DSF_OPEN_FOR_READ)) {
             return AX_FALSE;
+        } else {
+            LOG_MM_I("DSIF", "Open file %s", info.tInfo.szFilePath);
         }
 
         do {
@@ -382,10 +418,11 @@ AX_BOOL CDataStreamIndFile::FindFrameLocationByTime(time_t nTargetSeconds, AXIF_
                 AX_S32 nFrmIndexWithinFile = -1;
 
                 if (bReverse) {
-                    for (AX_S32 i = info.tInfo.uIFrameCount - 1; i >= 0; --i) {
-                        pHeader = dsf->FindFrameByOffset(*((AX_U32 *)info.pIFrmOffsetBuf + i));
+                    for (AX_S32 i = info.tInfo.uIFrameCount; i > 0; --i) {
+                        pHeader = dsf->FindFrameByOffset(*((AX_U32 *)info.pIFrmOffsetBuf + i - 1));
                         if (pHeader->tTimeStamp.uSec <= nTargetSeconds) {
-                            nFrmIndexWithinFile = i;
+                            nFrmIndexWithinFile = i - 1;
+                            LOG_MM_D("DSIF", "Find iframe index %d(0, %d)", nFrmIndexWithinFile, info.tInfo.uIFrameCount - 1);
                             break;
                         }
                     }
@@ -413,10 +450,11 @@ AX_BOOL CDataStreamIndFile::FindFrameLocationByTime(time_t nTargetSeconds, AXIF_
                 AXDS_FRAME_HEADER_T* pHeader = nullptr;
                 AX_S32 nFrmIndexWithinFile = -1;
                 if (bReverse) {
-                    for (AX_S32 i = info.tInfo.uIFrameCount - 1; i >= 0; --i) {
-                        pHeader = dsf->FindFrameByOffset(*((AX_U32 *)info.pIFrmOffsetBuf + i));
+                    for (AX_S32 i = info.tInfo.uIFrameCount; i > 0; --i) {
+                        pHeader = dsf->FindFrameByOffset(*((AX_U32 *)info.pIFrmOffsetBuf + i - 1));
                         if (pHeader->tTimeStamp.uSec <= nTargetSeconds) {
-                            nFrmIndexWithinFile = i;
+                            nFrmIndexWithinFile = i - 1;
+                            LOG_MM_D("DSIF", "Find iframe index %d(0, %d), nFileIndex=%d", nFrmIndexWithinFile, info.tInfo.uIFrameCount, nFileIndex);
                             break;
                         }
                     }
@@ -473,7 +511,7 @@ CDSIFIterator CDataStreamIndFile::info_rend() {
 }
 
 CDSIterator CDataStreamIndFile::begin() {
-    if (m_nStartTime > 0) {
+    if (m_nStartDate > 0) {
         time_t timeVal = CElapsedTimer::GetTimeTVal(m_nStartDate, m_nStartTime);
         AXIF_FRAME_LOCATION_T tLocation;
         if (FindFrameLocationByTime(timeVal, tLocation, AX_TRUE)) {
@@ -484,7 +522,7 @@ CDSIterator CDataStreamIndFile::begin() {
         }
     }
 
-    return CDSIterator(this, CDSIterator::BEGIN);
+    return CDSIterator(this, CDSIterator::END);
 }
 
 CDSIterator CDataStreamIndFile::end() {
@@ -492,20 +530,43 @@ CDSIterator CDataStreamIndFile::end() {
 }
 
 CDSIterator CDataStreamIndFile::rbegin() {
-    if (m_nStartTime > 0) {
+    if (m_nStartDate > 0) {
+        if (0 == m_nStartTime) {
+            /* Enable testsuite auto reverse playback without setting timeline */
+            m_nStartTime = 235959;
+        }
+
         time_t timeVal = CElapsedTimer::GetTimeTVal(m_nStartDate, m_nStartTime);
         AXIF_FRAME_LOCATION_T tLocation;
         if (FindFrameLocationByTime(timeVal, tLocation, AX_TRUE, AX_TRUE)) {
-            return CDSIterator(this, CDSIterator::RBEGIN).Relocate(tLocation);
+            return CDSIterator(this, CDSIterator::RBEGIN, AX_TRUE).Relocate(tLocation);
         } else {
             LOG_MM_W(DSIF, "Can not locate at time(%d %d).", m_nStartDate, m_nStartTime);
             return CDSIterator(this, CDSIterator::REND);
         }
     }
 
-    return CDSIterator(this, CDSIterator::RBEGIN);
+    return CDSIterator(this, CDSIterator::REND);
 }
 
 CDSIterator CDataStreamIndFile::rend() {
     return CDSIterator(this, CDSIterator::REND);
+}
+
+CDSIterator CDataStreamIndFile::gop_begin(AX_S32 nFileIndex, AX_S32 nGopStartIndex) {
+    if (nFileIndex >= 0 && nGopStartIndex >= 0) {
+        AXIF_FRAME_LOCATION_T tLocation;
+        if (FindFrameLocationByFrmIndexWithinFile(nFileIndex, nGopStartIndex, tLocation)) {
+            return CDSIterator(this, CDSIterator::BEGIN).Relocate(tLocation);
+        }
+    } else {
+        LOG_MM_W(DSIF, "Can not locate GOP start by frm index %d in file %d.", nGopStartIndex, nFileIndex);
+        return CDSIterator(this, CDSIterator::END);
+    }
+
+    return CDSIterator(this, CDSIterator::BEGIN);
+}
+
+CDSIterator CDataStreamIndFile::gop_end(AX_S32 nFileIndex, AX_S32 nGopEndIndex) {
+    return CDSIterator(this, CDSIterator::END);
 }

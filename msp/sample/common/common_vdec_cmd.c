@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -369,6 +369,9 @@ static void __PrintHelp_Com()
     printf("  --bFfmpegEnable:      whether used ffmpeg lib parser stream to decode. 1: enable. 0: disable. default: 1\n");
     printf("  --enOutputOrder:      Output order. 0: OUTPUT_ORDER_DISP. 1: OUTPUT_ORDER_DEC.  default: 0\n");
     printf("  --enVideoMode:        Video Mode. 0: VIDEO_DEC_MODE_IPB. 1: VIDEO_DEC_MODE_IP. 2: VIDEO_DEC_MODE_I. default: 0\n");
+    printf("  --enSkipFrame:        whether skip frame after decode if this frame pts is -1. 1: enable. 0: disable. default: 0\n");
+    printf("  --s32VdecVirtChn:     specifies the JDEC mapping virtual channel number. default: 0\n");
+    printf("  --bModifyFrmSize:     whether modify PP channel frame size dynamically. 1: enable. 0: disable. default: 0\n");
 }
 
 static void __PrintHelp_Link()
@@ -376,6 +379,8 @@ static void __PrintHelp_Link()
     printf("  --pollingEna:         whether to enable the polling function. 1: enable. 0: disable. default: 0\n");
     printf("  --pollingCnt:         polling number. default: 0\n");
     printf("  --pollingTime:        polling time. default: 10\n");
+    printf("  --pollingType:        pollingType. 0: loop reset and destroy. 1: loop destroy. 2: loop reset. default: 0\n");
+    printf("  --bEnaIvpsBakFrm:     Whether the ivps frame backup function is enabled. 1: enable. 0: disable. default: 0\n");
 }
 
 static AX_S32 __SampleInitOptions(SAMPLE_OPTION_T **ppOptions, SAMPLE_OPTION_NAME_T **ppOptName)
@@ -426,6 +431,8 @@ static AX_S32 __SampleInitOptions(SAMPLE_OPTION_T **ppOptions, SAMPLE_OPTION_NAM
     ret = SampleOptionsFill(pOptions, i++, "enDecType", 'T', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "bJpegDecOneFrm", 'j', AX_TRUE);
+    if (ret) goto ERR_RET_LOG;
+    ret = SampleOptionsFill(pOptions, i++, "bExtractHead", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "bQuitWait", 'q', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
@@ -501,17 +508,27 @@ static AX_S32 __SampleInitOptions(SAMPLE_OPTION_T **ppOptions, SAMPLE_OPTION_NAM
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "bFfmpegEnable", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
+    ret = SampleOptionsFill(pOptions, i++, "s32VdecVirtChn", '0', AX_TRUE);
+    if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "waitTime", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "pollingEna", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "pollingCnt", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
+    ret = SampleOptionsFill(pOptions, i++, "bEnaIvpsBakFrm", '0', AX_TRUE);
+    if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "pollingTime", '0', AX_TRUE);
+    if (ret) goto ERR_RET_LOG;
+    ret = SampleOptionsFill(pOptions, i++, "pollingType", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "enOutputOrder", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
     ret = SampleOptionsFill(pOptions, i++, "enVideoMode", '0', AX_TRUE);
+    if (ret) goto ERR_RET_LOG;
+    ret = SampleOptionsFill(pOptions, i++, "enSkipFrame", '0', AX_TRUE);
+    if (ret) goto ERR_RET_LOG;
+    ret = SampleOptionsFill(pOptions, i++, "bModifyFrmSize", '0', AX_TRUE);
     if (ret) goto ERR_RET_LOG;
 
 
@@ -589,6 +606,8 @@ static AX_S32 __VdecCmdParaPrint(SAMPLE_VDEC_CMD_PARAM_T *pstPara, AX_VDEC_GRP V
     SAMPLE_LOG("pstPara->pInputFilePath:%s", pstPara->pInputFilePath);
     SAMPLE_LOG("pstPara->bFfmpegEnable:%d", pstPara->bFfmpegEnable);
     SAMPLE_LOG("pstPara->enVideoMode:%d", pstPara->enVideoMode);
+    SAMPLE_LOG("pstPara->enSkipFrame:%d", pstPara->enSkipFrame);
+    SAMPLE_LOG("pstPara->bModifyFrmSize:%d", pstPara->bModifyFrmSize);
 
     for (int i = 0; i < AX_DEC_MAX_CHN_NUM; i++) {
         pstChnCfg = &pstPara->tChnCfg[i];
@@ -622,6 +641,10 @@ static AX_VOID __VdecParameterAdjust(SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
 
         if (pstCmd->enInputMode == AX_VDEC_INPUT_MODE_NAL)
             pstCmd->enInputMode = AX_VDEC_INPUT_MODE_FRAME;
+        if (pstCmd->s32VdecVirtChn) {
+            pstCmd->tChnCfg[pstCmd->s32VdecVirtChn] = pstCmd->tChnCfg[0];
+            pstCmd->tChnCfg[0].bChnEnable = AX_FALSE;
+        }
     } else {
         for (int ci = 0; ci < AX_DEC_MAX_CHN_NUM; ci++) {
             if (pstCmd->tChnCfg[ci].bChnEnable == AX_FALSE) continue;
@@ -1028,7 +1051,8 @@ AX_S32 VdecCmdLineParseAndCheck(AX_S32 argc, AX_CHAR **argv, SAMPLE_VDEC_CMD_PAR
                         goto ERR_RET;
                     }
                 }
-            } else if (strcmp(pPrm->longOpt, "usrPicFile") == 0) {
+            }
+            else if (strcmp(pPrm->longOpt, "usrPicFile") == 0) {
                 pstCmd->tChnCfg[VdChn].pUsrPicFilePath = malloc(AX_VDEC_FILE_PATH_LEN);
                 if (pstCmd->tChnCfg[VdChn].pUsrPicFilePath == NULL) {
                     SAMPLE_CRIT_LOG("VdGrp=%d, malloc %d Bytes FAILED!\n",
@@ -1054,11 +1078,14 @@ AX_S32 VdecCmdLineParseAndCheck(AX_S32 argc, AX_CHAR **argv, SAMPLE_VDEC_CMD_PAR
                 }
 
                 pstCmd->tChnCfg[VdChn].bUserPicEnable = AX_TRUE;
-            } else if (strcmp(pPrm->longOpt, "usrPicIdx") == 0) {
+            }
+            else if (strcmp(pPrm->longOpt, "usrPicIdx") == 0) {
                pstCmd->usrPicIdx = atoi(optarg);
-            } else if (strcmp(pPrm->longOpt, "bDynRes") == 0) {
+            }
+            else if (strcmp(pPrm->longOpt, "bDynRes") == 0) {
                pstCmd->bDynRes = atoi(optarg);
-            } else if (strcmp(pPrm->longOpt, "newInput") == 0) {
+            }
+            else if (strcmp(pPrm->longOpt, "newInput") == 0) {
                 pstCmd->pNewInputFilePath = malloc(AX_VDEC_FILE_PATH_LEN);
                 if (pstCmd->pNewInputFilePath == NULL) {
                     SAMPLE_CRIT_LOG("VdGrp=%d, malloc %d Bytes FAILED!\n",
@@ -1088,6 +1115,9 @@ AX_S32 VdecCmdLineParseAndCheck(AX_S32 argc, AX_CHAR **argv, SAMPLE_VDEC_CMD_PAR
             }
             else if (strcmp(pPrm->longOpt, "bUsrInstant") == 0) {
                pstCmd->bUsrInstant = atoi(optarg);
+            }
+            else if (strcmp(pPrm->longOpt, "bExtractHead") == 0) {
+               pstCmd->bExtractHead = atoi(optarg);
             }
             else if (strcmp(pPrm->longOpt, "recvStmAfUsrPic") == 0) {
                pstCmd->recvStmAfUsrPic = atoi(optarg);
@@ -1197,6 +1227,12 @@ AX_S32 VdecCmdLineParseAndCheck(AX_S32 argc, AX_CHAR **argv, SAMPLE_VDEC_CMD_PAR
             else if (strcmp(pPrm->longOpt, "bFfmpegEnable") == 0) {
                 pstCmd->bFfmpegEnable = atoi(optarg);
             }
+            else if (strcmp(pPrm->longOpt, "enSkipFrame") == 0) {
+                pstCmd->enSkipFrame = atoi(optarg);
+            }
+            else if (strcmp(pPrm->longOpt, "s32VdecVirtChn") == 0) {
+                pstCmd->s32VdecVirtChn = atoi(optarg);
+            }
             else if (strcmp(pPrm->longOpt, "enOutputOrder") == 0) {
                 pstCmd->enOutputOrder = atoi(optarg);
             }
@@ -1214,6 +1250,15 @@ AX_S32 VdecCmdLineParseAndCheck(AX_S32 argc, AX_CHAR **argv, SAMPLE_VDEC_CMD_PAR
             }
             else if (strcmp(pPrm->longOpt, "pollingTime") == 0) {
                 pstCmd->pollingTime = atoi(optarg);
+            }
+            else if (strcmp(pPrm->longOpt, "pollingType") == 0) {
+                pstCmd->pollingType = atoi(optarg);
+            }
+            else if (strcmp(pPrm->longOpt, "bEnaIvpsBakFrm") == 0) {
+                pstCmd->bEnaIvpsBakFrm = atoi(optarg);
+            }
+            else if (strcmp(pPrm->longOpt, "bModifyFrmSize") == 0) {
+                pstCmd->bModifyFrmSize = atoi(optarg);
             }
             else {
                 if ((pstCmd->uStreamCount > 0) && (pstCmd->uStreamCount < AX_VDEC_MAX_GRP_NUM)) {
@@ -1330,6 +1375,8 @@ AX_S32 VdecDefaultParamsSet(SAMPLE_VDEC_CMD_PARAM_T *pstCmdPara)
     pstCmd->sStreamSize = 1024 * 1024;
     pstCmd->pollingTime = 10;
     pstCmd->usrPicIdx = 7;
+    pstCmd->enSkipFrame = 0;
+    pstCmd->s32VdecVirtChn = 0;
 
     for (int ci = 0; ci < AX_DEC_MAX_CHN_NUM; ci++) {
         pstCmd->tChnCfg[ci].VdChn = ci;
@@ -1342,6 +1389,7 @@ AX_S32 VdecDefaultParamsSet(SAMPLE_VDEC_CMD_PARAM_T *pstCmdPara)
 
     pstCmd->tChnCfg[0].bChnEnable = AX_TRUE;
     pstCmd->bFfmpegEnable = AX_TRUE;
+    pstCmd->bModifyFrmSize = AX_FALSE;
     pstCmd->enVideoMode = VIDEO_DEC_MODE_IPB;
 
     return 0;

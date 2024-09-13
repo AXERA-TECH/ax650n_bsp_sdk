@@ -136,6 +136,7 @@ typedef struct VO_RECT_ATTR {
 
 typedef struct VO_REGION_INFO {
     AX_BOOL bValid {AX_FALSE};
+    AX_S32 nChn {-1};
     std::vector<VO_LINE_ATTR_T> vecLines;
     std::vector<VO_RECT_ATTR_T> vecRects;
 
@@ -228,7 +229,8 @@ protected:
     AX_BOOL CheckChnInfo(CONST VO_CHN_INFO_T& stChnInfo);
 
     AX_VOID PaintRegions(AX_VIDEO_FRAME_T* pLayerFrame);
-    AX_BOOL GenRegionsForPipRect(VO_RECT_ATTR_T& tRect, std::vector<VO_RECT_ATTR_T>& vecOutConvertedRect, std::vector<VO_LINE_ATTR_T>& vecOutConvertedLines);
+    AX_BOOL GenRegionsForPipRect(VO_RECT_ATTR_T& tRect, std::vector<VO_RECT_ATTR_T>& vecOutConvertedRect,
+                                 std::vector<VO_LINE_ATTR_T>& vecOutConvertedLines);
     AX_VOID LayerFrameGetThread(AX_VOID* pArg);
 
     AX_BOOL PointInRect(VO_POINT_ATTR_T& tPoint, VO_RECT_ATTR_T& tRect);
@@ -294,7 +296,6 @@ public:
         }
 
         m_pSink->ClearRegions(itFinder->second);
-
         m_mapSrcGrp2VoChn[nSrcGrp] = -1;
     }
 

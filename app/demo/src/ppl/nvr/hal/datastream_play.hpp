@@ -29,6 +29,7 @@ typedef struct AXDS_PLAY_INIT_ATTR {
     std::string strParentDir; // 数据文件保存父目录
     AX_U8   uMaxDevCnt; // 最大通道数
     AX_U8   uStreamCnt; //子码流个数
+    AX_BOOL bOnlyIFrameOnReverse; // 是否仅倒放I帧
 } AXDS_PLAY_INIT_ATTR_T;
 
 typedef struct AXDS_DEVICE_INFO {
@@ -50,6 +51,7 @@ typedef struct AXDS_PLAY_THREAD_PARAM {
     AX_U32  nYYYYMMDD;  // 整形表示的日期，例如：20230419
     AX_U32  nHHMMSS;    // 整形表示的时刻，例如：101010
     AX_BOOL bReverse;   // 回放模式。0：正向；1：逆向
+    AX_BOOL bOnlyIFrameOnReverse;   // 倒放场景I帧倒放。0：否（全帧倒放）；1：是（I帧倒放）
     AX_BOOL bExited;
     CAXThread* pThread;
 } AXDS_PLAY_THREAD_PARAM_T;
@@ -83,6 +85,8 @@ public:
     AX_BOOL GetStreamInfo(AX_U8 nDeviceID, AX_U8 nStreamID, AX_U32 nDateIntVal, AXDS_STREAM_INFO_T& tOutInfo);
     std::pair<AX_U32, AX_U32> GetCurrentDateTime(AX_U8 nDeviceID, AX_U8 nStreamID);
 
+    AXDS_PLAY_INIT_ATTR_T& GetAttr() { return m_tInitAttr; };
+
     AX_BOOL RegisterObserver(AX_U8 nDeviceID, AX_U8 nStreamID, IStreamObserver* pObs);
     AX_BOOL UnRegisterObserver(AX_U8 nDeviceID, AX_U8 nStreamID, IStreamObserver* pObs);
 
@@ -95,14 +99,16 @@ public:
 
 protected:
     AX_VOID PlayThread(AX_VOID* pArg);
+    AX_VOID ReversePlayThread(AX_VOID* pArg);
     /* Create instance for searching frames with index file corresponding to device/stream/date/time info */
-    CDataStreamIndFile* CreateSearchInstance(AX_U8 nDeviceID, AX_U8 nStreamID, AX_S32 nDate, AX_S32 nTime = 0);
+    CDataStreamIndFile* CreateSearchInstance(AX_U8 nDeviceID, AX_U8 nStreamID, AX_S32 nDate, AX_S32 nTime = 0, AX_BOOL bGopMode = AX_FALSE);
     /* Destroy instance created by CreateSearchInstance */
     AX_VOID DestroySearchInstance(CDataStreamIndFile* pInstance);
 
 private:
     static std::string FindIndFile(std::string strParentDir, AX_U8 nDeviceID, AX_U8 nStreamID, std::string strYYYYmmdd);
-    AX_VOID GenCurrPTS(AX_U8 nDeviceID, AX_U8 nStreamID, const AXIF_FILE_INFO_EX_T& tInfo, AX_BOOL bReverse);
+    AX_VOID GenCurrPTS(AX_U8 nDeviceID, AX_U8 nStreamID, const AXIF_FILE_INFO_EX_T& tInfo, AX_BOOL bReverse, AX_BOOL bOnlyIFrameOnReverse);
+    AX_U32  GopPlay(AX_U8 nDeviceID, AX_U8 nStreamID, AX_U32 nYYYYMMDD, const AXIF_FILE_INFO_EX_T& tInfo, AXIF_FRAME_RELOCATION_INFO_T& tReloacteInfo, AX_U32 nLastPlayedCount = 0);
 
 private:
     AXDS_PLAY_INIT_ATTR_T m_tInitAttr;
@@ -116,4 +122,5 @@ private:
 
     std::map<AX_U8, std::vector<std::list<IStreamObserver*>>> m_mapDev2Obs;
     std::map<AX_U8, std::vector<std::mutex*>> m_mapDev2Mtx;
+
 };

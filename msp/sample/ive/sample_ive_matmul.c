@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -593,17 +593,13 @@ static AX_S32 SAMPLE_IVE_TestMatMul_Init(TEST_MAT_MUL_T* pstTestMatMul, AX_CHAR 
 static AX_S32 SAMPLE_IVE_TestMatMulProc(TEST_MAT_MUL_T* pstTestMatMul, AX_U32 u32Engine)
 {
     AX_S32 s32Ret;
-    AX_IVE_MATMUL_HANDLE hHandle;
+    AX_IVE_HANDLE IveHandle;
     AX_BOOL bInstant = AX_TRUE;
+    AX_IVE_MATMUL_HANDLE hHandle;
 
     if (u32Engine != AX_IVE_ENGINE_NPU) {
-        s32Ret = AX_IVE_MAU_CreateMatMulHandle(&hHandle, NULL, u32Engine);
-        if (AX_SUCCESS != s32Ret) {
-            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_MAU_CreateMatMulHandle failed!\n",s32Ret);
-            return s32Ret;
-        }
         AX_U64 u64StartTime = SAMPLE_COMM_IVE_GetTime_US();
-        s32Ret = AX_IVE_MAU_MatMul(hHandle, &pstTestMatMul->stMatMulInput, &pstTestMatMul->stMatMulOutput, &pstTestMatMul->stMauMatMulCtrl, u32Engine, bInstant);
+        s32Ret = AX_IVE_MAU_MatMul(&IveHandle, &pstTestMatMul->stMatMulInput, &pstTestMatMul->stMatMulOutput, &pstTestMatMul->stMauMatMulCtrl, u32Engine, bInstant);
         if (AX_SUCCESS != s32Ret) {
             SAMPLE_IVE_PRT("Error(%#x),AX_IVE_MAU_MatMul failed!\n",s32Ret);
             return s32Ret;
@@ -611,24 +607,24 @@ static AX_S32 SAMPLE_IVE_TestMatMulProc(TEST_MAT_MUL_T* pstTestMatMul, AX_U32 u3
         AX_U64 u64EndTime = SAMPLE_COMM_IVE_GetTime_US();
         printf("Run MatMul with MAU task cost %lld us\n", u64EndTime - u64StartTime);
     } else {
-        s32Ret = AX_IVE_MAU_CreateMatMulHandle(&hHandle, &pstTestMatMul->stNpuMatMulCtrl, u32Engine);
+        s32Ret = AX_IVE_NPU_CreateMatMulHandle(&hHandle, &pstTestMatMul->stNpuMatMulCtrl);
         if (AX_SUCCESS != s32Ret) {
-            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_MAU_CreateMatMulHandle failed!\n",s32Ret);
+            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_NPU_CreateMatMulHandle failed!\n",s32Ret);
             return s32Ret;
         }
         AX_U64 u64StartTime = SAMPLE_COMM_IVE_GetTime_US();
-        s32Ret = AX_IVE_MAU_MatMul(hHandle, &pstTestMatMul->stMatMulInput, &pstTestMatMul->stMatMulOutput, NULL, u32Engine, bInstant);
+        s32Ret = AX_IVE_NPU_MatMul(hHandle, &pstTestMatMul->stMatMulInput, &pstTestMatMul->stMatMulOutput, u32Engine, bInstant);
         if (AX_SUCCESS != s32Ret) {
-            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_MAU_MatMul failed!\n",s32Ret);
+            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_NPU_MatMul failed!\n",s32Ret);
             return s32Ret;
         }
         AX_U64 u64EndTime = SAMPLE_COMM_IVE_GetTime_US();
         printf("Run MatMul with NPU task cost %lld us\n", u64EndTime - u64StartTime);
-    }
-    s32Ret = AX_IVE_MAU_DestroyMatMulHandle(&hHandle, u32Engine);
-    if (AX_SUCCESS != s32Ret) {
-        SAMPLE_IVE_PRT("Error(%#x),AX_IVE_MAU_DestroyMatMulHandle failed!\n",s32Ret);
-        return s32Ret;
+        s32Ret = AX_IVE_NPU_DestroyMatMulHandle(&hHandle);
+        if (AX_SUCCESS != s32Ret) {
+            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_NPU_DestroyMatMulHandle failed!\n",s32Ret);
+            return s32Ret;
+        }
     }
 
     s32Ret = Sample_MatMul_Check_Result(pstTestMatMul, u32Engine, g_bCheck);

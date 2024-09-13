@@ -31,6 +31,8 @@
 
   --grpId                               group id for select group, rang in [0, 32). [0]
   --bCoreCoWork                         enable multi core. [0]
+  --bStrmCached                         output stream use cached memory. [0]
+  --bAttachHdr                          support attach headers(sps/pps) to PB frame for h.265. [0]
 
 ```
 
@@ -113,6 +115,9 @@
   --maxQp                               0..51, Maximum frame header qp for any picture. [51]
   --minIqp                              0..51, Minimum frame header qp for I picture. [16]
   --maxIqp                              0..51, Maximum frame header qp for I picture. [51]
+  --chgPos                              vbr/avbr chgpos 20-100, def 90
+  --stillPercent                        avbr still percent 10-100 def 25
+  --stillQp                             0..51, the max QP value of I frame for still scene. [0]
 
   --deltaQpI                            -51..51, QP adjustment for intra frames. [-2]
   --maxIprop                            1..100, the max I P size ratio. [100]

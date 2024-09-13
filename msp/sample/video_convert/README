@@ -1,0 +1,39 @@
+overview
+1. decode mp4 or raw 264/265 file by -i option.
+2. scaler video size to -w and -h
+3. encode raw 264/264 specified by -t option
+4. save file to /opt/data/ directory, file name: output%d_wxh.264(265)  %d is the ppl index.
+
+usage: sample_video_convert [OPTION] ...:
+options:
+  -i             file path (string *.mp4, h264, h265)
+  -w             output width  (int >= 64 [=1280])
+  -h             output height (int >= 64 [=720])
+  -t             output payload type 96: H264  265: H265 (int [=96])
+  -d             decode output order, 0: DISPLAY 1: DECCODE (int [=DECCODE])
+  -v             log level (int [=3])
+  -?             print this message
+
+example：
+    # decode 1920x1080.mp4 and convert to output0_1280x720.264
+    sample_video_convert -i 1920x1080.mp4 -w 1280 -h 720
+
+
+/opt/bin # ./sample_video_convert -i person_test_ov1_noB.mp4 -w 1280 -h 720
+sample build at Jun 11 2024 24, SDK V2.6.0
+06-11 10:52:04:138 2390146117    874 K PPL: person_test_ov1_noB.mp4: probe 1920x1080, codec 96, fps 30
+06-11 10:52:07:970 2393978378    890 K PPL: person_test_ov1_noB.mp4: eof, total frame num 1799
+
+ usage statistics, H264
+ Multi-core usage statistics:
+        Core[ 0] used    899 times (49%)
+        Core[ 1] used    900 times (50%)
+
+
+ usage statistics, JPEG
+ Single-core usage statistics:
+        Core[ 0] used      0 times ( 0%)
+
+done
+/opt/bin # ls /opt/data/
+output0_1280x720.264

@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -128,6 +128,12 @@ typedef struct
     AX_S16 nX;
     AX_S16 nY;
 } AX_IVPS_POINT_T;
+
+typedef struct
+{
+    AX_F32 fX;
+    AX_F32 fY;
+} AX_IVPS_POINT_NICE_T;
 
 typedef struct
 {
@@ -263,6 +269,8 @@ typedef struct
     AX_S16 nFanStrength;                     /* RW; range: [-760, 760]; strength coefficient of fan correction */
     AX_IVPS_FISHEYE_MOUNT_MODE_E eMountMode; /* RW; range: [0, 2]; gdc mount mode */
     AX_U8 nRgnNum;                           /* RW; range: [1, 9]; gdc correction region number */
+    AX_BOOL bRgnUpdate;                      /* RW; range: [0, 1]; wether update only one of gdc correction regions */
+    AX_U8 nRgnUpdateIdx;                     /* RW; range: [0, 8]; gdc correction region update index */
     AX_BOOL bRoiXY;                          /* RW; range: [0, 1]; 0: Polar coordinates with nPan and nTilt; 1: Planar coordinates with nCenterX and nCenterY */
     AX_IVPS_FISHEYE_RGN_ATTR_T tFisheyeRgnAttr[AX_IVPS_FISHEYE_MAX_RGN_NUM]; /* RW; attribution of gdc correction region */
 } AX_IVPS_FISHEYE_ATTR_T;
@@ -296,7 +304,7 @@ typedef struct
     AX_U16 nDstStride;                       /* RW; range: [128, 8192]; 128 pixels aligned; format of output picture */
     AX_U16 nDstWidth;                        /* RW; range: [2, 8192]; 2 pixels aligned; width of output picture */
     AX_U16 nDstHeight;                       /* RW; range: [2, 8192]; 2 pixels aligned; height of output picture */
-    AX_IMG_FORMAT_E eDstFormat;              /* RW; format of output picture; only support NV12 */
+    AX_IMG_FORMAT_E eDstFormat;              /* RW; format of output picture; only support NV12/NV21 */
 } AX_IVPS_GDC_ATTR_T;
 
 
@@ -433,5 +441,58 @@ typedef struct {
     AX_COORD_E eCoordMode;
     AX_IVPS_RECT_T tCropRect;
 } AX_IVPS_CROP_INFO_T;
+
+/*
+ * The style of rectangle is like below
+ * [            ]
+ *
+ * [            ]
+ * if bEnable is AX_TRUE, then bSolid is always AX_FALSE
+ */
+typedef struct
+{
+    AX_BOOL bEnable;
+    AX_U32 nHorLength;
+    AX_U32 nVerLength;
+} AX_IVPS_CORNER_RECT_ATTR_T;
+
+typedef enum
+{
+    AX_IVPS_SCALE_RANGE_0 = 0, /* scale range <  8/64  */
+    AX_IVPS_SCALE_RANGE_1,     /* scale range >= 8/64  */
+    AX_IVPS_SCALE_RANGE_2,     /* scale range >= 16/64 */
+    AX_IVPS_SCALE_RANGE_3,     /* scale range >= 24/64 */
+    AX_IVPS_SCALE_RANGE_4,     /* scale range >= 32/64 */
+    AX_IVPS_SCALE_RANGE_5,     /* scale range >= 40/64 */
+    AX_IVPS_SCALE_RANGE_6,     /* scale range >= 48/64 */
+    AX_IVPS_SCALE_RANGE_7,     /* scale range >= 56/64 */
+    AX_IVPS_SCALE_RANGE_8,     /* scale range > 1      */
+    AX_IVPS_SCALE_RANGE_BUTT
+} AX_IVPS_SCALE_RANGE_TYPE_E;
+
+typedef struct {
+    AX_IVPS_SCALE_RANGE_TYPE_E eHorScaleRange;
+    AX_IVPS_SCALE_RANGE_TYPE_E eVerScaleRange; /* Reserved */
+} AX_IVPS_SCALE_RANGE_T;
+
+typedef enum
+{
+    AX_IVPS_COEF_LEVEL_0 = 0, /* coefficient level 0 */
+    AX_IVPS_COEF_LEVEL_1,     /* coefficient level 1 */
+    AX_IVPS_COEF_LEVEL_2,     /* coefficient level 2 */
+    AX_IVPS_COEF_LEVEL_3,     /* coefficient level 3 */
+    AX_IVPS_COEF_LEVEL_4,     /* coefficient level 4 */
+    AX_IVPS_COEF_LEVEL_5,     /* coefficient level 5 */
+    AX_IVPS_COEF_LEVEL_6,     /* coefficient level 6 */
+    AX_IVPS_COEF_LEVEL_BUTT,
+} AX_IVPS_COEF_LEVEL_E;
+
+
+typedef struct {
+    AX_IVPS_COEF_LEVEL_E eHorLuma;   /* horizontal luminance coefficient level            */
+    AX_IVPS_COEF_LEVEL_E eHorChroma; /* horizontal chrominance coefficient level Reserved */
+    AX_IVPS_COEF_LEVEL_E eVerLuma;   /* vertical luminance coefficient level     Reserved */
+    AX_IVPS_COEF_LEVEL_E eVerChroma; /* vertical chrominance coefficient level   Reserved */
+} AX_IVPS_SCALE_COEF_LEVEL_T;
 
 #endif

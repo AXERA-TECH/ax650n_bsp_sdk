@@ -79,6 +79,9 @@ static AX_S32 gCtrl = 0;
 static AX_S32 gInstant = 0;
 static AX_S32 gInsertSilence = 0;
 static AX_S32 gSimDrop = 0;
+static AX_S32 gAsyncTest = 0;
+static const char *gAsyncTestName = NULL;
+static AX_S32 gAsyncTestNumber = 10;
 
 int BitsToFormat(unsigned int bits, AX_AUDIO_BIT_WIDTH_E* format)
 {
@@ -218,7 +221,7 @@ static void *AoCtrlThread(void *arg)
     int index = 0;
 
     while (!gLoopExit) {
-        printf("please enter[save(s), unsave(a), VqeVolume=1.0(1), VqeVolume=5.0(5), EnableResample(r), DisableResample(e), ToggleResample(t), mute(m), unmute(u), quit(q)]:\n");
+        printf("please enter[save(s), unsave(a), VqeVolume=1.0(1), VqeVolume=5.0(5), EnableResample(r), DisableResample(e), ToggleResample(t), mute(m), unmute(u), PauseRecv(p), ResumeRecv(c), quit(q)]:\n");
         key0 = getchar();
         key1 = getchar();
         key = (key0 == '\n') ? key1 : key0;
@@ -300,8 +303,24 @@ static void *AoCtrlThread(void *arg)
             printf("AX_AO_SetVqeMute, ret: %x\n", ret);
             break;
         }
+        case 'p':
+        case 'P': {
+            ret = AX_AO_PauseRecvFrame(aoCtrlArgs->aoCardId, aoCtrlArgs->aoDevId);
+            printf("AX_AO_PauseRecvFrame, ret: %x\n", ret);
+            break;
+        }
+        case 'c':
+        case 'C': {
+            ret = AX_AO_ResumeRecvFrame(aoCtrlArgs->aoCardId, aoCtrlArgs->aoDevId);
+            printf("AX_AO_ResumeRecvFrame, ret: %x\n", ret);
+            break;
+        }
         case 'q':
         case 'Q': {
+            ret = AX_AO_DisableDev(aoCtrlArgs->aoCardId, aoCtrlArgs->aoDevId);
+            if (ret) {
+                printf("AX_AO_DisableDev failed! ret= %x\n",ret);
+            }
             gLoopExit = 1;
             break;
         }
@@ -427,6 +446,29 @@ static int StringToPayloadTypeFileExt(const char* str, AX_PAYLOAD_TYPE_E *pType,
     return result;
 }
 
+static void *AsyncTestThread(void *arg)
+{
+    AX_S32 ret = AX_SUCCESS;
+
+    if (!strcmp(gAsyncTestName, "PauseResume")) {
+        sleep(1);
+        for (int i = 0; i < gAsyncTestNumber; i++) {
+            ret = AX_AO_PauseRecvFrame(gCardNum, gDeviceNum);
+            if (ret) {
+                printf("AX_AO_PauseRecvFrame failed! ret = %x", ret);
+            }
+            ret = AX_AO_ResumeRecvFrame(gCardNum, gDeviceNum);
+            if (ret) {
+                printf("AX_AO_ResumeRecvFrame failed! ret = %x", ret);
+            }
+        }
+    } else {
+        printf("Unknown async test name: %s\n", gAsyncTestName);
+    }
+
+    return NULL;
+}
+
 static void SigInt(int sigNo)
 {
     printf("Catch signal %d\n", sigNo);
@@ -479,6 +521,9 @@ static void PrintHelp()
     printf("  --period-count:       period count.               (support int), default: 4\n");
     printf("  --insert-silence:     insert silence enable.      (support int), default: 0\n");
     printf("  --sim-drop:           sim drop enable.            (support int), default: 0\n");
+    printf("  --async-test:         async test enable.          (support int), default: 0\n");
+    printf("  --async-test-name:    async test name.            (support char*), default: NULL\n");
+    printf("  --async-test-number:  async test number.          (support int), default: 10\n");
 }
 
 enum LONG_OPTION {
@@ -506,6 +551,9 @@ enum LONG_OPTION {
     LONG_OPTION_PERIOD_COUNT,
     LONG_OPTION_INSERT_SILENCE,
     LONG_OPTION_SIM_DROP,
+    LONG_OPTION_ASYNC_TEST,
+    LONG_OPTION_ASYNC_TEST_NAME,
+    LONG_OPTION_ASYNC_TEST_NUMBER,
     LONG_OPTION_BUTT
 };
 
@@ -860,8 +908,11 @@ static int AudioOutput()
     aoCtrlArgs.aoCardId = card;
     aoCtrlArgs.aoDevId = device;
     pthread_t ctrlTid;
+    pthread_t asyncTestTid;
     if (gCtrl) {
         pthread_create(&ctrlTid, NULL, AoCtrlThread, (void *)&aoCtrlArgs);
+    } else if (gAsyncTest && gAsyncTestName) {
+        pthread_create(&asyncTestTid, NULL, AsyncTestThread, NULL);
     }
 
     AX_U64 BlkSize = 960;
@@ -936,6 +987,8 @@ static int AudioOutput()
 
     if (gCtrl) {
         pthread_join(ctrlTid, NULL);
+    } else if (gAsyncTest && gAsyncTestName) {
+        pthread_join(asyncTestTid, NULL);
     }
 
 DIS_AO_DEVICE:
@@ -1405,6 +1458,14 @@ static int AudioDecodeLink()
         return -1;
     }
 
+    SAMPLE_AO_CTRL_ARGS_S aoCtrlArgs;
+    aoCtrlArgs.aoCardId = card;
+    aoCtrlArgs.aoDevId = device;
+    pthread_t ctrlTid;
+    if (gCtrl) {
+        pthread_create(&ctrlTid, NULL, AoCtrlThread, (void *)&aoCtrlArgs);
+    }
+
     AX_S32 loopNumber = 0;
     if ((pstAttr.enType == PT_G711A) || (pstAttr.enType == PT_G711U) ||
         (pstAttr.enType == PT_LPCM) || (pstAttr.enType == PT_G726)){
@@ -1552,6 +1613,11 @@ static int AudioDecodeLink()
     }
 
     printf("adec_ao success.\n");
+
+    if (gCtrl) {
+        pthread_join(ctrlTid, NULL);
+    }
+
     ret = AX_ADEC_DestroyChn(adChn);
     if (ret) {
         printf("AX_ADEC_DestroyChn failed!ret = %x \n",ret);
@@ -1628,6 +1694,9 @@ int main(int argc, char *argv[])
             {"period-count",        required_argument,  0, LONG_OPTION_PERIOD_COUNT },
             {"insert-silence",      required_argument,  0, LONG_OPTION_INSERT_SILENCE},
             {"sim-drop",            required_argument,  0, LONG_OPTION_SIM_DROP},
+            {"async-test",          required_argument,  0, LONG_OPTION_ASYNC_TEST},
+            {"async-test-name",     required_argument,  0, LONG_OPTION_ASYNC_TEST_NAME},
+            {"async-test-number",   required_argument,  0, LONG_OPTION_ASYNC_TEST_NUMBER},
             {0,                     0,                  0, 0 }
         };
 
@@ -1750,6 +1819,15 @@ int main(int argc, char *argv[])
             break;
         case LONG_OPTION_SIM_DROP:
             gSimDrop = atoi(optarg);
+            break;
+        case LONG_OPTION_ASYNC_TEST:
+            gAsyncTest = atoi(optarg);
+            break;
+        case LONG_OPTION_ASYNC_TEST_NAME:
+            gAsyncTestName = optarg;
+            break;
+        case LONG_OPTION_ASYNC_TEST_NUMBER:
+            gAsyncTestNumber = atoi(optarg);
             break;
         default:
             isExit = 1;

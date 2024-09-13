@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -89,6 +89,8 @@ AX_S32 SAMPLE_COMM_VO_StartDev(SAMPLE_VO_DEV_CONFIG_S *pstVoDevConf)
         stVoPubAttr.stHdmiAttr.bEnableHdmi = AX_FALSE;
     }
 
+    stVoPubAttr.u32Flags = pstVoDevConf->u32Flags;
+
     s32Ret = AX_VO_SetPubAttr(pstVoDevConf->u32VoDev, &stVoPubAttr);
     if (s32Ret) {
         SAMPLE_PRT("failed with %#x, dev%d\n", s32Ret, pstVoDevConf->u32VoDev);
@@ -148,15 +150,42 @@ AX_S32 SAMPLE_COMM_VO_StopDev(SAMPLE_VO_DEV_CONFIG_S *pstVoDevConf)
 static AX_S32 SAMPLE_COMM_VO_GLayerBind(SAMPLE_VO_GRAPHIC_CONFIG_S *pstGraphicLayerConf)
 {
     AX_S32 i, s32Ret = 0;
+    SAMPLE_FB_CONFIG_S *pstFbConf;
 
     if (pstGraphicLayerConf->u32FbNum) {
+        AX_U32 u32Vrefresh;
+
         for (i = 0; i < pstGraphicLayerConf->u32FbNum; i++) {
-            s32Ret = AX_VO_BindGraphicLayer(pstGraphicLayerConf->stFbConf[i].u32Index, pstGraphicLayerConf->bindVoDev);
+            pstFbConf = &pstGraphicLayerConf->stFbConf[i];
+            s32Ret = AX_VO_BindGraphicLayer(pstFbConf->u32Index, pstGraphicLayerConf->bindVoDev);
             if (s32Ret) {
-                SAMPLE_PRT("failed with %#x!, GraphicLayer:%d, VoDev:%d\n", s32Ret, pstGraphicLayerConf->stFbConf[i].u32Index,
+                SAMPLE_PRT("failed with %#x!, GraphicLayer:%d, VoDev:%d\n", s32Ret, pstFbConf->u32Index,
                            pstGraphicLayerConf->bindVoDev);
                 return s32Ret;
             }
+
+            s32Ret = AX_VO_GetGraphicLayerVrefresh(pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index, &u32Vrefresh);
+            if (s32Ret) {
+                SAMPLE_PRT("failed with %#x!, VoDev:%d, GraphicLayer:%d\n", s32Ret, pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index);
+                return s32Ret;
+            }
+
+	    SAMPLE_PRT("VoDev%d-GraphicLayer%d set before Vrefresh:%d\n", pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index, u32Vrefresh);
+
+            s32Ret = AX_VO_SetGraphicLayerVrefresh(pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index, pstFbConf->u32Vrefresh);
+            if (s32Ret) {
+                SAMPLE_PRT("failed with %#x!, VoDev:%d, GraphicLayer:%d, Vrefresh:%d\n", s32Ret, pstGraphicLayerConf->bindVoDev,
+                           pstFbConf->u32Index, pstFbConf->u32Vrefresh);
+                return s32Ret;
+            }
+
+            s32Ret = AX_VO_GetGraphicLayerVrefresh(pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index, &u32Vrefresh);
+            if (s32Ret) {
+                SAMPLE_PRT("failed with %#x!, VoDev:%d, GraphicLayer:%d\n", s32Ret, pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index);
+                return s32Ret;
+            }
+
+	    SAMPLE_PRT("VoDev%d-GraphicLayer%d set after Vrefresh:%d\n", pstGraphicLayerConf->bindVoDev, pstFbConf->u32Index, u32Vrefresh);
         }
 
         pstGraphicLayerConf->s32InitFlag = 1;
@@ -398,14 +427,6 @@ AX_S32 SAMPLE_COMM_VO_StartChn(SAMPLE_VO_LAYER_CONFIG_S *pstVoLayerConf)
             if (s32Ret) {
                 SAMPLE_PRT("failed with %#x!\n", s32Ret);
                 return s32Ret;
-            }
-
-            if (pstVoLayerConf->u32ChnFrameRate) {
-                s32Ret = AX_VO_SetChnFrameRate(pstVoLayerConf->u32VoLayer, k, pstVoLayerConf->u32ChnFrameRate);
-                if (s32Ret) {
-                    SAMPLE_PRT("failed with %#x!\n", s32Ret);
-                    return s32Ret;
-                }
             }
 
             s32Ret = AX_VO_EnableChn(pstVoLayerConf->u32VoLayer, k);

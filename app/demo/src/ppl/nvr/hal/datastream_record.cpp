@@ -24,38 +24,6 @@
 using namespace std;
 
 
-AX_VOID CDataStreamRecord::RemoveThread(AX_VOID* pThreadParam) {
-    REMOVE_THREAD_PARAM_PTR pParams = (REMOVE_THREAD_PARAM_PTR)pThreadParam;
-    AX_U8 nDeviceID = pParams->nDeviceID;
-    AX_U8 nRemoveDays = pParams->nRemoveDays;
-
-    std::deque<DISK_FILE_INFO_T> listAllDirs = CDiskHelper::TraverseDirs(m_mapDev2Dir[nDeviceID].c_str());
-    if (listAllDirs.size() == 0) {
-        LOG_MM_E(TAG, "No directory under %s exists, quit thread.", m_mapDev2Dir[nDeviceID].c_str());
-        return;
-    }
-
-    if (listAllDirs.size() == 1) {
-        LOG_MM_W(TAG, "[%d] Only one directory exists under %s and could not be removed.", nDeviceID, m_mapDev2Dir[nDeviceID].c_str());
-        m_mapDev2DiskFullFlg[nDeviceID] = AX_TRUE;
-    } else {
-        for (AX_U8 i = 0; i < nRemoveDays; i++) {
-            string strDir = listAllDirs.at(i).path;
-
-            AX_U64 nRemovedSize = 0;
-            std::deque<DISK_FILE_INFO_T> listAllFiles = CDiskHelper::TraverseFiles(strDir.c_str());
-            for (auto &m : listAllFiles) {
-                nRemovedSize += m.size;
-            }
-
-            CDiskHelper::RemoveDir(strDir.c_str());
-            m_mapDev2TotalSize[nDeviceID] -= nRemovedSize;
-            LOG_M_C(TAG, "[%d] Delete obsoleted directory %s, extra %d MB can be reused.", nDeviceID, strDir.c_str(), nRemovedSize >> 20);
-        }
-        LOG_MM_I(TAG, "[%d] Old directories for %d days(s) removed, quit thread.", nDeviceID, nRemoveDays);
-    }
-}
-
 AX_BOOL CDataStreamRecord::Init(const AXDS_RECORD_INIT_ATTR_T& tAttr) {
     if (!CheckInitAttr(tAttr)) {
         return AX_FALSE;
@@ -118,8 +86,8 @@ AX_BOOL CDataStreamRecord::Start(AX_U8 nDeviceID, AX_U8 nStreamID, AXDSF_INIT_AT
             m_mapDev2DSIF[nDeviceID][nStreamID] = new CDataStreamIndFile();
 
             /* If index file exists, open file and load header info, if not, initailize header info */
-            AX_CHAR szFilePath[276] = {0};
-            AX_CHAR szDateBuf[9] = {0};
+            AX_CHAR szFilePath[300] = {0};
+            AX_CHAR szDateBuf[16] = {0};
             CElapsedTimer::GetLocalDate(szDateBuf, 16, '-');
             sprintf(szFilePath, "%s/%s/%s", m_mapDev2Dir[nDeviceID].c_str(), szDateBuf, CDataStreamIndFile::FormatFileName(nStreamID).c_str());
             m_mapDev2DSIF[nDeviceID][nStreamID]->Init(szFilePath, AXIF_OPEN_FOR_WRITE);
@@ -220,9 +188,11 @@ AX_BOOL CDataStreamRecord::Save(AX_U8 nDeviceID, AX_U8 nStreamID, AXDS_FRAME_HEA
             return AX_FALSE;
         }
 
-        if (!m_mapDev2DSF[nDeviceID][nStreamID]->WriteFrame(pData, nSize, tFrameHeader)) {
-            LOG_MM_E(TAG, "[%d][%d] Save data failed.", nDeviceID, nStreamID);
-            return AX_FALSE;
+        if (!m_mapDev2DiskFullFlg[nDeviceID]) {
+            if (!m_mapDev2DSF[nDeviceID][nStreamID]->WriteFrame(pData, nSize, tFrameHeader)) {
+                LOG_MM_E(TAG, "[%d][%d] Save data failed.", nDeviceID, nStreamID);
+                return AX_FALSE;
+            }
         }
 
         m_mapDev2TotalSize[nDeviceID] += nRealWriteSize;
@@ -246,7 +216,7 @@ AX_BOOL CDataStreamRecord::Prepare() {
     m_tConfig = CNVRConfigParser::GetInstance()->GetDataStreamConfig();
     if (m_tConfig.bSaveDisk) {
         /* Create directory of device */
-        AX_CHAR szChnPath[264] = {0};
+        AX_CHAR szChnPath[300] = {0};
         AX_U8 nMaxDevCnt = m_tInitAttr.uMaxDevCnt;
         for (AX_U8 i = 0; i < nMaxDevCnt; i++) {
             sprintf(szChnPath, "%s/DEV_%02d", m_tInitAttr.szParentDir[0], i + 1);
@@ -299,9 +269,70 @@ AX_VOID CDataStreamRecord::SwitchDestination(AX_U8 nDeviceID, AX_U8 nStreamID, A
     /* Switch once reaches max size of device consumable spaces */
     AX_U64 nChnTotalBytes = m_mapDev2TotalSize[nDeviceID] + nSize;
     if (((nChnTotalBytes + nSize) / 1048576.0) >= (m_tInitAttr.uMaxDevSpace - DS_CHN_RESERVE_SPACE_THRESHOLD)) {
-        m_tRemoveParams = {nDeviceID, nStreamID, 1};
-        thread t([](CDataStreamRecord *p, AX_VOID* params) { p->RemoveThread(params); }, this, (AX_VOID*)&m_tRemoveParams);
-        t.detach();
+        QFutureWatcher<AX_BOOL> watcherRemoveThread;
+        QFutureInterface<AX_BOOL> interface;
+        watcherRemoveThread.setFuture(interface.future());
+        interface.reportStarted();
+
+        REMOVE_THREAD_PARAM_T tRemoveParams = {nDeviceID, nStreamID, 1};
+        std::thread thread([this, interface, tRemoveParams]() mutable {
+            AX_U8 nDeviceID = tRemoveParams.nDeviceID;
+            AX_U8 nRemoveDays = tRemoveParams.nRemoveDays;
+
+            std::deque<DISK_FILE_INFO_T> listAllDirs = CDiskHelper::TraverseDirs(m_mapDev2Dir[nDeviceID].c_str());
+            if (listAllDirs.size() == 0) {
+                LOG_MM_E(TAG, "No directory under %s exists, quit thread.", m_mapDev2Dir[nDeviceID].c_str());
+
+                if (interface.isRunning()) {
+                    interface.reportFinished();
+                }
+                return;
+            }
+
+            if (listAllDirs.size() == 1) {
+                LOG_MM_W(TAG, "[%d] Only one directory exists under %s and could not be removed.", nDeviceID, m_mapDev2Dir[nDeviceID].c_str());
+                m_mapDev2DiskFullFlg[nDeviceID] = AX_TRUE;
+
+                if (interface.isRunning()) {
+                    interface.reportFinished();
+                }
+            } else {
+                /* Removing old data won't bother frame saving, make watcher finished and continue saving frames immediately */
+                if (interface.isRunning()) {
+                    interface.reportFinished();
+                }
+
+                for (AX_U8 i = 0; i < nRemoveDays; i++) {
+                    string strDir = listAllDirs.at(i).path;
+
+                    AX_U64 nRemovedSize = 0;
+                    std::deque<DISK_FILE_INFO_T> listAllFiles = CDiskHelper::TraverseFiles(strDir.c_str());
+                    for (auto &m : listAllFiles) {
+                        nRemovedSize += m.size;
+                    }
+
+                    CDiskHelper::RemoveDir(strDir.c_str());
+                    m_mapDev2TotalSize[nDeviceID] -= nRemovedSize;
+                    LOG_M_C(TAG, "[%d] Delete obsoleted directory %s, extra %d MB can be reused.", nDeviceID, strDir.c_str(), nRemovedSize >> 20);
+                }
+                LOG_MM_I(TAG, "[%d] Old directories for %d days(s) removed, quit thread.", nDeviceID, nRemoveDays);
+            }
+        });
+
+        thread.detach();
+
+        /* Waiting thread to determine whether could start saving frames */
+        watcherRemoveThread.waitForFinished();
+
+        m_mapDev2FileInfo[nDeviceID][nStreamID].nFD = SwitchFile(nDeviceID, nStreamID);
+        if (AX_DS_INVALID_HANDLE == m_mapDev2FileInfo[nDeviceID][nStreamID].nFD) {
+            LOG_MM_E(TAG, "[%d][%d] Create data file for duration limit failed.", nDeviceID, nStreamID);
+            return;
+        } else {
+            LOG_MM_I(TAG, "[%d][%d] Create data file for duration limit successfully.", nDeviceID, nStreamID);
+            m_mapDev2FileInfo[nDeviceID][nStreamID].nStartSecond = CElapsedTimer::GetTickCount() / 1000;
+            m_mapDev2FileInfo[nDeviceID][nStreamID].nDay = CElapsedTimer::GetCurrDay();
+        }
     }
 
     /* Create file on app started */
@@ -346,16 +377,16 @@ AX_VOID CDataStreamRecord::SwitchDestination(AX_U8 nDeviceID, AX_U8 nStreamID, A
 }
 
 AX_S32 CDataStreamRecord::CreateDataFile(AX_U8 nDeviceID, AX_U8 nStreamID) {
-    /* Data file parent directory format: </XXX/CHN_XX/YYYY-MM-DD> */
-    AX_CHAR szDateDir[276] = {0};
-    AX_CHAR szDateBuf[9] = {0};
+    /* Data file parent directory format: </XXX/DEV_XX/YYYY-MM-DD> */
+    AX_CHAR szDateDir[300] = {0};
+    AX_CHAR szDateBuf[16] = {0};
     CElapsedTimer::GetLocalDate(szDateBuf, 16, '-');
     sprintf(szDateDir, "%s/DEV_%02d/%s", m_tInitAttr.szParentDir[0], nDeviceID + 1, szDateBuf);
 
     if (CDiskHelper::CreateDir(szDateDir, AX_FALSE)) {
         LOG_MM_I(TAG, "[%d][%d] Create date(%s) directory successfully.", nDeviceID, nStreamID, szDateDir);
 
-        AX_CHAR szFilePath[276] = {0};
+        AX_CHAR szFilePath[300] = {0};
         AX_CHAR szTimeBuf[16] = {0};
         CElapsedTimer::GetLocalTime(szTimeBuf, 16, '-', AX_FALSE);
         sprintf(szFilePath, "%s/%s/%s%s_%s.dat", m_mapDev2Dir[nDeviceID].c_str(), szDateBuf, 0 == nStreamID ? "main" : "sub", (0 == nStreamID ? "" : to_string(nStreamID).c_str()), szTimeBuf);
@@ -394,6 +425,7 @@ AX_BOOL CDataStreamRecord::CloseDataFile(AX_U8 nDeviceID, AX_U8 nStreamID) {
         tInfo.uHeight = tDSHeader.uHeight;
         tInfo.tStartTime = tDSHeader.tStartTime;
         tInfo.tEndTime = tDSHeader.tEndTime;
+
         tInfo.uIFrameCount = tIFrameOffsetInfo.nCount;
         tInfo.pIFrameOffsetStart = tIFrameOffsetInfo.pOffsetStart;
         tInfo.uSize = sizeof(AXIF_FILE_INFO_T) - sizeof(AX_U32*)/* Remove ptr size of pIFrameOffsetStart */ + tInfo.uIFrameCount * sizeof(AX_U32) /* Add I frame offset buffer size */;

@@ -15,12 +15,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define TAG "DATA_STREAM_P"
 #define DS_MAX_SUPPORTED_DEVICE_COUNT (128)
 #define DS_MAX_SUPPORTED_STREAM_COUNT (2)
+#define TAG "DSIF"
 
 using namespace std;
-
 
 AX_BOOL CDataStreamPlay::Init(const AXDS_PLAY_INIT_ATTR_T& tAttr) {
     m_tInitAttr = tAttr;
@@ -39,6 +38,7 @@ AX_BOOL CDataStreamPlay::Init(const AXDS_PLAY_INIT_ATTR_T& tAttr) {
             m_mapDev2Mtx[i][j] = new std::mutex();
             m_mapDev2ThreadParam[i][j].nDevice = i;
             m_mapDev2ThreadParam[i][j].nStream = j;
+            m_mapDev2ThreadParam[i][j].bOnlyIFrameOnReverse = m_tInitAttr.bOnlyIFrameOnReverse;
             m_mapDev2ThreadParam[i][j].bExited = AX_TRUE;
             m_mapDev2SpeedFactor[i][j] = 1;
             m_mapDev2StepFrmOpen[i][j] = AX_FALSE;
@@ -74,9 +74,21 @@ AX_BOOL CDataStreamPlay::StartPlay(AX_U8 nDeviceID, AX_U8 nStreamID, AX_S32 nDat
     m_mapDev2ThreadParam[nDeviceID][nStreamID].bReverse = bReverse;
     m_mapDev2ThreadParam[nDeviceID][nStreamID].bExited = AX_FALSE;
     m_mapDev2ThreadParam[nDeviceID][nStreamID].pThread = m_mapDev2ThreadPlay[nDeviceID][nStreamID];
-    if (!m_mapDev2ThreadPlay[nDeviceID][nStreamID]->Start([this](AX_VOID* pArg) -> AX_VOID { PlayThread(pArg); }, &m_mapDev2ThreadParam[nDeviceID][nStreamID], "ds_play", SCHED_FIFO, 99)) {
-        LOG_MM_E(TAG, "[%d][%d] Create data stream play thread failed.", nDeviceID, nStreamID);
-        return AX_FALSE;
+
+    if (bReverse) {
+        char szName[32];
+        sprintf(szName, "playR_%d_%d", nDeviceID, nStreamID); /* play reverse */
+        if (!m_mapDev2ThreadPlay[nDeviceID][nStreamID]->Start([this](AX_VOID* pArg) -> AX_VOID { ReversePlayThread(pArg); }, &m_mapDev2ThreadParam[nDeviceID][nStreamID], szName, SCHED_FIFO, 99)) {
+            LOG_MM_E(TAG, "[%d][%d] Create data stream play thread failed.", nDeviceID, nStreamID);
+            return AX_FALSE;
+        }
+    } else {
+        char szName[32];
+        sprintf(szName, "playF_%d_%d", nDeviceID, nStreamID); /* play forward */
+        if (!m_mapDev2ThreadPlay[nDeviceID][nStreamID]->Start([this](AX_VOID* pArg) -> AX_VOID { PlayThread(pArg); }, &m_mapDev2ThreadParam[nDeviceID][nStreamID], szName, SCHED_FIFO, 99)) {
+            LOG_MM_E(TAG, "[%d][%d] Create data stream play thread failed.", nDeviceID, nStreamID);
+            return AX_FALSE;
+        }
     }
 
     return AX_TRUE;
@@ -171,20 +183,19 @@ AX_VOID CDataStreamPlay::PlayThread(AX_VOID* pArg) {
     AX_U32 nStream = pParams->nStream;
     AX_U32 nYYYYMMDD = pParams->nYYYYMMDD;
     AX_U32 nHHMMSS = pParams->nHHMMSS;
-    AX_BOOL bReverse = pParams->bReverse;
     CAXThread* pThread = pParams->pThread;
 
     LOG_MM_I(TAG, "[%d][%d] +++", nDevice, nStream);
 
     CDataStreamIndFile* pInstance = CreateSearchInstance(nDevice, nStream, nYYYYMMDD, nHHMMSS);
     if (nullptr == pInstance) {
+        LOG_MM_E(TAG, "Create search instance failed.");
         return;
     }
 
     AXIF_FILE_INFO_EX_T tInfo = pInstance->FindInfo(0); /* Ignore the case that fps changes between different dsf */
-
-    CDSIterator itDSStart = bReverse ? pInstance->rbegin() : pInstance->begin();
-    CDSIterator itDSEnd = bReverse ? pInstance->rend() : pInstance->end();
+    CDSIterator itDSStart = pInstance->begin();
+    CDSIterator itDSEnd = pInstance->end();
 
     for (; itDSStart != itDSEnd; ++itDSStart) {
         while (pThread->IsPausing()) {
@@ -205,7 +216,7 @@ AX_VOID CDataStreamPlay::PlayThread(AX_VOID* pArg) {
 
         /* Save time for reversely play at the paused time */
         m_mapDev2ThreadPlayingTime[nDevice][nStream] = pFrameStart->tTimeStamp;
-        GenCurrPTS(nDevice, nStream, tInfo, bReverse);
+        GenCurrPTS(nDevice, nStream, tInfo, AX_FALSE, AX_FALSE);
 
         LOG_MM_D(TAG, "Send frame to observers, pts = %lld, type = %d", m_mapDev2CurrPTS[nDevice][nStream], pFrameStart->GetNaluType());
 
@@ -231,14 +242,132 @@ AX_VOID CDataStreamPlay::PlayThread(AX_VOID* pArg) {
                 }
             }
         }
+
+        /* Give a chance to UnRegisterObserver to get the mutex in STOP process */
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     itDSStart.Destroy();
     pInstance = nullptr;
-
     pParams->bExited = AX_TRUE;
 
     LOG_MM_I(TAG, "[%d][%d] ---", nDevice, nStream);
+}
+
+AX_VOID CDataStreamPlay::ReversePlayThread(AX_VOID* pArg) {
+    AXDS_PLAY_THREAD_PARAM_T* pParams = (AXDS_PLAY_THREAD_PARAM_T*)pArg;
+    AX_U32 nDevice = pParams->nDevice;
+    AX_U32 nStream = pParams->nStream;
+    AX_U32 nYYYYMMDD = pParams->nYYYYMMDD;
+    AX_U32 nHHMMSS = pParams->nHHMMSS;
+    CAXThread* pThread = pParams->pThread;
+    AX_U32 nPlayedGopCount = 0;
+
+    LOG_MM_I(TAG, "[%d][%d] +++", nDevice, nStream);
+
+    CDataStreamIndFile* pInstance = CreateSearchInstance(nDevice, nStream, nYYYYMMDD, nHHMMSS);
+    if (nullptr == pInstance) {
+        return;
+    }
+
+    m_mapDev2CurrPTS[nDevice][nStream] = 0;
+    AXIF_FILE_INFO_EX_T tInfo = pInstance->FindInfo(0); /* Ignore the case that fps changes between different dsf */
+
+    CDSIterator itDSStart = pInstance->rbegin();
+    CDSIterator itDSEnd = pInstance->rend();
+    for (; itDSStart != itDSEnd; ++itDSStart) {
+        while (pThread->IsPausing()) {
+            if (m_mapDev2StepFrmOpen[nDevice][nStream]) {
+                m_mapDev2StepFrmOpen[nDevice][nStream] = AX_FALSE;
+                break;
+            } else {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        }
+
+        if (!pThread->IsRunning() && !pThread->IsPausing()) {
+            itDSStart.Terminate();
+            break;
+        }
+
+        AXIF_FRAME_RELOCATION_INFO_T tReloacteInfo = itDSStart.GetRelocatedInfo();
+        nPlayedGopCount = GopPlay(nDevice, nStream, nYYYYMMDD, tInfo, tReloacteInfo, nPlayedGopCount);
+    }
+
+    itDSStart.Destroy();
+    pInstance = nullptr;
+    pParams->bExited = AX_TRUE;
+
+    LOG_MM_I(TAG, "[%d][%d] ---", nDevice, nStream);
+}
+
+AX_U32 CDataStreamPlay::GopPlay(AX_U8 nDeviceID, AX_U8 nStreamID, AX_U32 nYYYYMMDD, const AXIF_FILE_INFO_EX_T& tInfo, AXIF_FRAME_RELOCATION_INFO_T& tLocationInfo, AX_U32 nLastPlayedCount /*= 0*/) {
+    LOG_MM_D(TAG, "[%d][%d] +++", nDeviceID, nStreamID);
+
+    CDataStreamIndFile* pGopSearchInstance = nullptr;
+    pGopSearchInstance = CreateSearchInstance(nDeviceID, nStreamID, nYYYYMMDD, 0, AX_TRUE);
+    CDSIterator itDSStart = pGopSearchInstance->gop_begin(tLocationInfo.nFileIndex, tLocationInfo.nFrameIndexWithinFile);
+    CDSIterator itDSEnd = pGopSearchInstance->gop_end(tLocationInfo.nFileIndex, -1);
+    AX_S32 nIndex = 0;
+    for (; itDSStart != itDSEnd; ++itDSStart) {
+        AXDS_FRAME_HEADER_T* pFrameStart = *itDSStart;
+        if (nIndex != 0 && NALU_TYPE_IDR == pFrameStart->GetNaluType()) {
+            /* break before next IDR frame comes */
+            break;
+        }
+
+        m_mapDev2ThreadPlayingTime[nDeviceID][nStreamID] = pFrameStart->tTimeStamp;
+        if (nIndex == 0) {
+            AX_U32 nStep = 1000000 / tInfo.tInfo.uFrameRate;
+            nStep /= m_mapDev2SpeedFactor[nDeviceID][nStreamID];
+            // /* Estimate the IDR's PTS */
+            // m_mapDev2CurrPTS[nDeviceID][nStreamID] += nStep * tInfo.tInfo.uGop + nStep * (nLastPlayedCount > 0 ? nLastPlayedCount - 1 : 0);
+            // if (nLastPlayedCount > 0) {
+            //     /* Padding the PTS of current GOP if last GOP is not full */
+            //     m_mapDev2CurrPTS[nDeviceID][nStreamID] -= nStep * (tInfo.tInfo.uGop - nLastPlayedCount);
+            // }
+
+            if (nLastPlayedCount > 0) {
+                m_mapDev2CurrPTS[nDeviceID][nStreamID] += (nStep * (2 * nLastPlayedCount - 1));
+            } else {
+                m_mapDev2CurrPTS[nDeviceID][nStreamID] += nStep * tInfo.tInfo.uGop;
+            }
+        } else {
+            GenCurrPTS(nDeviceID, nStreamID, tInfo, AX_TRUE, AX_FALSE);
+        }
+
+        {
+            std::lock_guard<std::mutex> lck(*m_mapDev2Mtx[nDeviceID][nStreamID]);
+            for (auto&& m : m_mapDev2Obs[nDeviceID][nStreamID]) {
+                STREAM_FRAME_T tFrame;
+                memset(&tFrame, 0, sizeof(STREAM_FRAME_T));
+                tFrame.enPayload = tInfo.tInfo.uEncodeType;
+                tFrame.frame.stVideo.nPTS = m_mapDev2CurrPTS[nDeviceID][nStreamID];
+                tFrame.frame.stVideo.enNalu = pFrameStart->GetNaluType();
+                tFrame.frame.stVideo.pData = (AX_U8*)pFrameStart + pFrameStart->uHeaderSize;
+                tFrame.frame.stVideo.nLen = pFrameStart->uFrameSize;
+                tFrame.frame.stVideo.u64UserData = nIndex; /* Private data saves index(0 means IDR frame) for StreamContainer to flush one GOP stream */
+                if (m != nullptr) {
+                    LOG_MM_D(TAG, "[%d] Playback frame(Type:%d, Size:%d, PTS:%lld)", nIndex, tFrame.frame.stVideo.enNalu, tFrame.frame.stVideo.nLen, tFrame.frame.stVideo.nPTS);
+                    if (!m->OnRecvStreamData(tFrame)) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        nIndex++;
+
+        /* Give a chance to UnRegisterObserver to get the mutex in STOP process */
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    itDSStart.Destroy();
+    pGopSearchInstance = nullptr;
+
+    LOG_MM_D(TAG, "[%d][%d] ---", nDeviceID, nStreamID);
+
+    return nIndex;
 }
 
 std::deque<DISK_FILE_INFO_T> CDataStreamPlay::GetDeviceSubFolders(const string& strParentDir, AX_U8 nDeviceID) {
@@ -282,13 +411,17 @@ CVideoInfoMap CDataStreamPlay::GetVideoInfo(const string& strParentDir, const st
                 vecPeriod.reserve(nFileCount);
 
                 for (CDSIFIterator itBegin = file->info_begin(), itEnd = file->info_end(); itBegin != itEnd; ++itBegin) {
-                    AXDS_VIDEO_INFO_T period((*itBegin).tInfo.tStartTime, (*itBegin).tInfo.tEndTime);
-                    vecPeriod.push_back(period);
+                    if ((*itBegin).tInfo.uFrameCount > 0) {
+                        AXDS_VIDEO_INFO_T period((*itBegin).tInfo.tStartTime, (*itBegin).tInfo.tEndTime);
+                        vecPeriod.push_back(period);
+                    }
                 }
 
                 file->DeInit();
 
-                vecStreamPeriod.emplace_back(vecPeriod);
+                if (vecPeriod.size() > 0) {
+                    vecStreamPeriod.emplace_back(vecPeriod);
+                }
             }
         }
 
@@ -331,7 +464,7 @@ AX_BOOL CDataStreamPlay::GetStreamInfo(AX_U8 nDeviceID, AX_U8 nStreamID, AX_U32 
     return AX_FALSE;
 }
 
-CDataStreamIndFile* CDataStreamPlay::CreateSearchInstance(AX_U8 nDeviceID, AX_U8 nStreamID, AX_S32 nDate, AX_S32 nTime /*= 0*/) {
+CDataStreamIndFile* CDataStreamPlay::CreateSearchInstance(AX_U8 nDeviceID, AX_U8 nStreamID, AX_S32 nDate, AX_S32 nTime /*= 0*/, AX_BOOL bGopMode /*= AX_FALSE*/) {
     AX_S32 nYear = nDate / 10000;
     AX_S32 nMonth = (nDate % 10000) / 100;
     AX_S32 nDay = nDate % 100;
@@ -344,7 +477,7 @@ CDataStreamIndFile* CDataStreamPlay::CreateSearchInstance(AX_U8 nDeviceID, AX_U8
     }
 
     CDataStreamIndFile* dsif = new CDataStreamIndFile();
-    if (!dsif->Init(strIndexFile.c_str(), AXIF_OPEN_FOR_READ, nDate, nTime)) {
+    if (!dsif->Init(strIndexFile.c_str(), AXIF_OPEN_FOR_READ, nDate, nTime, bGopMode)) {
         return nullptr;
     }
 
@@ -372,16 +505,24 @@ string CDataStreamPlay::FindIndFile(std::string strParentDir, AX_U8 nDeviceID, A
     return string();
 }
 
-AX_VOID CDataStreamPlay::GenCurrPTS(AX_U8 nDeviceID, AX_U8 nStreamID, const AXIF_FILE_INFO_EX_T& tInfo, AX_BOOL bReverse) {
-    AX_U32 nStep = 0;
+AX_VOID CDataStreamPlay::GenCurrPTS(AX_U8 nDeviceID, AX_U8 nStreamID, const AXIF_FILE_INFO_EX_T& tInfo, AX_BOOL bReverse, AX_BOOL bOnlyIFrameOnReverse) {
+    AX_S32 nStep = 0;
     if (bReverse) {
-        nStep = (AX_F32)tInfo.tInfo.uGop / tInfo.tInfo.uFrameRate * 1000000;
+        if (bOnlyIFrameOnReverse) {
+            nStep = (AX_F32)tInfo.tInfo.uGop / tInfo.tInfo.uFrameRate * 1000000;
+        } else {
+            nStep = 1000000 / tInfo.tInfo.uFrameRate * -1;
+        }
     } else {
-        //nStep = 1000 / tInfo.tInfo.uFrameRate * 1000;
         nStep = 1000000 / tInfo.tInfo.uFrameRate;
     }
 
     nStep /= m_mapDev2SpeedFactor[nDeviceID][nStreamID];
+
+    if (nStep < 0 && m_mapDev2CurrPTS[nDeviceID][nStreamID] < (AX_U32)(nStep * -1)) {
+        LOG_MM_E(TAG, "[%d][%d][reverse:%d][step:%d] Next PTS %d is not valid, ignore the frame.", nDeviceID, nStreamID, bReverse, nStep, m_mapDev2CurrPTS[nDeviceID][nStreamID] + nStep);
+        return;
+    }
 
     m_mapDev2CurrPTS[nDeviceID][nStreamID] += nStep;
 }

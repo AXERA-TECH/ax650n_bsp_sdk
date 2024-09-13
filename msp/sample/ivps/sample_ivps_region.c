@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -103,7 +103,9 @@ static AX_VOID IVPS_RegionCfg0(AX_IVPS_RGN_DISP_GROUP_T *ptRegion)
     ptRegion->arrDisp[3].uDisp.tPolygon.tRect.nW = 100;
     ptRegion->arrDisp[3].uDisp.tPolygon.tRect.nH = 80;
     ptRegion->arrDisp[3].uDisp.tPolygon.bSolid = AX_FALSE;
-    ptRegion->arrDisp[3].uDisp.tPolygon.bCornerRect = AX_TRUE;
+    ptRegion->arrDisp[3].uDisp.tPolygon.tCornerRect.bEnable = AX_TRUE;
+    ptRegion->arrDisp[3].uDisp.tPolygon.tCornerRect.nHorLength = 20;
+    ptRegion->arrDisp[3].uDisp.tPolygon.tCornerRect.nVerLength = 10;
     ptRegion->arrDisp[3].uDisp.tPolygon.nLineWidth = 2;
     ptRegion->arrDisp[3].uDisp.tPolygon.nColor = GREEN;
     ptRegion->arrDisp[3].uDisp.tPolygon.nAlpha = 200;

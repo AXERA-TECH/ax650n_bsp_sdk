@@ -17,7 +17,6 @@
 #define AX_DSIF_FILE_MAGIC 0x46495841 // "AXIF" = AXera Index File
 #define AX_DSIF_VERSION 0x00000001
 
-
 typedef enum {
     AXIF_OPEN_FOR_READ = 0,
     AXIF_OPEN_FOR_WRITE,
@@ -26,12 +25,25 @@ typedef enum {
 
 typedef struct AXIF_FRAME_LOCATION {
     std::string strDataFile; /* 全局定位帧所在的数据文件。# 全局定位指当天特定通道所有视频文件中的定位 */
-    AX_S32 nFileIndex; /* 全局定位针所在的数据文件的序号 */
-    AX_S32 nGlobalFrameIndex; /* 全局定位帧索引 */
-    AX_S32 nFrameIndexWithinFile; /* 全局定位帧在当前文件中的位置 */
-    AX_S32 nFileStartFrmIndex; /* 当前文件首帧在全局定位中的位置 */
-    AX_S32 nFileEndFrmIndex; /* 当前文件最后一帧在全局定位中的位置 */
+    AX_S32 nFileIndex {-1}; /* 全局定位帧所在的数据文件的序号 */
+    AX_S32 nGlobalFrameIndex {-1}; /* 全局定位帧索引 */
+    AX_S32 nFrameIndexWithinFile {-1}; /* 全局定位帧在当前文件中的位置 */
+    AX_S32 nFileStartFrmIndex {-1}; /* 当前文件首帧在全局定位中的位置 */
+    AX_S32 nFileEndFrmIndex {-1}; /* 当前文件最后一帧在全局定位中的位置 */
+
+    AX_VOID Print() {
+        LOG_MM_W("DSIF", "strDataFile=%s(nFileIndex %d, nGlobalFrameIndex %d, nFrameIndexWithinFile %d, nFileStartFrmIndex %d, nFileEndFrmIndex %d)", strDataFile.c_str(), nFileIndex, nGlobalFrameIndex, nFrameIndexWithinFile, nFileStartFrmIndex, nFileEndFrmIndex);
+    }
 } AXIF_FRAME_LOCATION_T;
+
+typedef struct AXIF_FRAME_RELOCATION_INFO {
+    AX_S32 nFileIndex {-1}; /* 全局定位帧所在的数据文件的序号 */
+    AX_S32 nFrameIndexWithinFile {-1}; /* 全局定位帧在当前文件中的位置 */
+
+    AX_VOID Print() {
+        LOG_MM_W("DSIF", "nFileIndex %d, nFrameIndexWithinFile %d", nFileIndex, nFrameIndexWithinFile);
+    }
+} AXIF_FRAME_RELOCATION_INFO_T;
 
 /* Index File Header */
 typedef struct AXIF_FILE_HEADER {
@@ -64,6 +76,10 @@ typedef struct AXIF_FILE_INFO {
     AXDS_DATETIME_T tEndTime;
     AX_U32 uIFrameCount;
     AX_U32* pIFrameOffsetStart;  //记录I帧的偏移，长度不定
+
+    AX_VOID Print() {
+        LOG_MM_E("PRINT", "File(%s) => uFrameCount %d", szFilePath, uFrameCount);
+    }
 } AXIF_FILE_INFO_T;
 
 typedef struct AXIF_FILE_INFO_EX {
@@ -84,7 +100,7 @@ public:
         DeInit();
     }
 
-    AX_BOOL Init(const AX_CHAR* pFilePath, AXIF_OPEN_FLAG_E eOpenFlag, AX_S32 nDate = 0, AX_S32 nTime = 0);
+    AX_BOOL Init(const AX_CHAR* pFilePath, AXIF_OPEN_FLAG_E eOpenFlag, AX_S32 nDate = 0, AX_S32 nTime = 0, AX_BOOL bGopMode = AX_FALSE);
     AX_BOOL DeInit();
 
     /* Create or Update data stream file info */
@@ -93,6 +109,8 @@ public:
     AXIF_FILE_HEADER_T GetFileHeader() { return m_tFileHeader; };
     AX_S32 GetInfoCount() { return m_tFileHeader.uFileCount; };
     static std::string FormatFileName(AX_U8 nStreamID);
+    /* In GOP mode, only iterator one GOP, will not switch to next index file */
+    AX_BOOL IsGopMode() { return m_bGopMode; };
 
     AXIF_FILE_INFO_EX_T FindInfo(AX_S32 nInfoIndex, AX_BOOL bFillOffset = AX_FALSE);
 
@@ -108,6 +126,9 @@ public:
     /* Interfaces for iterator frames reversely */
     CDSIterator rbegin();
     CDSIterator rend();
+    /* Interfaces for iterator GOP frames */
+    CDSIterator gop_begin(AX_S32 nFileIndex, AX_S32 nGopStartIndex);
+    CDSIterator gop_end(AX_S32 nFileIndex, AX_S32 nGopEndIndex);
 
 protected:
     AX_BOOL IsOpened() { return m_hFD != AX_DS_INVALID_HANDLE ? AX_TRUE : AX_FALSE; };
@@ -119,14 +140,16 @@ protected:
 
 private:
     /* 通过全局定位帧索引获取数据文件路径以及该帧在当前文件中的索引 */
-    AX_BOOL FindFrameLocationByIndex(AX_S32 nFrmIndex, AXIF_FRAME_LOCATION_T& tLocation);
+    AX_BOOL FindFrameLocationByGlobalIndex(AX_S32 nGlobalFrmIndex, AXIF_FRAME_LOCATION_T& tLocation);
+    AX_BOOL FindFrameLocationByFrmIndexWithinFile(AX_S32 nFileIndex, AX_S32 nFrmIndex, AXIF_FRAME_LOCATION_T& tLocation);
     /* 通过秒定位数据文件路径以及帧索引 */
     AX_BOOL FindFrameLocationByTime(time_t nTargetSeconds, AXIF_FRAME_LOCATION_T& tLocation, AX_BOOL bIFrameOnly = AX_FALSE, AX_BOOL bReverse = AX_FALSE);
 
 private:
     AX_CHAR m_szFilePath[276];
-    AX_S32 m_nStartDate;
-    AX_S32 m_nStartTime;
+    AX_S32 m_nStartDate {-1};
+    AX_S32 m_nStartTime {-1};
+    AX_BOOL m_bGopMode {AX_FALSE};
     AX_S32 m_hFD {AX_DS_INVALID_HANDLE};
     AXIF_FILE_HEADER_T m_tFileHeader;
     AX_U8* m_pIFrmOffsetBuf {nullptr};
@@ -254,7 +277,11 @@ public:
     }
 
     AXIF_FILE_INFO_EX_T GetValue(AX_S32 nIndex) {
-        return m_pDSIF->FindInfo(nIndex, m_bReverse ? AX_TRUE : AX_FALSE);
+        if (-1 != nIndex) {
+            return m_pDSIF->FindInfo(nIndex, m_bReverse ? AX_TRUE : AX_FALSE);
+        } else {
+            return m_pDSIF->FindInfo(m_nInfoIndex, m_bReverse ? AX_TRUE : AX_FALSE);
+        }
     }
 
     // Comparisons
@@ -278,11 +305,15 @@ protected:
     CDSIFIterator m_itEndDSIF;
     CDSFIterator m_itDSF;
     AX_BOOL m_bReverse {AX_FALSE};
+    AX_BOOL m_bOnlyIFrame {AX_FALSE};
     AXDS_FRAME_HEADER_T* value {nullptr};
 
     AX_S32 m_nCurrFrameIndex {-1};
+    AX_S32 m_nCurrFileIndex {-1};
     AX_S32 m_nTotalFrameCount {-1};
     AX_S32 m_nCurrFileEndInd {-1};
+
+    AXIF_FRAME_RELOCATION_INFO_T m_tRelocateInfo;
 
     AX_S32 m_nCurrFileIFrameIndex {-1};
 
@@ -293,12 +324,13 @@ protected:
     constexpr static AX_S32 REND {-2};
 
 public:
-    CDSIterator(CDataStreamIndFile* pIFInstance, AX_S32 nIndex) : m_pDSIF(pIFInstance) {
+    CDSIterator(CDataStreamIndFile* pIFInstance, AX_S32 nIndex, AX_BOOL bOnlyIFrame = AX_FALSE) : m_pDSIF(pIFInstance) {
         if (!pIFInstance || !pIFInstance->IsOpened()) {
             value = CDSIterator::END_VALUE;
             return;
         }
 
+        m_bOnlyIFrame = bOnlyIFrame;
         if (BEGIN == nIndex) {
             m_bReverse = AX_FALSE;
 
@@ -321,6 +353,7 @@ public:
 
             value = *m_itDSF;
             m_nCurrFrameIndex = 0;
+            m_nCurrFileIndex = 0;
 
             AXDS_FILE_HEADER_T tDataFileHeader = m_pDSF->GetFileHeader();
             m_nCurrFileEndInd = tDataFileHeader.uFrameCount - 1;
@@ -329,24 +362,66 @@ public:
         } else if (RBEGIN == nIndex) {
             m_bReverse = AX_TRUE;
 
-            m_nTotalFrameCount = m_pDSIF->GetFileHeader().uTotalIFrameCount;
-            m_itDSIF = m_pDSIF->info_rbegin();
-            m_itEndDSIF = m_pDSIF->info_rend();
+            if (m_bOnlyIFrame) {
+                m_nTotalFrameCount = m_pDSIF->GetFileHeader().uTotalIFrameCount;
+                m_itDSIF = m_pDSIF->info_rbegin();
+                m_itEndDSIF = m_pDSIF->info_rend();
+                /* Locate to the first file with frame data (In case space is full, empty file without data would be created) */
+                while (m_itDSIF != m_itEndDSIF && (*m_itDSIF).tInfo.uIFrameCount == 0) {
+                    m_itDSIF++;
+                }
 
-            m_pDSF = new CDataStreamFile();
-            if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
-                LOG_MM_E("DS_RITER", "Open data file %s failed.", (*m_itDSIF).tInfo.szFilePath);
-                value = CDSIterator::END_VALUE;
-                return;
+                if (m_itDSIF == m_itEndDSIF) {
+                    value = CDSIterator::END_VALUE;
+                }
+
+                m_pDSF = new CDataStreamFile();
+                if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
+                    LOG_MM_E("DS_RITER", "Open data file %s failed.", (*m_itDSIF).tInfo.szFilePath);
+                    value = CDSIterator::END_VALUE;
+                    return;
+                }
+
+                m_nCurrFrameIndex = 0;
+                m_nCurrFileIndex = m_pDSIF->GetFileHeader().uFileCount - 1;
+                m_nCurrFileIFrameIndex = (*m_itDSIF).tInfo.uIFrameCount - 1;
+                AX_U32 nIFrmOffset = *((AX_U32*)((*m_itDSIF).pIFrmOffsetBuf) + m_nCurrFileIFrameIndex);
+                value = m_pDSF->FindFrameByOffset(nIFrmOffset);
+
+                m_nCurrFileEndInd = (*m_itDSIF).tInfo.uIFrameCount - 1;
+            } else {
+                m_nTotalFrameCount = m_pDSIF->GetFileHeader().uTotalFrameCount;
+                m_itDSIF = m_pDSIF->info_rbegin();
+                m_itEndDSIF = m_pDSIF->info_rend();
+                /* Locate to the first file with frame data (In case space is full, empty file without data would be created) */
+                while (m_itDSIF != m_itEndDSIF && (*m_itDSIF).tInfo.uFrameCount == 0) {
+                    m_itDSIF++;
+                }
+
+                if (m_itDSIF == m_itEndDSIF) {
+                    value = CDSIterator::END_VALUE;
+                }
+
+                m_pDSF = new CDataStreamFile();
+                if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
+                    LOG_MM_E("DS_ITER", "Open data file %s failed.", (*m_itDSIF).tInfo.szFilePath);
+                    value = CDSIterator::END_VALUE;
+                    return;
+                }
+
+                m_itDSF = m_pDSF->frm_rbegin();
+                if (m_itDSF == m_pDSF->frm_rend()) {
+                    value = CDSIterator::END_VALUE;
+                    return;
+                }
+
+                value = *m_itDSF;
+                m_nCurrFrameIndex = 0;
+                m_nCurrFileIndex = m_pDSIF->GetFileHeader().uFileCount - 1;
+
+                AXDS_FILE_HEADER_T tDataFileHeader = m_pDSF->GetFileHeader();
+                m_nCurrFileEndInd = tDataFileHeader.uFrameCount - 1;
             }
-
-            m_nCurrFrameIndex = 0;
-            m_nCurrFileIFrameIndex = (*m_itDSIF).tInfo.uIFrameCount - 1;
-
-            AX_U32 nIFrmOffset = *((AX_U32*)((*m_itDSIF).pIFrmOffsetBuf) + m_nCurrFileIFrameIndex);
-            value = m_pDSF->FindFrameByOffset(nIFrmOffset);
-
-            m_nCurrFileEndInd = (*m_itDSIF).tInfo.uIFrameCount - 1;
         } else if (REND == nIndex) {
             value = CDSIterator::END_VALUE;
         }
@@ -355,6 +430,7 @@ public:
     CDSIterator(const CDSIterator& it) {
         value = it.value;
         m_nCurrFrameIndex = it.m_nCurrFrameIndex;
+        m_nCurrFileIndex = it.m_nCurrFileIndex;
         m_nCurrFileIFrameIndex = it.m_nCurrFileIFrameIndex;
         m_nTotalFrameCount = it.m_nTotalFrameCount;
         m_pDSIF = it.m_pDSIF;
@@ -363,7 +439,9 @@ public:
         m_itEndDSIF = it.m_itEndDSIF;
         m_itDSF = it.m_itDSF;
         m_nCurrFileEndInd = it.m_nCurrFileEndInd;
+        m_tRelocateInfo = it.m_tRelocateInfo;
         m_bReverse = it.m_bReverse;
+        m_bOnlyIFrame = it.m_bOnlyIFrame;
     };
 
     AX_VOID Destroy() {
@@ -384,6 +462,7 @@ public:
     CDSIterator& operator=(const CDSIterator& src) {
         value = src.value;
         m_nCurrFrameIndex = src.m_nCurrFrameIndex;
+        m_nCurrFileIndex = src.m_nCurrFileIndex;
         m_nCurrFileIFrameIndex = src.m_nCurrFileIFrameIndex;
         m_nTotalFrameCount = src.m_nTotalFrameCount;
         m_pDSIF = src.m_pDSIF;
@@ -392,7 +471,9 @@ public:
         m_itEndDSIF = src.m_itEndDSIF;
         m_itDSF = src.m_itDSF;
         m_nCurrFileEndInd = src.m_nCurrFileEndInd;
+        m_tRelocateInfo = src.m_tRelocateInfo;
         m_bReverse = src.m_bReverse;
+        m_bOnlyIFrame = src.m_bOnlyIFrame;
 
         return *this;
     }
@@ -412,17 +493,36 @@ public:
         }
 
         if (m_nCurrFrameIndex++ == m_nCurrFileEndInd) {
-            CloseDataFile();
-            m_itDSIF++;
-            if (m_itDSIF == m_itEndDSIF) {
+            if (m_pDSIF->IsGopMode()) {
                 value = CDSIterator::END_VALUE;
                 return *this;
             }
 
-            if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
-                LOG_MM_E("DS_ITER", "Open data file %s failed.", (*m_itDSIF).tInfo.szFilePath);
-                value = CDSIterator::END_VALUE;
-                return *this;
+            while (1) { /* Untill find the next data file with frames */
+                CloseDataFile();
+                m_itDSIF++;
+                if (m_bReverse) {
+                    m_nCurrFileIndex--;
+                } else {
+                    m_nCurrFileIndex++;
+                }
+
+                if (m_itDSIF == m_itEndDSIF) {
+                    value = CDSIterator::END_VALUE;
+                    return *this;
+                }
+
+                if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
+                    LOG_MM_E("DS_ITER", "Open data file %s failed.", (*m_itDSIF).tInfo.szFilePath);
+                    value = CDSIterator::END_VALUE;
+                    return *this;
+                }
+
+                if (m_pDSF->GetFileHeader().uFrameCount == 0) {
+                    continue;
+                }
+
+                break;
             }
 
             if (!m_bReverse) {
@@ -430,7 +530,12 @@ public:
                 m_nCurrFileEndInd = m_nCurrFrameIndex + m_pDSF->GetFileHeader().uFrameCount - 1;
             } else {
                 m_nCurrFileIFrameIndex = (*m_itDSIF).tInfo.uIFrameCount - 1;
-                m_nCurrFileEndInd = m_nCurrFrameIndex + (*m_itDSIF).tInfo.uIFrameCount - 1;
+                if (m_bOnlyIFrame) {
+                    m_nCurrFileEndInd = m_nCurrFrameIndex + (*m_itDSIF).tInfo.uIFrameCount - 1;
+                } else {
+                    m_itDSF = m_pDSF->frm_rbegin();
+                    m_nCurrFileEndInd = m_nCurrFrameIndex + m_pDSF->GetFileHeader().uFrameCount - 1;
+                }
             }
 
             GetValue();
@@ -438,7 +543,11 @@ public:
             if (!m_bReverse) {
                 m_itDSF++;
             } else {
-                m_nCurrFileIFrameIndex--;
+                if (m_bOnlyIFrame) {
+                    m_nCurrFileIFrameIndex--;
+                } else {
+                    m_itDSF++;
+                }
             }
 
             GetValue();
@@ -455,17 +564,32 @@ public:
 
         auto temp = *this;
         if (m_nCurrFrameIndex++ == m_nCurrFileEndInd) {
-            CloseDataFile();
-            m_itDSIF++;
-            if (m_itDSIF == m_itEndDSIF) {
-                value = CDSIterator::END_VALUE;
-                return *this;
-            }
+            while (1) { /* Untill find the next data file with frames */
+                CloseDataFile();
 
-            if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
-                LOG_MM_E("DS_ITER", "Open data file %s failed.", (*m_itDSIF).tInfo.szFilePath);
-                value = CDSIterator::END_VALUE;
-                return *this;
+                m_itDSIF++;
+
+                if (m_bReverse) {
+                    m_nCurrFileIndex--;
+                } else {
+                    m_nCurrFileIndex++;
+                }
+
+                if (m_itDSIF == m_itEndDSIF) {
+                    value = CDSIterator::END_VALUE;
+                    return *this;
+                }
+
+                if (!OpenDataFile((*m_itDSIF).tInfo.szFilePath)) {
+                    value = CDSIterator::END_VALUE;
+                    return *this;
+                }
+
+                if (m_pDSF->GetFileHeader().uFrameCount == 0) {
+                    continue;
+                }
+
+                break;
             }
 
             if (!m_bReverse) {
@@ -473,7 +597,12 @@ public:
                 m_nCurrFileEndInd = m_nCurrFrameIndex + m_pDSF->GetFileHeader().uFrameCount - 1;
             } else {
                 m_nCurrFileIFrameIndex = (*m_itDSIF).tInfo.uIFrameCount - 1;
-                m_nCurrFileEndInd = m_nCurrFrameIndex + (*m_itDSIF).tInfo.uIFrameCount - 1;
+                if (m_bOnlyIFrame) {
+                    m_nCurrFileEndInd = m_nCurrFrameIndex + (*m_itDSIF).tInfo.uIFrameCount - 1;
+                } else {
+                    m_itDSF = m_pDSF->frm_rbegin();
+                    m_nCurrFileEndInd = m_nCurrFrameIndex + m_pDSF->GetFileHeader().uFrameCount - 1;
+                }
             }
 
             GetValue();
@@ -481,7 +610,11 @@ public:
             if (!m_bReverse) {
                 m_itDSF++;
             } else {
-                m_nCurrFileIFrameIndex--;
+                if (m_bOnlyIFrame) {
+                    m_nCurrFileIFrameIndex--;
+                } else {
+                    m_itDSF++;
+                }
             }
 
             GetValue();
@@ -500,6 +633,10 @@ public:
         }
 
         return *this;
+    }
+
+    AXIF_FRAME_RELOCATION_INFO_T& GetRelocatedInfo() {
+        return m_tRelocateInfo;
     }
 
     CDSIterator Relocate(AXIF_FRAME_LOCATION_T& tLocation) {
@@ -526,10 +663,13 @@ public:
 
             AX_U32 nIFrmOffset = *((AX_U32*)((*m_itDSIF).pIFrmOffsetBuf) + m_nCurrFileIFrameIndex);
             value = m_pDSF->FindFrameByOffset(nIFrmOffset);
+
+            m_tRelocateInfo.nFrameIndexWithinFile = m_pDSF->FindFrmIndexByOffset(nIFrmOffset);
+            m_tRelocateInfo.nFileIndex = tLocation.nFileIndex;
+            m_nCurrFileIndex = tLocation.nFileIndex;
         } else {
             m_nCurrFrameIndex = tLocation.nGlobalFrameIndex;
             m_nCurrFileEndInd = tLocation.nFileEndFrmIndex;
-
             m_itDSF.Relocate(tLocation.nFrameIndexWithinFile);
             value = *m_itDSF;
         }
@@ -539,8 +679,15 @@ public:
 
     AX_BOOL GetValue() {
         if (m_bReverse) {
-            AX_U32 nIFrmOffset = *((AX_U32*)((*m_itDSIF).pIFrmOffsetBuf) + m_nCurrFileIFrameIndex);
-            value = m_pDSF->FindFrameByOffset(nIFrmOffset);
+            if (m_bOnlyIFrame) {
+                AX_U32 nIFrmOffset = *((AX_U32*)((*m_itDSIF).pIFrmOffsetBuf) + m_nCurrFileIFrameIndex);
+                value = m_pDSF->FindFrameByOffset(nIFrmOffset);
+
+                m_tRelocateInfo.nFrameIndexWithinFile = m_pDSF->FindFrmIndexByOffset(nIFrmOffset);
+                m_tRelocateInfo.nFileIndex = m_nCurrFileIndex;
+            } else {
+                value = *m_itDSF;
+            }
         } else {
             value = *m_itDSF;
         }

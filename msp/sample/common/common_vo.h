@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -96,6 +96,7 @@ typedef struct axSAMPLE_FB_CONFIG_S {
     AX_U32                   u32ResoW;
     AX_U32                   u32ResoH;
     AX_U32                   u32Fmt;
+    AX_U32                   u32Vrefresh;
 
     AX_U32                   u32ColorKeyEn;
     AX_U32                   u32ColorKeyInv;
@@ -132,6 +133,7 @@ typedef struct axSAMPLE_COMM_VO_DEV_CONFIG_S {
     AX_VO_INTF_SYNC_E       enIntfSync;
     AX_VO_SYNC_INFO_T       stSyncInfo;
     AX_VO_OUT_FMT_E         enVoOutfmt;
+    AX_U32                  u32Flags;
 
     AX_U32                  u32SyncIndex;
     AX_U32                  u32HdmiMode;

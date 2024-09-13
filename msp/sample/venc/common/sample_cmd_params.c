@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -212,6 +212,9 @@ static SAMPLE_OPTION_T options[] = {
     {"maxQp", '0', 1},  /* Maximum frame header qp for any picture */
     {"minIqp", '0', 1}, /* Minimum frame header qp for I picture */
     {"maxIqp", '0', 1}, /* Maximum frame header qp for I picture */
+    {"chgPos", '0', 1},
+    {"stillPercent", '0', 1},
+    {"stillQp", '0', 1}, /* Maximum frame header qp for I picture */
     {"maxIprop", '0', 1},
     {"minIprop", '0', 1}, /* HDR Conformance (ANNEX C) */
     {"IQp", '0', 1},
@@ -277,6 +280,8 @@ static SAMPLE_OPTION_T options[] = {
     {"inFifoDep", '0', 1},
     {"outFifoDep", '0', 1},
     {"bCoreCoWork", '0', 1},
+    {"bStrmCached", '0', 1},
+    {"bAttachHdr", '0', 1},
     {"strmBitDep", '0', 1},
 
     /* VUI */
@@ -615,6 +620,18 @@ AX_S32 SampleCmdLineParse(AX_S32 argc, AX_CHAR **argv, SAMPLE_VENC_CMD_PARA_T *p
                 cml->qpMaxI = atoi(optarg);
                 break;
             }
+            if (strcmp(pPrm->longOpt, "chgPos") == 0) {
+                cml->chgPos = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "stillPercent") == 0) {
+                cml->stillPercent = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "stillQp") == 0) {
+                cml->qpStill = atoi(optarg);
+                break;
+            }
             if (strcmp(pPrm->longOpt, "maxIprop") == 0) {
                 cml->maxIprop = atoi(optarg);
                 break;
@@ -821,6 +838,14 @@ AX_S32 SampleCmdLineParse(AX_S32 argc, AX_CHAR **argv, SAMPLE_VENC_CMD_PARA_T *p
             }
             if (strcmp(pPrm->longOpt, "bCoreCoWork") == 0) {
                 cml->bCoreCoWork = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "bStrmCached") == 0) {
+                cml->bStrmCached = atoi(optarg);
+                break;
+            }
+            if (strcmp(pPrm->longOpt, "bAttachHdr") == 0) {
+                cml->bAttachHdr = atoi(optarg);
                 break;
             }
             if (strcmp(pPrm->longOpt, "strmBitDep") == 0) {

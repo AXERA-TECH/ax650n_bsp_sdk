@@ -62,6 +62,7 @@ typedef struct VDEC_ATTR_S {
     AX_U32 nHeight;
     AX_VDEC_DISPLAY_MODE_E enDecodeMode;
     AX_VDEC_INPUT_MODE_E enInputMode;
+    AX_VDEC_MODE_E enIPBMode;
     AX_U32 nMaxStreamBufSize; /* if 0, equal to nWidth * nHeight * 3 / 2 */
     AX_U32 nFps;
     AX_BOOL bPrivatePool;
@@ -80,6 +81,7 @@ typedef struct VDEC_ATTR_S {
         nHeight = 0;
         enDecodeMode = AX_VDEC_DISPLAY_MODE_PREVIEW;
         enInputMode = AX_VDEC_INPUT_MODE_FRAME;
+        enIPBMode = VIDEO_DEC_MODE_IPB;
         nMaxStreamBufSize = 0;
         nFps = 0;
         bPrivatePool = AX_TRUE;
@@ -104,6 +106,7 @@ public:
 
     /* App is in charge of PTS */
     AX_BOOL SendStream(CONST AX_U8* pStream, AX_U32 nLen, AX_U64 u64PTS, AX_U64 nPrivData = 0, AX_BOOL bSkipDisplay = AX_FALSE,
+                       AX_U64 u64UserData = 0,
                        AX_S32 nTimeOut = INFINITE);
 
     AX_BOOL RegisterObserver(AX_S32 vdChn, IObserver* pObs);

@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -524,6 +524,7 @@ enum LONG_OPTION
     LONG_OPTION_CONFIG_DEWARP,
     LONG_OPTION_CONFIG_STREAM,
     LONG_OPTION_CONFIG_POOL_TYPE,
+    LONG_OPTION_CONFIG_CPU_DRAW,
     LONG_OPTION_CONFIG_GRP,
     LONG_OPTION_CONFIG_CHN,
     LONG_OPTION_CONFIG_PYRALITE,
@@ -552,6 +553,7 @@ static struct option long_options[] = {
     {"dewarp", required_argument, NULL, LONG_OPTION_CONFIG_DEWARP},
     {"stream", required_argument, NULL, LONG_OPTION_CONFIG_STREAM},
     {"pool_type", required_argument, NULL, LONG_OPTION_CONFIG_POOL_TYPE},
+    {"cpudraw", required_argument, NULL, LONG_OPTION_CONFIG_CPU_DRAW},
     {"grp_id", required_argument, NULL, LONG_OPTION_CONFIG_GRP},
     {"ch", required_argument, NULL, LONG_OPTION_CONFIG_CHN},
     {"pyralite", required_argument, NULL, LONG_OPTION_CONFIG_PYRALITE},
@@ -717,6 +719,9 @@ int IVPS_ArgsParser(int argc, char *argv[], IVPS_ARG_T *ptArg)
             break;
         case LONG_OPTION_CONFIG_POOL_TYPE:
             ptArg->ePoolSrc = atoi(optarg);
+            break;
+        case LONG_OPTION_CONFIG_CPU_DRAW:
+            ptArg->bCpuDraw = atoi(optarg);
             break;
         case LONG_OPTION_CONFIG_CHN:
             CHECK_RESULT(ChnInfoParse(optarg, &ptArg->tChnInfo[ptArg->nOutChnNum]));

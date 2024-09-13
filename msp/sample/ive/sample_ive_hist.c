@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -67,6 +67,7 @@ static AX_VOID SAMPLE_IVE_TestHist_Uninit(TEST_HIST_T* pstTestHist)
 {
     IVE_CMM_FREE(pstTestHist->stSrc.au64PhyAddr[0], pstTestHist->stSrc.au64VirAddr[0]);
     IVE_CMM_FREE(pstTestHist->stDst.u64PhyAddr, pstTestHist->stDst.u64VirAddr);
+    IVE_CMM_FREE(pstTestHist->stDstSave.u64PhyAddr, pstTestHist->stDstSave.u64VirAddr);
 
     if (NULL != pstTestHist->pFpSrc) {
         fclose(pstTestHist->pFpSrc);
@@ -184,15 +185,17 @@ static AX_S32 SAMPLE_IVE_TestHistProc(TEST_HIST_T* pstTestHist, AX_U32 u32Mode, 
         SAMPLE_IVE_PRT("Error(%#x),AX_IVE_Hist/EqualizeHist failed!\n",s32Ret);
         return s32Ret;
     }
-    s32Ret = AX_IVE_Query(IveHandle, &bFinish, bBlock);
-    while (AX_ERR_IVE_QUERY_TIMEOUT == s32Ret) {
-        usleep(1000*100);
-        SAMPLE_IVE_PRT("AX_IVE_Query timeout, retry...\n");
+    if (bInstant == AX_FALSE) {
         s32Ret = AX_IVE_Query(IveHandle, &bFinish, bBlock);
-    }
-    if (AX_SUCCESS != s32Ret) {
-        SAMPLE_IVE_PRT("Error(%#x),AX_IVE_Query failed!\n",s32Ret);
-        return s32Ret;
+        while (AX_ERR_IVE_QUERY_TIMEOUT == s32Ret) {
+            usleep(1000*100);
+            SAMPLE_IVE_PRT("AX_IVE_Query timeout, retry...\n");
+            s32Ret = AX_IVE_Query(IveHandle, &bFinish, bBlock);
+        }
+        if (AX_SUCCESS != s32Ret) {
+            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_Query failed!\n",s32Ret);
+            return s32Ret;
+        }
     }
     AX_U64 u64EndTime = SAMPLE_COMM_IVE_GetTime_US();
     printf("Run Hist(EqualizeHist or Hist) task cost %lld us\n", u64EndTime - u64StartTime);

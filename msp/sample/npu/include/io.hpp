@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -76,6 +76,8 @@ namespace middleware
     {
         memset(io_data, 0, sizeof(*io_data));
         io_data->pInputs = new AX_ENGINE_IO_BUFFER_T[info->nInputSize];
+        memset(io_data->pInputs, 0, sizeof(AX_ENGINE_IO_BUFFER_T) * info->nInputSize);
+
         io_data->nInputSize = info->nInputSize;
 
         auto ret = 0;
@@ -102,6 +104,8 @@ namespace middleware
         }
 
         io_data->pOutputs = new AX_ENGINE_IO_BUFFER_T[info->nOutputSize];
+        memset(io_data->pOutputs, 0, sizeof(AX_ENGINE_IO_BUFFER_T) * info->nOutputSize);
+
         io_data->nOutputSize = info->nOutputSize;
         for (AX_U32 i = 0; i < info->nOutputSize; ++i)
         {

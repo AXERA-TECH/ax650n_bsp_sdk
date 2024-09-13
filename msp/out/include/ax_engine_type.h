@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -95,7 +95,8 @@ typedef enum {
     AX_ENGINE_VIRTUAL_NPU_DISABLE   = 0,    // virtual_npu disable
     AX_ENGINE_VIRTUAL_NPU_STD       = 1,
     AX_ENGINE_VIRTUAL_NPU_BIG_LITTLE = 2,
-    AX_ENGINE_VIRTUAL_NPU_BUTT      = 3
+    AX_ENGINE_VIRTUAL_NPU_LITTLE_BIG = 3,
+    AX_ENGINE_VIRTUAL_NPU_BUTT      = 4,
 } AX_ENGINE_NPU_MODE_T;
 
 typedef enum {
@@ -165,11 +166,11 @@ typedef struct _AX_ENGINE_IO_INFO_T
 
 typedef struct _AX_ENGINE_IO_BUFFER_T
 {
-    AX_ADDR phyAddr;
+    AX_U64 phyAddr;
     AX_VOID *pVirAddr;
     AX_U32 nSize;  // total size of memory
     /*!
-     * pStride holds the number of elements in stride of each dimension
+     * pStride holds the bytes of each dimension
      * set pStride to NULL to disable stride function
      *
      * `nStrideSize` should be equal to `nShapeSize`

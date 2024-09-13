@@ -22,6 +22,8 @@
 #include <vector>
 #include <deque>
 #include <stdio.h>
+#include <QFutureWatcher>
+#include <QFutureInterface>
 
 #define MAX_DISK_NUMBER (16)
 
@@ -127,7 +129,6 @@ private:
     AX_BOOL CloseDataFile(AX_U8 nDeviceID, AX_U8 nStreamID);
     AX_S32  SwitchFile(AX_U8 nDeviceID, AX_U8 nStreamID);
 
-    AX_VOID RemoveThread(AX_VOID* pThreadParam);
     AX_VOID ThreadStreamMonitor(AX_VOID* pArg);
 
 private:
@@ -142,7 +143,6 @@ private:
     std::map<AX_U8, std::vector<std::mutex*>> m_mapDev2Mutex;
     std::map<AX_U8, std::vector<STREAM_MONITOR_INFO_T>> m_mapDev2MonitorInfo;
 
-    REMOVE_THREAD_PARAM_T m_tRemoveParams;
     std::map<AX_U8, AX_BOOL> m_mapDev2DiskFullFlg;
     /* 记录前一帧类型，用于判断仅在SPS或者IDR帧场合进行文件切换，且连续的SPS-PPS-IDR场合只切换一次 */
     AX_U8 m_nLastFrameType {0};
@@ -183,10 +183,10 @@ public:
     }
 
     AX_BOOL OnRecvStreamInfo(CONST STREAM_INFO_T& stInfo) override {
-        LOG_M_C("OBS", "%s tracks:", stInfo.strURL.c_str());
+        LOG_M_C("OBS", "[%d - %s] tracks:", stInfo.nCookie, stInfo.strURL.c_str());
         for (auto&& kv : stInfo.tracks) {
             if (PT_H264 == kv.second.enPayload || PT_H265 == kv.second.enPayload) {
-                LOG_M_C("OBS", "video: payload %d, profile %d level %d, num_ref_frames %d, %dx%d %d fps", kv.second.enPayload,
+                LOG_M_C("OBS", "[%d] video: payload %d, profile %d level %d, num_ref_frames %d, %dx%d %d fps", stInfo.nCookie, kv.second.enPayload,
                         kv.second.info.stVideo.nProfile, kv.second.info.stVideo.nLevel, kv.second.info.stVideo.nNumRefs,
                         kv.second.info.stVideo.nWidth, kv.second.info.stVideo.nHeight, kv.second.info.stVideo.nFps);
             }

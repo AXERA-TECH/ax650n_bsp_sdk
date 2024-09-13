@@ -21,6 +21,7 @@ typedef enum { DISCONNECT = 0, RECONNECT = 1, CONNECTED = 2 } CONNECT_STATUS_E;
 
 typedef struct STREAM_ATTR_S {
     std::string strURL;
+    AX_S32 nCookie;
     AX_U32 nMaxBufSize;
     RTP_TRANSPORT_MODE_E enTransportMode;
     AX_U32 nDebugLevel;
@@ -28,6 +29,7 @@ typedef struct STREAM_ATTR_S {
     AX_U32 nReconnectThreshold; /* if the count of heart beat absent from server is >= nReconnThreshold, trigger to reconnect */
     AX_S32 nFps;                /* ONLY for ffmpeg stream, < 0: no fps ctrl, 0: auto detect fps from stream, > 0: specified fps */
     STREAM_ATTR_S(AX_VOID) {
+        nCookie = -1;
         nMaxBufSize = 1920 * 1080;
         enTransportMode = RTP_OVER_UDP;
         nDebugLevel = 0;
@@ -63,6 +65,7 @@ typedef struct {
     AX_U64 nPTS;
     AX_U64 nSequence;
     AX_U64 nFramePts;
+    AX_U64 u64UserData;
 } STREAM_VIDEO_FRAME_T;
 
 typedef struct {
@@ -75,6 +78,7 @@ typedef struct {
 
 typedef struct {
     std::string strURL;
+    AX_S32 nCookie;
     STREAM_VIDEO_TRACK_INFO_T stVideo;
     std::unordered_map<AX_VOID*, STREAM_TRACK_INFO_T> tracks;
 } STREAM_INFO_T;

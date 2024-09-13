@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -129,11 +129,10 @@ AX_S32 SAMPLE_FillCanvas(AX_IVPS_RGN_CANVAS_INFO_T *ptCanvas)
 
 AX_S32 SAMPLE_DrawCover(const AX_VIDEO_FRAME_T *pstVFrame, const SAMPLE_IVPS_COVER_T *ptIvpsCover, char *strFilePath)
 {
-    AX_IVPS_RGN_CANVAS_INFO_T tCanvas;
-    AX_IVPS_GDI_ATTR_T tAttr;
+    AX_IVPS_RGN_CANVAS_INFO_T tCanvas = {0};
+    AX_IVPS_GDI_ATTR_T tAttr = {0};
     AX_VIDEO_FRAME_T tVFrame;
 
-    printf("AX_IVPS_DrawLine");
     tCanvas.eFormat = AX_FORMAT_YUV420_SEMIPLANAR;
     tCanvas.pVirAddr = (AX_VOID *)((AX_ULONG)pstVFrame->u64VirAddr[0]);
     tCanvas.nStride = pstVFrame->u32PicStride[0];
@@ -174,7 +173,7 @@ AX_S32 SAMPLE_DrawCover(const AX_VIDEO_FRAME_T *pstVFrame, const SAMPLE_IVPS_COV
 
     AX_IVPS_DrawLine(&tCanvas, tAttr, tPoint, 4);
 
-    /* tAttr.nThick = 2; */
+    tAttr.nThick = 5;
     tAttr.nColor = 0xFF0080;
     tPoint[0].nX = 800;
     tPoint[0].nY = 800;
@@ -189,13 +188,26 @@ AX_S32 SAMPLE_DrawCover(const AX_VIDEO_FRAME_T *pstVFrame, const SAMPLE_IVPS_COV
 
     AX_IVPS_RECT_T tRect;
 
-    /* tAttr.nThick = 2; */
+    tAttr.nThick = 10;
     tAttr.bSolid = AX_FALSE;
     tAttr.nColor = 0xFFFF80;
     tRect.nX = 1000;
     tRect.nY = 900;
     tRect.nW = 600;
     tRect.nH = 300;
+
+    AX_IVPS_DrawRect(&tCanvas, tAttr, tRect);
+
+    tAttr.nThick = 3;
+    tAttr.bSolid = AX_FALSE;
+    tAttr.nColor = 0x0000FF;
+    tAttr.tCornerRect.bEnable = AX_TRUE;
+    tAttr.tCornerRect.nHorLength = 50;
+    tAttr.tCornerRect.nVerLength = 70;
+    tRect.nX = 1000;
+    tRect.nY = 100;
+    tRect.nW = 800;
+    tRect.nH = 500;
 
     AX_IVPS_DrawRect(&tCanvas, tAttr, tRect);
 

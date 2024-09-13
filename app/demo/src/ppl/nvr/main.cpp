@@ -67,6 +67,8 @@ int main(int argc, char *argv[]) {
     cmd_parser.add<AX_S32>("screentype", 's', "0:primary 1:sencondary", false, 0);
     cmd_parser.add<AX_S32>("log", 'v', "log level", false, APP_LOG_WARN);
     cmd_parser.add<AX_S32>("testsuite", 'u', "0:disable 1:stability 2:ut", false, 0);
+    /* coredump is preprocessed within run.sh */
+    cmd_parser.add<AX_S32>("coredump", 'q', "0:disable coredump path config others:enable...", false, 1);
     cmd_parser.add("gdb", 'd', "gdb debug");
     cmd_parser.parse_check(argc, argv);
 	AX_S32 screen_type = cmd_parser.get<AX_S32>("screentype");

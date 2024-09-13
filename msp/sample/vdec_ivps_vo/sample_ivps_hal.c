@@ -98,7 +98,7 @@ AX_U32 CalcImgSize(AX_U32 nStride, AX_U32 nW, AX_U32 nH, AX_IMG_FORMAT_E eType, 
     return nStride * nH * nBpp / 8;
 }
 
-int SampleIVPS_Init()
+int SampleIVPS_Init(AX_BOOL bEnaIvpsBakFrm)
 {
     AX_S32 axRet = 0;
     AX_IVPS_GRP_ATTR_T  stGrpAttr = {0};
@@ -160,15 +160,15 @@ int SampleIVPS_Init()
         return -3;
     }
 
-#ifdef IVPS_EZOOM_TEST_EN
-    /* min_nFifoDepth: tdp:4 other engine: 3 */
-    axRet = AX_IVPS_EnableBackupFrame(gIvpsGrpId, 4);
-    if (IVPS_SUCC != axRet)
-    {
-        SAMPLE_ERR_LOG("AX_IVPS_EnableBackupFrame(Grp: %d) failed, ret=0x%x.", gIvpsGrpId, axRet);
-        return -3;
+    if (bEnaIvpsBakFrm) {
+        /* min_nFifoDepth: tdp:4 other engine: 3 */
+        axRet = AX_IVPS_EnableBackupFrame(gIvpsGrpId, 4);
+        if (IVPS_SUCC != axRet)
+        {
+            SAMPLE_ERR_LOG("AX_IVPS_EnableBackupFrame(Grp: %d) failed, ret=0x%x.", gIvpsGrpId, axRet);
+            return -3;
+        }
     }
-#endif
 
     axRet = AX_IVPS_StartGrp(gIvpsGrpId);
     if (0 != axRet) {
@@ -180,7 +180,7 @@ int SampleIVPS_Init()
     return 0;
 }
 
-AX_S32 SampleIvpsExit()
+AX_S32 SampleIvpsExit(AX_BOOL bEnaIvpsBakFrm)
 {
     AX_S32 axRet = 0;
     int ch = 0;
@@ -192,14 +192,16 @@ AX_S32 SampleIvpsExit()
     if (0 != axRet) {
         SAMPLE_ERR_LOG("AX_IVPS_DisableChn ch.%d, axRet:%#x\n", ch, axRet);
     }
-#ifdef IVPS_EZOOM_TEST_EN
-    axRet = AX_IVPS_DisableBackupFrame(gIvpsGrpId);
-    if (IVPS_SUCC != axRet)
-    {
-        SAMPLE_ERR_LOG("AX_IVPS_DisableBackupFrame(Grp: %d) failed, ret=0x%x.", gIvpsGrpId, axRet);
-        return -3;
+
+    if (bEnaIvpsBakFrm) {
+        axRet = AX_IVPS_DisableBackupFrame(gIvpsGrpId);
+        if (IVPS_SUCC != axRet)
+        {
+            SAMPLE_ERR_LOG("AX_IVPS_DisableBackupFrame(Grp: %d) failed, ret=0x%x.", gIvpsGrpId, axRet);
+            return -3;
+        }
     }
-#endif
+
 
     if (0) {
         ch++;
@@ -226,6 +228,21 @@ AX_S32 SampleIvpsExit()
     axRet = AX_IVPS_Deinit();
     if (0 != axRet) {
         SAMPLE_ERR_LOG("AX_IVPS_Deinit axRet:%#x\n", axRet);
+    }
+
+    SAMPLE_LOG("end +++++++++++");
+    return 0;
+}
+
+AX_S32 SampleIvpsReset()
+{
+    AX_S32 axRet = 0;
+
+    SAMPLE_LOG("start +++++++++++");
+
+    axRet = AX_IVPS_ResetGrp(gIvpsGrpId);
+    if (0 != axRet) {
+        SAMPLE_ERR_LOG("AX_IVPS_DestoryGrp axRet:%#x\n", axRet);
     }
 
     SAMPLE_LOG("end +++++++++++");

@@ -271,7 +271,7 @@ static void continueAfterSETUP(RTSPClient *rtspClient, int resultCode, char *res
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = DummySink::createNew(env, *scs.subsession, rtspClient->url(), scs.cb, scs.bufSize);
+        scs.subsession->sink = DummySink::createNew(env, *scs.subsession, rtspClient->url(), scs.cb, scs.bufSize, scs.cookie);
         // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             env << *rtspClient << "Failed to create a data sink for the \"" << *scs.subsession << "\" subsession: " << env.getResultMsg()
@@ -450,14 +450,15 @@ static void shutdownStream(RTSPClient *rtspClient, int exitCode) {
 
 // Implementation of "CAXRTSPClient":
 CAXRTSPClient *CAXRTSPClient::createNew(UsageEnvironment &env, char const *rtspURL, RtspClientCallback cb, int bufSize, int verbosityLevel,
-                                        char const *applicationName, portNumBits tunnelOverHTTPPortNum) {
-    return new CAXRTSPClient(env, rtspURL, cb, bufSize, verbosityLevel, applicationName, tunnelOverHTTPPortNum);
+                                        char const *applicationName, portNumBits tunnelOverHTTPPortNum, AX_S32 cookie) {
+    return new CAXRTSPClient(env, rtspURL, cb, bufSize, verbosityLevel, applicationName, tunnelOverHTTPPortNum, cookie);
 }
 
 CAXRTSPClient::CAXRTSPClient(UsageEnvironment &env, char const *rtspURL, RtspClientCallback cb, int bufSize, int verbosityLevel,
-                             char const *applicationName, portNumBits tunnelOverHTTPPortNum)
+                             char const *applicationName, portNumBits tunnelOverHTTPPortNum, AX_S32 cookie)
     : RTSPClient(env, rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum, -1) {
     scs.cb = cb;
+    scs.cookie = cookie;
     if (bufSize <= 0) {
         bufSize = DUMMY_SINK_RECEIVE_BUFFER_SIZE;
     }
@@ -495,11 +496,11 @@ StreamClientState::~StreamClientState() {
 
 // Implementation of "DummySink":
 DummySink *DummySink::createNew(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId, RtspClientCallback cb,
-                                unsigned int bufSize) {
-    return new DummySink(env, subsession, streamId, cb, bufSize);
+                                unsigned int bufSize, AX_S32 cookie) {
+    return new DummySink(env, subsession, streamId, cb, bufSize, cookie);
 }
 
-DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId, RtspClientCallback cb, unsigned int bufSize)
+DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId, RtspClientCallback cb, unsigned int bufSize, AX_S32 cookie)
     : MediaSink(env), fSubsession(subsession), firstFrame(1) {
     m_cacheBufCap = 0x2000;
     m_cacheBufLen = 0;
@@ -511,6 +512,7 @@ DummySink::DummySink(UsageEnvironment &env, MediaSubsession &subsession, char co
     memcpy(m_frameBuf, &NALU_START_CODE[0], NALU_START_CODE_LENGTH);
 
     m_cb = cb;
+    m_cookie = cookie;
 
     if (0 == strcmp(subsession.codecName(), "H264")) {
         m_ePayload = PT_H264;

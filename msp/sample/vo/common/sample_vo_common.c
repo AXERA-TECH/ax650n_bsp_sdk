@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -884,7 +884,6 @@ static AX_VOID *SAMPLE_VO_PLAY_THREAD(AX_VOID *pData)
     }
 
     u32FrameRate = pstChnThreadParam->u32FrameRate ? pstChnThreadParam->u32FrameRate : 30;
-    AX_VO_SetChnFrameRate(u32LayerID, u32ChnID, u32FrameRate);
 
     SAMPLE_PRT("u32FrameRate = %d, u32FrameMax = %d\n", u32FrameRate, u32FrameMax);
 

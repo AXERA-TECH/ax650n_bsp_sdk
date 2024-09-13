@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -29,6 +29,8 @@
 #define VENC_STREAM_10BIT (10)
 #define VENC_FBC_LOSSLESS (1)
 #define VENC_FBC_LOSSY    (2)
+
+#define VENC_STREAM_CACHED (0x2)
 
 #define TILE_ALIGN(var, align) ((var + align - 1) & (~(align - 1)))
 
@@ -118,6 +120,9 @@ typedef struct axSAMPLE_VENC_CMD_PARA_T
     AX_U32 qpMax;
     AX_U32 qpMinI;
     AX_U32 qpMaxI;
+    AX_U32 chgPos;
+    AX_U32 stillPercent;
+    AX_U32 qpStill;
     AX_U32 maxIprop; /* Range:[1, 100]; the max I P size ratio */
     AX_U32 minIprop; /* Range:[1, u32MaxIprop]; the min I P size ratio */
     AX_U32 IQp;      /* RW; Range:[0, 51]; qp of the i frame */
@@ -228,6 +233,8 @@ typedef struct axSAMPLE_VENC_CMD_PARA_T
     AX_U8 inFifoDep;
     AX_U8 outFifoDep;
     AX_BOOL bCoreCoWork;
+    AX_BOOL bStrmCached;
+    AX_BOOL bAttachHdr; /* attach headers before PB frames */
     AX_U8 strmBitDep; /* output bit depth of stream */
     /* VUI */
     AX_BOOL bSignalPresent;

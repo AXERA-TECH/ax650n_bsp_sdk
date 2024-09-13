@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -72,6 +72,7 @@ extern "C"
         AX_BOOL bAlphaBlendV2;   /* --alphablend2 */
         AX_BOOL bAlphaBlendV3;   /* --alphablend3*/
         AX_POOL_SOURCE_E ePoolSrc;   /* --pool_type */
+        AX_BOOL bCpuDraw;   /* --cpudraw */
         AX_U8 bPyraLite;   /* --pyralite */
         AX_BOOL bPyraMode;   /* --pyralite_mode */
         AX_U8 nOutChnNum;

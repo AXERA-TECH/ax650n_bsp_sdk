@@ -433,6 +433,15 @@ AX_BOOL CIVPS::CropResize(AX_BOOL bCrop, CONST AX_IVPS_RECT_T& stCropRect) {
     AX_IVPS_CROP_INFO_T stInfo;
     stInfo.bEnable = bCrop;
     if (bCrop) {
+        if (m_stAttr.nWidth > 0 || m_stAttr.nHeight > 0) {
+            if (stCropRect.nX < 0 || stCropRect.nY < 0 || (stCropRect.nX + stCropRect.nW) > m_stAttr.nWidth ||
+                (stCropRect.nY + stCropRect.nH) > m_stAttr.nHeight) {
+                LOG_MM_W(TAG, "invalid ivGrp %d corrd: (%d %d) %dx%d", m_ivGrp, stInfo.tCropRect.nX, stInfo.tCropRect.nY,
+                         stInfo.tCropRect.nW, stInfo.tCropRect.nH);
+                return AX_TRUE;
+            }
+        }
+
         stInfo.eCoordMode = AX_COORD_ABS;
         stInfo.tCropRect = stCropRect;
     } else {

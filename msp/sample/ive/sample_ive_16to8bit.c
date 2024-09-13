@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -152,15 +152,17 @@ static AX_S32 SAMPLE_IVE_Test16To8BitProc(TEST_16TO8_T* pstTest16To8Bit, AX_CHAR
         SAMPLE_IVE_PRT("Error(%#x),AX_IVE_16BitTo8Bit failed!\n",s32Ret);
         return s32Ret;
     }
-    s32Ret = AX_IVE_Query(IveHandle, &bFinish, bBlock);
-    while (AX_ERR_IVE_QUERY_TIMEOUT == s32Ret) {
-        usleep(1000*100);
-        SAMPLE_IVE_PRT("AX_IVE_Query timeout, retry...\n");
+    if (bInstant == AX_FALSE) {
         s32Ret = AX_IVE_Query(IveHandle, &bFinish, bBlock);
-    }
-    if (AX_SUCCESS != s32Ret) {
-        SAMPLE_IVE_PRT("Error(%#x),AX_IVE_Query failed!\n",s32Ret);
-        return s32Ret;
+        while (AX_ERR_IVE_QUERY_TIMEOUT == s32Ret) {
+            usleep(1000*100);
+            SAMPLE_IVE_PRT("AX_IVE_Query timeout, retry...\n");
+            s32Ret = AX_IVE_Query(IveHandle, &bFinish, bBlock);
+        }
+        if (AX_SUCCESS != s32Ret) {
+            SAMPLE_IVE_PRT("Error(%#x),AX_IVE_Query failed!\n",s32Ret);
+            return s32Ret;
+        }
     }
     AX_U64 u64EndTime = SAMPLE_COMM_IVE_GetTime_US();
     printf("Run 16BitTo8Bit task cost %lld us\n", u64EndTime - u64StartTime);

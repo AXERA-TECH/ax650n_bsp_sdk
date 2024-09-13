@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -152,6 +152,17 @@ extern "C"
         AX_U32 nFRC; /* Reserved */
     } AX_IVPS_CHN_ATTR_T;
 
+    typedef struct
+    {
+        /* Range: [0, 100] */
+        AX_U64 TDP0_duty_cycle;
+        AX_U64 TDP1_duty_cycle;
+        AX_U64 GDC_duty_cycle;
+        AX_U64 VPP_duty_cycle;
+        AX_U64 VGP_duty_cycle;
+        AX_U64 VDSP_duty_cycle;
+    } AX_IVPS_DUTY_CYCLE_ATTR_T;
+
     AX_S32 AX_IVPS_Init(AX_VOID);
     AX_S32 AX_IVPS_Deinit(AX_VOID);
     AX_S32 AX_IVPS_CreateGrp(IVPS_GRP IvpsGrp, const AX_IVPS_GRP_ATTR_T *ptGrpAttr);
@@ -193,12 +204,13 @@ extern "C"
     AX_S32 AX_IVPS_DisableBackupFrame(IVPS_GRP IvpsGrp);
     AX_S32 AX_IVPS_ResetGrp(IVPS_GRP IvpsGrp);
 
+    AX_S32 AX_IVPS_GetEngineDutyCycle(AX_IVPS_DUTY_CYCLE_ATTR_T *ptDutyCycle);
     /***************************************************************************************************************/
     /*                                               REGION                                                        */
     /***************************************************************************************************************/
     typedef AX_S32 IVPS_RGN_HANDLE;
 
-#define AX_IVPS_MAX_RGN_HANDLE_NUM (64)
+#define AX_IVPS_MAX_RGN_HANDLE_NUM (128)
 #define AX_IVPS_INVALID_REGION_HANDLE (IVPS_RGN_HANDLE)(-1)
 #define AX_IVPS_REGION_MAX_DISP_NUM (32)
 
@@ -243,14 +255,8 @@ extern "C"
         IVPS_RGB nColor;   /* RW; range: [0, 0xffffff]; color RGB888; 0xRRGGBB */
         AX_U8 nAlpha;      /* RW; range: [0, 255]; 0: transparent, 255: opaque*/
         AX_BOOL bSolid;    /* if AX_TRUE, fill the rect with the nColor */
-        /*
-          The style of rectangle is like below
-          [            ]
 
-          [            ]
-          if bCornerRect is AX_TRUE, then bSolid is always AX_FALSE
-      */
-        AX_BOOL bCornerRect;
+        AX_IVPS_CORNER_RECT_ATTR_T tCornerRect;
     } AX_IVPS_RGN_POLYGON_T;
 
     typedef struct
@@ -290,6 +296,7 @@ extern "C"
         AX_U32 nColor;
         AX_BOOL bSolid;  /* if AX_TRUE, fill the rect with the nColor */
         AX_BOOL bAbsCoo; /* is Absolute Coordinate */
+        AX_IVPS_CORNER_RECT_ATTR_T tCornerRect;
     } AX_IVPS_GDI_ATTR_T;
 
     typedef struct
@@ -361,6 +368,9 @@ extern "C"
                                    const AX_IVPS_ASPECT_RATIO_T *ptAspectRatio);
     AX_S32 AX_IVPS_CscVpp(const AX_VIDEO_FRAME_T *ptSrc, AX_VIDEO_FRAME_T *ptDst);
     AX_S32 AX_IVPS_DrawMosaicVpp(const AX_VIDEO_FRAME_T *ptSrc, AX_IVPS_RGN_MOSAIC_T tMosaic[], AX_U32 nNum);
+
+    AX_S32 AX_IVPS_SetScaleCoefLevelVpp(const AX_IVPS_SCALE_RANGE_T *ScaleRange, const AX_IVPS_SCALE_COEF_LEVEL_T *CoefLevel);
+    AX_S32 AX_IVPS_GetScaleCoefLevelVpp(const AX_IVPS_SCALE_RANGE_T *ScaleRange, AX_IVPS_SCALE_COEF_LEVEL_T *CoefLevel);
     /***************************************************************************************************************/
     /*                                                   VGP                                                       */
     /***************************************************************************************************************/
@@ -378,6 +388,8 @@ extern "C"
     AX_S32 AX_IVPS_AlphaBlendingV3Vgp(const AX_VIDEO_FRAME_T *ptSrc, const AX_OVERLAY_T *ptOverlay,
                                       AX_VIDEO_FRAME_T *ptDst);
     AX_S32 AX_IVPS_DrawMosaicVgp(const AX_VIDEO_FRAME_T *ptSrc, AX_IVPS_RGN_MOSAIC_T tMosaic[], AX_U32 nNum);
+    AX_S32 AX_IVPS_SetScaleCoefLevelVgp(const AX_IVPS_SCALE_RANGE_T *ScaleRange, const AX_IVPS_SCALE_COEF_LEVEL_T *CoefLevel);
+    AX_S32 AX_IVPS_GetScaleCoefLevelVgp(const AX_IVPS_SCALE_RANGE_T *ScaleRange, AX_IVPS_SCALE_COEF_LEVEL_T *CoefLevel);
     /***************************************************************************************************************/
     /*                                                   CPU                                                       */
     /***************************************************************************************************************/
@@ -440,7 +452,7 @@ extern "C"
 
     /*****************************************************************************
      *   Prototype    : AX_IVPS_FisheyePointQueryDst2Src
-     *   Description  : This API is used to find the source image coordinate point according to the fisheye correction output image coordinate point.
+     *   Description  : This API is used to find a point of the source image according to a point of output image.
      *   Parameters   : ptSrcPoint               The coordinate points found on the fisheye original map.
      *                  ptDstPoint               Coordinate points on fisheye correction map that need to find mapping relationship.
      *                  nInputW                  Width of input frame.
@@ -450,7 +462,23 @@ extern "C"
      *   Return Value : 0: Success; Error codes: Failure.
      *   Spec         :
      *****************************************************************************/
-    AX_S32 AX_IVPS_FisheyePointQueryDst2Src(AX_IVPS_POINT_T *ptSrcPoint, const AX_IVPS_POINT_T *ptDstPoint,
+    AX_S32 AX_IVPS_FisheyePointQueryDst2Src(AX_IVPS_POINT_NICE_T *ptSrcPoint, const AX_IVPS_POINT_NICE_T *ptDstPoint,
+                                            AX_U16 nInputW, AX_U16 nInputH, AX_U8 nRgnIdx,
+                                            const AX_IVPS_FISHEYE_ATTR_T *ptFisheyeAttr);
+
+    /*****************************************************************************
+     *   Prototype    : AX_IVPS_FisheyePointQuerySrc2Dst
+     *   Description  : This API is used to find a point of the output image according to a point of source image.
+     *   Parameters   : ptDstPoint               Coordinate points on fisheye correction map that need to find mapping relationship.
+     *                  ptSrcPoint               The coordinate points found on the fisheye original map.
+     *                  nInputW                  Width of input frame.
+     *                  nInputH                  Height of input frame.
+     *                  nRgnIdx                  Fisheye region index.
+     *                  ptFisheyeAttr            Fisheye correction Attribute.
+     *   Return Value : 0: Success; Error codes: Failure.
+     *   Spec         :
+     *****************************************************************************/
+    AX_S32 AX_IVPS_FisheyePointQuerySrc2Dst(AX_IVPS_POINT_NICE_T *ptDstPoint, const AX_IVPS_POINT_NICE_T *ptSrcPoint,
                                             AX_U16 nInputW, AX_U16 nInputH, AX_U8 nRgnIdx,
                                             const AX_IVPS_FISHEYE_ATTR_T *ptFisheyeAttr);
 #ifdef __cplusplus

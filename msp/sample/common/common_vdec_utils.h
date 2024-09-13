@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -207,6 +207,7 @@ typedef struct axSAMPLE_VDEC_CMD_PARAM_T {
     AX_U32 uStartGrpId;
     AX_S32 sStreamSize;
     AX_BOOL bJpegDecOneFrm;
+    AX_BOOL bExtractHead;
     AX_F32 f32SrcFrmRate;
     AX_VDEC_DISPLAY_MODE_E enDisplayMode;
     AX_VDEC_MULTI_MODE_E enMultimode;
@@ -237,9 +238,14 @@ typedef struct axSAMPLE_VDEC_CMD_PARAM_T {
     AX_BOOL pollingEna;
     AX_S32 pollingCnt;
     AX_U32 pollingTime;
+    AX_BOOL pollingType;
     AX_U32 waitTime;
+    AX_BOOL bEnaIvpsBakFrm;
     AX_VDEC_MODE_E enVideoMode;
     AX_VDEC_OUTPUT_ORDER_E enOutputOrder;
+    AX_BOOL enSkipFrame;
+    AX_S32 s32VdecVirtChn;
+    AX_BOOL bModifyFrmSize;
 } SAMPLE_VDEC_CMD_PARAM_T;
 
 typedef struct axSAMPLE_VDEC_TBCFG_PARAM_T {

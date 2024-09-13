@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -14,7 +14,7 @@
 
 #define DEF_ALL_MOD_GRP_MAX         (164)
 #define DEF_ALL_MOD_CHN_MAX         (128)
-#define AX_LINK_DEST_MAXNUM         (4)
+#define AX_LINK_DEST_MAXNUM         (6)
 #define AX_MAX_COLOR_COMPONENT      (3)         /* VENC support Y/U/V three planes come from external input */
 #define AX_MAX_COMPRESS_LOSSY_LEVEL (10)
 #define AX_INVALID_ID               (-1U)
@@ -502,6 +502,8 @@ typedef enum {
     AX_ERR_FLOW_END             = 0x28, /* END signal detected in data stream, processing terminated */
     AX_ERR_UNKNOWN              = 0x29, /* unexpected failure, please contact manufacturer support */
     /*reserved*/
+
+    AX_ERR_OS_FAIL              = 0x30, /* os failure, please contact manufacturer support */
 
     AX_ERR_BUTT                 = 0x7F, /* maxium code, private error code of all modules
                                         ** must be greater than it */

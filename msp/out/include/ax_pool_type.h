@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -37,6 +37,8 @@
 #define AX_ERR_POOL_MMAP_FAIL       AX_DEF_ERR(AX_ID_SYS, 0x01, 0x80)                 //0x800B0180
 #define AX_ERR_POOL_MUNMAP_FAIL     AX_DEF_ERR(AX_ID_SYS, 0x01, 0x81)                 //0x800B0181
 #define AX_ERR_POOL_BLKFREE_FAIL    AX_DEF_ERR(AX_ID_SYS, 0x01, 0x82)                 //0x800B0182
+#define AX_ERR_POOL_COPY_TO_USER    AX_DEF_ERR(AX_ID_SYS, 0x01, 0x83)                 //0x800B0183
+#define AX_ERR_POOL_COPY_FROM_USER  AX_DEF_ERR(AX_ID_SYS, 0x01, 0x84)                 //0x800B0184
 
 
 typedef AX_U32 AX_POOL;

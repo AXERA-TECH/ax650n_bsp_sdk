@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -552,43 +552,56 @@ AX_S32 AX_IVE_CropResize2ForSplitYUV(AX_IVE_HANDLE *pIveHandle, AX_IVE_SRC_IMAGE
     AX_IVE_CROP_IMAGE_CTRL_T *pstCropResize2Ctrl, AX_IVE_ENGINE_E enEngine, AX_BOOL bInstant);
 
 /*****************************************************************************
-*   Prototype    : AX_IVE_MAU_CreateMatMulHandle
-*   Description  : Create matrix mul handle(for MAU or NPU engine).
-*   Parameters   : AX_IVE_MATMUL_HANDLE        *pHandle              Return MatMul handle.
-*                  AX_IVE_NPU_MATMUL_CTRL_T    *pstMatMulCtrl        Control parameter(only for NPU engine).
-*                  AX_IVE_ENGINE_E              enEngine             Hardware engine choise.
-*   Return Value : AX_SUCCESS: Success;Error codes: Failure.
-*   Spec         :
-*
-*****************************************************************************/
-AX_S32 AX_IVE_MAU_CreateMatMulHandle(AX_IVE_MATMUL_HANDLE *pHandle, AX_IVE_NPU_MATMUL_CTRL_T *pstMatMulCtrl, AX_IVE_ENGINE_E enEngine);
-
-/*****************************************************************************
-*   Prototype    : AX_IVE_MAU_DestroyMatMulHandle(used in pairs with AX_IVE_MAU_CreateMatMulHandle)
-*   Description  : Destroy matrix mul handle(for MAU or NPU engine).
-*   Parameters   : AX_IVE_NPU_MATMUL_HANDLE    *pHandle              Input MatMul handle created.
-*                  AX_IVE_ENGINE_E              enEngine             Hardware engine choise.
-*   Return Value : AX_SUCCESS: Success;Error codes: Failure.
-*   Spec         :
-*
-*****************************************************************************/
-AX_S32 AX_IVE_MAU_DestroyMatMulHandle(AX_IVE_MATMUL_HANDLE *pHandle, AX_IVE_ENGINE_E enEngine);
-
-/*****************************************************************************
 *   Prototype    : AX_IVE_MAU_MatMul
-*   Description  : Calculate matrix mul using MAU or NPU.
+*   Description  : Calculate matrix mul using MAU.
+*   Parameters   : AX_IVE_HANDLE               *pIveHandle           Reserved.
+*                  AX_IVE_MAU_MATMUL_INPUT_T   *pstSrc               Input source.
+*                  AX_IVE_MAU_MATMUL_OUTPUT_T  *pastDst              Output result.
+*                  AX_IVE_MAU_MATMUL_CTRL_T    *pstMatMulCtrl        Control parameter.
+*                  AX_IVE_ENGINE_E              enEngine             Hardware engine choise (Reserved).
+*                  AX_BOOL                      bInstant             Reserved.
+*   Return Value : AX_SUCCESS: Success;Error codes: Failure.
+*   Spec         :
+*
+*****************************************************************************/
+AX_S32 AX_IVE_MAU_MatMul(AX_IVE_HANDLE *pIveHandle, AX_IVE_MAU_MATMUL_INPUT_T *pstSrc, AX_IVE_MAU_MATMUL_OUTPUT_T *pstDst,
+    AX_IVE_MAU_MATMUL_CTRL_T *pstMatMulCtrl, AX_IVE_ENGINE_E enEngine, AX_BOOL bInstant);
+
+/*****************************************************************************
+*   Prototype    : AX_IVE_NPU_CreateMatMulHandle
+*   Description  : Create matrix mul handle for NPU engine.
+*   Parameters   : AX_IVE_MATMUL_HANDLE        *pHandle              Return MatMul handle.
+*                  AX_IVE_NPU_MATMUL_CTRL_T    *pstMatMulCtrl        Control parameter.
+*   Return Value : AX_SUCCESS: Success;Error codes: Failure.
+*   Spec         :
+*
+*****************************************************************************/
+AX_S32 AX_IVE_NPU_CreateMatMulHandle(AX_IVE_MATMUL_HANDLE *pHandle, AX_IVE_NPU_MATMUL_CTRL_T *pstMatMulCtrl);
+
+/*****************************************************************************
+*   Prototype    : AX_IVE_NPU_DestroyMatMulHandle(used in pairs with AX_IVE_NPU_CreateMatMulHandle)
+*   Description  : Destroy matrix mul handle for NPU engine.
+*   Parameters   : AX_IVE_MATMUL_HANDLE        *pHandle              Input MatMul handle created.
+*   Return Value : AX_SUCCESS: Success;Error codes: Failure.
+*   Spec         :
+*
+*****************************************************************************/
+AX_S32 AX_IVE_NPU_DestroyMatMulHandle(AX_IVE_MATMUL_HANDLE *pHandle);
+
+/*****************************************************************************
+*   Prototype    : AX_IVE_NPU_MatMul
+*   Description  : Calculate matrix mul using NPU.
 *   Parameters   : AX_IVE_MATMUL_HANDLE         hHandle              Handle for MatMul.
 *                  AX_IVE_MAU_MATMUL_INPUT_T   *pstSrc               Input source.
 *                  AX_IVE_MAU_MATMUL_OUTPUT_T  *pastDst              Output result.
-*                  AX_IVE_MAU_MATMUL_CTRL_T    *pstMatMulCtrl        Control parameter(Only for MAU engine, NPU engine sets parameter when create handle).
-*                  AX_IVE_ENGINE_E              enEngine             Hardware engine choise.
-*                  AX_BOOL                      bInstant             Reserved
+*                  AX_IVE_ENGINE_E              enEngine             Hardware engine choise (Reserved).
+*                  AX_BOOL                      bInstant             Reserved.
 *   Return Value : AX_SUCCESS: Success;Error codes: Failure.
 *   Spec         :
 *
 *****************************************************************************/
-AX_S32 AX_IVE_MAU_MatMul(AX_IVE_MATMUL_HANDLE hHandle, AX_IVE_MAU_MATMUL_INPUT_T *pstSrc, AX_IVE_MAU_MATMUL_OUTPUT_T *pstDst,
-    AX_IVE_MAU_MATMUL_CTRL_T *pstMatMulCtrl, AX_IVE_ENGINE_E enEngine, AX_BOOL bInstant);
+AX_S32 AX_IVE_NPU_MatMul(AX_IVE_MATMUL_HANDLE hHandle, AX_IVE_MAU_MATMUL_INPUT_T *pstSrc, AX_IVE_MAU_MATMUL_OUTPUT_T *pstDst,
+    AX_IVE_ENGINE_E enEngine, AX_BOOL bInstant);
 
 #ifdef __cplusplus
 }

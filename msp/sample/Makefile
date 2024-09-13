@@ -1,7 +1,8 @@
-SUBDIRS = cmm pool rtc efuse ivps vo dsp vin isp_3a vin_vo vin_ivps_venc_rtsp
+SUBDIRS = cmm pool rtc efuse ivps vo dsp vin isp_3a vin_vo vin_ivps_venc_rtsp vin_ivps_engine_venc_rtsp
 SUBDIRS += vdec vdec_ivps_vo vin_ivps_vo_venc vdec_ivps_venc
 SUBDIRS += cipher ive dmaxor dmadim sysmap
 SUBDIRS += pcie ives adc venc audio uvc npu efuse_hash avs
+SUBDIRS += video_convert
 
 ################################################################################
 #	prepare param

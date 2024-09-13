@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -146,7 +146,7 @@ static AX_S32 SAMPLE_IVPS_Fisheye(const AX_VIDEO_FRAME_T *ptSrc, char *pStorePat
 	AX_VIDEO_FRAME_T tDst = {0};
 	AX_BLK BlkId;
 	AX_IVPS_GDC_ATTR_T *pGdc = &pSampleDewarp->tGdcAttr;
-	AX_IVPS_POINT_T tSrcPoint = {0}, tDstPoint = {0};
+	AX_IVPS_POINT_NICE_T tSrcPoint = {0}, tDstPoint = {0};
 	AX_U64 nStartTime, nEndTime;
 
 	nImgSize = CalcImgSize(pGdc->nDstStride, pGdc->nDstWidth, pGdc->nDstHeight, pGdc->eDstFormat, 16);
@@ -156,14 +156,21 @@ static AX_S32 SAMPLE_IVPS_Fisheye(const AX_VIDEO_FRAME_T *ptSrc, char *pStorePat
 
 	CHECK_RESULT(BufPoolBlockAddrGet(-1, nImgSize, &tDst.u64PhyAddr[0],
 					 (AX_VOID **)&tDst.u64VirAddr[0], &BlkId));
-	tDstPoint.nX = 640;
-	tDstPoint.nY = 360;
+	tDstPoint.fX = 120;
+	tDstPoint.fY = 300;
 	AX_IVPS_FisheyePointQueryDst2Src(&tSrcPoint, &tDstPoint,
-					 ptSrc->u32Width, ptSrc->u32Height, 4,
+					 ptSrc->u32Width, ptSrc->u32Height, 0,
 					 &pGdc->tFisheyeAttr);
 
-	printf("source point nX:%d nY:%d\n", tSrcPoint.nX, tSrcPoint.nY);
+	printf("SRC point nX:%f nY:%f\n", tSrcPoint.fX, tSrcPoint.fY);
 
+	AX_IVPS_FisheyePointQuerySrc2Dst(&tDstPoint, &tSrcPoint,
+					 ptSrc->u32Width, ptSrc->u32Height, 0,
+					 &pGdc->tFisheyeAttr);
+
+	printf("DST point nX:%f nY:%f\n", tDstPoint.fX, tDstPoint.fY);
+
+	return 0;
 	ret = AX_IVPS_GdcWorkCreate(&handle);
 	if (ret)
 	{

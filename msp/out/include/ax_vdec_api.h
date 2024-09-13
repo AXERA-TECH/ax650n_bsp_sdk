@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -24,6 +24,9 @@ AX_S32 AX_VDEC_Deinit (AX_VOID);
 
 AX_S32 AX_VDEC_SetModParam (const AX_VDEC_MOD_PARAM_T* pstModParam);
 AX_S32 AX_VDEC_GetModParam (AX_VDEC_MOD_PARAM_T* pstModParam);
+
+AX_S32 AX_VDEC_ExtractStreamHeaderInfo(const AX_VDEC_STREAM_T *pstStreamBuf, AX_PAYLOAD_TYPE_E enVideoType,
+                                       AX_VDEC_BITSTREAM_INFO_T *pstBitStreamInfo);
 
 AX_S32 AX_VDEC_CreateGrp (AX_VDEC_GRP VdGrp, const AX_VDEC_GRP_ATTR_T *pstGrpAttr);
 AX_S32 AX_VDEC_DestroyGrp (AX_VDEC_GRP VdGrp);

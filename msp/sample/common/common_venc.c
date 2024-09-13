@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -125,6 +125,7 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
     AX_U16 qpMax = 51;
     AX_U16 qpMinI = 1;
     AX_U16 qpMaxI = 51;
+    AX_U16 qpStill = 0;
     AX_U16 u32IQp = 25;
     AX_U16 u32PQp = 30;
     AX_VENC_GOP_MODE_E gopType = AX_VENC_GOPMODE_NORMALP;
@@ -152,6 +153,7 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
     qpMax = pstArg->qpMax;
     qpMinI = pstArg->qpMinI;
     qpMaxI = pstArg->qpMaxI;
+    qpStill = pstArg->qpStill;
     gopType = pstArg->gopMode;
     intraQpDelta = pstArg->IQpDelta;
     qpMapType = pstArg->qpMapQpType;
@@ -183,9 +185,13 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
         stVencChnAttr.stVencAttr.stCropCfg.stRect.u32Height = pstArg->cropH;
     }
 
-    if (pstArg->bCoreCoWork) {
-        stVencChnAttr.stVencAttr.flag |= VENC_CHN_ENABLE_MULTICORE;
-    }
+    if (pstArg->bCoreCoWork)
+        stVencChnAttr.stVencAttr.flag |= AX_VENC_CHN_ENABLE_MULTICORE;
+
+    if (pstArg->bStrmCached)
+        stVencChnAttr.stVencAttr.flag |= AX_VENC_STREAM_CACHED;
+    if (pstArg->bAttachHdr)
+        stVencChnAttr.stVencAttr.flag |= AX_VENC_HEADER_ATTACH_TO_PB;
 
     switch (stVencChnAttr.stVencAttr.enType) {
     case PT_H265: {
@@ -231,6 +237,7 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
             stH265Vbr.u32MinIQp = qpMinI;
             stH265Vbr.u32MaxIQp = qpMaxI;
             stH265Vbr.s32IntraQpDelta = intraQpDelta;
+            stH265Vbr.u32ChangePos = pstArg->chgPos;
 
             stH265Vbr.stQpmapInfo.enQpmapQpType = qpMapType;
             stH265Vbr.stQpmapInfo.enQpmapBlockType = qpMapBlkType;
@@ -249,6 +256,9 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
             stH265AVbr.u32MinIQp = qpMinI;
             stH265AVbr.u32MaxIQp = qpMaxI;
             stH265AVbr.s32IntraQpDelta = intraQpDelta;
+            stH265AVbr.u32ChangePos = pstArg->chgPos;
+            stH265AVbr.u32MinStillPercent = pstArg->stillPercent;
+            stH265AVbr.u32MaxStillQp = qpStill;
 
             stH265AVbr.stQpmapInfo.enQpmapQpType = qpMapType;
             stH265AVbr.stQpmapInfo.enQpmapBlockType = qpMapBlkType;
@@ -356,6 +366,7 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
             stH264Vbr.u32MinIQp = qpMinI;
             stH264Vbr.u32MaxIQp = qpMaxI;
             stH264Vbr.s32IntraQpDelta = intraQpDelta;
+            stH264Vbr.u32ChangePos = pstArg->chgPos;
 
             stH264Vbr.stQpmapInfo.enQpmapQpType = qpMapType;
             stH264Vbr.stQpmapInfo.enQpmapBlockType = qpMapBlkType;
@@ -375,6 +386,9 @@ AX_S32 COMMON_VENC_Create(VENC_CHN VeChn, AX_PAYLOAD_TYPE_E enType, SAMPLE_VENC_
             stH264AVbr.u32MinIQp = qpMinI;
             stH264AVbr.u32MaxIQp = qpMaxI;
             stH264AVbr.s32IntraQpDelta = intraQpDelta;
+            stH264AVbr.u32ChangePos = pstArg->chgPos;
+            stH264AVbr.u32MinStillPercent = pstArg->stillPercent;
+            stH264AVbr.u32MaxStillQp = qpStill;
 
             stH264AVbr.stQpmapInfo.enQpmapQpType = qpMapType;
             stH264AVbr.stQpmapInfo.enQpmapBlockType = qpMapBlkType;
