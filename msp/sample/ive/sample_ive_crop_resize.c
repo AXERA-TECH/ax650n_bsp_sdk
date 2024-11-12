@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -207,7 +207,7 @@ static AX_S32 SAMPLE_IVE_TestCropResize_Init(TEST_CROP_RESIZE_T* pstTestCropResi
         u32HeightOut =  pstTestCropResize->stBox[0].u16Height;
     }
     if (u32Mode == 0 && u32Engine == AX_IVE_ENGINE_IVE) {
-        s32Ret = SAMPLE_COMM_IVE_CreateImage(&(pstTestCropResize->stSrc), (AX_IVE_IMAGE_TYPE_E)IMAGE_TYPE_SPECIFY(as32Type[0], AX_IVE_IMAGE_TYPE_U8C1), u32Width, u32Height);
+        s32Ret = SAMPLE_COMM_IVE_CreateImage(&(pstTestCropResize->stSrc), (AX_IVE_IMAGE_TYPE_E)as32Type[0], u32Width, u32Height);
         if (AX_SUCCESS != s32Ret) {
             SAMPLE_IVE_PRT("Error(%#x),Create src image failed!\n", s32Ret);
             SAMPLE_IVE_TestCropResize_Uninit(pstTestCropResize);
@@ -253,7 +253,7 @@ static AX_S32 SAMPLE_IVE_TestCropResize_Init(TEST_CROP_RESIZE_T* pstTestCropResi
         }
         SAMPLE_IVE_PRT("u32WidthOut:%d, u32HeightOut:%d\n", u32WidthOut, u32HeightOut);
         if (u32Mode == 0 && u32Engine == AX_IVE_ENGINE_IVE) {
-            s32Ret = SAMPLE_COMM_IVE_CreateImage(&(pstTestCropResize->stDst[i]), (AX_IVE_IMAGE_TYPE_E)IMAGE_TYPE_SPECIFY(as32Type[0], AX_IVE_IMAGE_TYPE_U8C1), u32WidthOut,  u32HeightOut);
+            s32Ret = SAMPLE_COMM_IVE_CreateImage(&(pstTestCropResize->stDst[i]), (AX_IVE_IMAGE_TYPE_E)as32Type[1], u32WidthOut,  u32HeightOut);
             if (AX_SUCCESS != s32Ret) {
                 SAMPLE_IVE_PRT("Error(%#x),Create dst image failed!\n", s32Ret);
                 SAMPLE_IVE_TestCropResize_Uninit(pstTestCropResize);

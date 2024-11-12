@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -80,6 +80,12 @@ typedef enum axVDEC_ENABLE_MOD_E {
 typedef struct axVDEC_MOD_ATTR_T {
     AX_U32 u32MaxGroupCount;
     AX_VDEC_ENABLE_MOD_E enDecModule;
+    /* specifies the JDEC mapping virtual channel number.
+     * 0: do not map chn 0.
+     * 1: chn0 is mapped to chn1.
+     * 2: chn0 is mapped to chn2.
+     * others: illegal param. */
+    AX_VDEC_CHN VdecVirtChn;
 } AX_VDEC_MOD_ATTR_T;
 
 typedef struct axVDEC_MOD_PARAM_T {
@@ -141,6 +147,7 @@ typedef struct axVDEC_STREAM_T {
     AX_U8 ATTRIBUTE *pu8Addr;
     /* W; stream physical address */
     AX_U64  u64PhyAddr;
+    AX_U64  u64UserData;
 } AX_VDEC_STREAM_T;
 
 
@@ -348,6 +355,13 @@ typedef struct {
     AX_BOOL bEnable[AX_DEC_MAX_CHN_NUM];
 } AX_VDEC_USRPIC_T;
 
+typedef struct axVDEC_BITSTREAM_INFO_T {
+    AX_U32 u32Width;
+    AX_U32 u32Height;
+    AX_U32 u32RefFramesNum;
+    AX_U32 u32BitDepthY;
+    AX_U32 u32BitDepthC;
+} AX_VDEC_BITSTREAM_INFO_T;
 
 /* invlalid channel ID */
 #define AX_ERR_VDEC_INVALID_GRPID       AX_DEF_ERR(AX_ID_VDEC, AX_ID_VDEC_NULL, AX_ERR_INVALID_GRPID)
@@ -398,6 +412,9 @@ typedef struct {
 #define AX_ERR_VDEC_FLOW_END            AX_DEF_ERR(AX_ID_VDEC, AX_ID_VDEC_NULL, AX_ERR_FLOW_END)
 /* for vdec unknown error */
 #define AX_ERR_VDEC_UNKNOWN             AX_DEF_ERR(AX_ID_VDEC, AX_ID_VDEC_NULL, AX_ERR_UNKNOWN)
+
+/* for vdec os failed */
+#define AX_ERR_VDEC_OS                  AX_DEF_ERR(AX_ID_VDEC, AX_ID_VDEC_NULL, AX_ERR_OS_FAIL)
 
 /* run error */
 #define AX_ERR_VDEC_RUN_ERROR           AX_DEF_ERR(AX_ID_VDEC, AX_ID_VDEC_NULL, 0x80)

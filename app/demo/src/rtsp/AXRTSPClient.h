@@ -61,6 +61,7 @@ public:
     int streamTransportMode = {0}; /* 0: UDP 1: TCP */
     int keepAliveInterval = {10};  /* unit: seconds */
     CAXEvent played;
+    AX_S32 cookie = {-1};
 };
 
 // If you're streaming just a single stream (i.e., just from a single URL, once), then you can define and use just a single
@@ -70,7 +71,7 @@ public:
 class CAXRTSPClient : public RTSPClient {
 public:
     static CAXRTSPClient *createNew(UsageEnvironment &env, char const *rtspURL, RtspClientCallback cb, int bufSize, int verbosityLevel = 0,
-                                    char const *applicationName = NULL, portNumBits tunnelOverHTTPPortNum = 0);
+                                    char const *applicationName = NULL, portNumBits tunnelOverHTTPPortNum = 0, AX_S32 cookie = -1);
 
     void Start(void);
 
@@ -94,7 +95,7 @@ public:
 
 protected:
     CAXRTSPClient(UsageEnvironment &env, char const *rtspURL, RtspClientCallback cb, int bufSize, int verbosityLevel,
-                  char const *applicationName, portNumBits tunnelOverHTTPPortNum);
+                  char const *applicationName, portNumBits tunnelOverHTTPPortNum, AX_S32 cookie);
     // called only by createNew();
     virtual ~CAXRTSPClient();
 
@@ -111,10 +112,12 @@ public:
     static DummySink *createNew(UsageEnvironment &env,
                                 MediaSubsession &subsession,  // identifies the kind of data that's being received
                                 char const *streamId,         // identifies the stream itself (optional)
-                                RtspClientCallback cb, unsigned int bufSize);
+                                RtspClientCallback cb,
+                                unsigned int bufSize,
+                                AX_S32 cookie);
 
 private:
-    DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId, RtspClientCallback cb, unsigned int bufSize);
+    DummySink(UsageEnvironment &env, MediaSubsession &subsession, char const *streamId, RtspClientCallback cb, unsigned int bufSize, AX_S32 cookie);
     // called only by "createNew()"
     virtual ~DummySink();
 
@@ -149,4 +152,5 @@ private:
     int firstFrame;
     RtspClientCallback m_cb;
     AX_PAYLOAD_TYPE_E m_ePayload;
+    AX_S32 m_cookie;
 };

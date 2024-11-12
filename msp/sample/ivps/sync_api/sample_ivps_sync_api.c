@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -26,6 +26,17 @@ AX_S32 SAMPLE_IVPS_SyncApi(const IVPS_ARG_T *ptArg, const SAMPLE_IVPS_GRP_T *pGr
     AX_VIDEO_FRAME_T tOverlay = {0};
     AX_VIDEO_FRAME_T tInput[4] = {0};
     AX_VIDEO_FRAME_T tSpAlpha = {0};
+    SAMPLE_IVPS_COVER_T IvpsCover = {0};
+
+    if (ptArg->bCpuDraw == 1)
+    {
+        ret = SAMPLE_DrawCover(&pGrp->tFrameInput, &IvpsCover, pGrp->pFilePath);
+        if (ret)
+        {
+            ALOGE("SAMPLE_DrawCover, ret=0x%x.", ret);
+            return -1;
+        }
+    }
 
     if (ptArg->bPyraLite == 1)
     {

@@ -58,11 +58,15 @@ typedef struct IVPS_ATTR_S {
     AX_IVPS_GRP nGrpId;
     AX_U32 nInDepth;
     AX_U32 nBackupInDepth;
+    AX_U32 nWidth;  /* grp width */
+    AX_U32 nHeight; /* grp height */
     AX_U32 nChnNum;
     IVPS_CHN_ATTR_T stChnAttr[MAX_IVPS_CHN_NUM];
     IVPS_ATTR_S(AX_VOID) {
         nGrpId = INVALID_IVPS_GRP; /* INVALID_IVPS_GRP: auto allocate grp id */
         nInDepth = 2;
+        nWidth = 0;
+        nHeight = 0;
         nChnNum = 0;
         /*
             playback: nBackupInDepth = AX_VO_CHN_ATTR_T.u32FifoDepth + 1

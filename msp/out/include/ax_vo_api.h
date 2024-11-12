@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -68,6 +68,8 @@ typedef AX_COLORKEY_T AX_FB_COLORKEY_T;
 #define AX_FBIOGET_TYPE         _IOR('F', 0x26, AX_U16)
 #define AX_FBIOGET_COLORKEY     _IOR('F', 0x27, AX_FB_COLORKEY_T)
 #define AX_FBIOPUT_COLORKEY     _IOW('F', 0x28, AX_FB_COLORKEY_T)
+#define AX_FBIOGET_BLEND_INFO   _IOR('F', 0x29, AX_FB_BLEND_INFO_T)
+#define AX_FBIOPUT_BLEND_INFO   _IOW('F', 0x2A, AX_FB_BLEND_INFO_T)
 
 typedef enum {
     AX_VO_MODE_OFFLINE,
@@ -210,6 +212,8 @@ typedef struct axVSYNC_CALLBACK_FUNC_T {
     AX_VOID *pPrivateData;
 } AX_VSYNC_CALLBACK_FUNC_T;
 
+#define AX_VO_FLAG_BLD_SINGLE_BUF   (1 << 8)
+
 typedef struct axVO_PUB_ATTR_T {
     AX_VO_MODE_E enMode;
     AX_VO_INTF_TYPE_E enIntfType;
@@ -217,6 +221,7 @@ typedef struct axVO_PUB_ATTR_T {
     AX_VO_INTF_SYNC_E enIntfSync;
     AX_VO_SYNC_INFO_T stSyncInfo;
     AX_HDMI_ATTR_T stHdmiAttr;
+    AX_U32 u32Flags;
 } AX_VO_PUB_ATTR_T;
 
 typedef struct axVO_RESO_T {
@@ -252,6 +257,7 @@ typedef enum axVO_PART_MODE_E {
 typedef enum axVO_BLEND_MODE_E {
     AX_VO_BLEND_MODE_DEFAULT = 0,
     AX_VO_BLEND_MODE_INDEPENDENT = 1,
+    AX_VO_BLEND_MODE_INDEPENDENT_EXT = 2,
     AX_VO_BLEND_MODE_BUTT
 } AX_VO_BLEND_MODE_E;
 
@@ -413,6 +419,12 @@ typedef struct axFB_CURSOR_INFO_T {
     AX_FB_CURSOR_RES_T stRes;
 } AX_FB_CURSOR_INFO_T;
 
+typedef struct axFB_BLEND_INFO_T {
+    AX_U16 u16Mode;
+    AX_U16 u16Stride;
+    AX_U64 u64PhyAddr;
+} AX_FB_BLEND_INFO_T;
+
 typedef struct axVO_MEMCPY_T {
     AX_VO_SIZE_T stSize;
     AX_U64 u64PhyAddr;
@@ -469,6 +481,8 @@ AX_S32 AX_VO_UnBindVideoLayer(VO_LAYER VoLayer, VO_DEV VoDev);
 
 AX_S32 AX_VO_BindGraphicLayer(GRAPHIC_LAYER GraphicLayer, VO_DEV VoDev);
 AX_S32 AX_VO_UnBindGraphicLayer(GRAPHIC_LAYER GraphicLayer, VO_DEV VoDev);
+AX_S32 AX_VO_SetGraphicLayerVrefresh(VO_DEV VoDev, GRAPHIC_LAYER GraphicLayer, AX_U32 u32Vrefresh);
+AX_S32 AX_VO_GetGraphicLayerVrefresh(VO_DEV VoDev, GRAPHIC_LAYER GraphicLayer, AX_U32 *u32Vrefresh);
 
 /* This interface obtains the FD corresponding to the layer for the select operation. Closing operation is not allowed */
 AX_S32 AX_VO_GetLayerFd(VO_LAYER VoLayer, AX_S32 *s32Fd);

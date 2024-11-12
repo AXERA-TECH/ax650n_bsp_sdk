@@ -15,8 +15,14 @@ fi
 # settings
 #
 # ----------------------------------------------------------------------------------------------#
-# core dump
-core_dump=1
+
+# Check whether config coredump path (Only "-q 0" to disable config)
+if [[ $(expr match "$*" ".*-q 0.*") != 0 ]]
+then
+  core_dump=0
+else
+  core_dump=1
+fi
 
 # mount video
 mount_video=1
@@ -54,6 +60,10 @@ export TIMESTAMP_APP_BUF_NUM=20
 
 # RTP transport mode, 0: UDP (default)  1: TCP
 # export RTP_TRANSPORT_MODE=1
+
+# net
+echo 1048576 > /proc/sys/net/core/rmem_max
+echo  786432 > /proc/sys/net/core/rmem_default
 
 echo "rm all syslogs ..."
 rm /opt/data/AXSyslog/syslog/*

@@ -558,10 +558,47 @@ AX_S32 CDataStreamFile::FindFrmIndexByTime(AX_S32 nSeconds, AX_BOOL bOnlyIFrame 
     return -1;
 }
 
+AX_S32 CDataStreamFile::FindFrmIndexByOffset(AX_U32 nFrmOffset) {
+    if (!IsOpened()) {
+        return -1;
+    }
+
+    if (nFrmOffset >= m_tFileHeader.uTailOffset || nFrmOffset < m_tFileHeader.uDataOffset) {
+        LOG_MM_E(DSF, "Frame offset 0x%08X out of range[0x%08X - 0x%08X).", nFrmOffset, m_tFileHeader.uDataOffset, m_tFileHeader.uTailOffset);
+        return -1;
+    }
+
+    AX_S32 nPos = lseek(m_hFD, m_tFileHeader.uTailOffset + sizeof(AXDS_FILE_TAIL_T) - sizeof(AX_U32*), SEEK_SET);
+    if (-1 == nPos) {
+        LOG_MM_E(DSF, "lseek to frame tail offset failed, ret=%d, err=%s.", nPos, strerror(errno));
+        return -1;
+    }
+
+    AX_S32 nFrmIndex = -1;
+    AX_U32 nFrmOffsetOfTail = 0;
+    for (AX_U32 i = 0; i < m_tFileHeader.uFrameCount; ++i) {
+        read(m_hFD, &nFrmOffsetOfTail, 4);
+        if (nFrmOffset == nFrmOffsetOfTail) {
+            nFrmIndex = i;
+            break;
+        }
+    }
+
+    return nFrmIndex;
+}
+
 CDSFIterator CDataStreamFile::frm_begin() {
     return CDSFIterator(this, CDSFIterator::BEGIN);
 }
 
 CDSFIterator CDataStreamFile::frm_end() {
     return CDSFIterator(this, CDSFIterator::END);
+}
+
+CDSFIterator CDataStreamFile::frm_rbegin() {
+    return CDSFIterator(this, CDSFIterator::RBEGIN);
+}
+
+CDSFIterator CDataStreamFile::frm_rend() {
+    return CDSFIterator(this, CDSFIterator::REND);
 }

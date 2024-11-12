@@ -1,0 +1,33 @@
+<RCC>
+  <qresource prefix="/img">
+    <file>pip.png</file>
+    <file>refresh.png</file>
+    <file>checked.png</file>
+    <file>unchecked.png</file>
+    <file>1x1.png</file>
+    <file>playback_fast.png</file>
+    <file>playback_next.png</file>
+    <file>playback_pause.png</file>
+    <file>playback_prev.png</file>
+    <file>playback_rewind.png</file>
+    <file>playback_start.png</file>
+    <file>playback_slow.png</file>
+    <file>playback_step_next.png</file>
+    <file>playback_step_prev.png</file>
+    <file>playback_stop.png</file>
+    <file>2x2.png</file>
+    <file>1+7.png</file>
+    <file>4x4.png</file>
+    <file>8x8.png</file>
+    <file>forward.png</file>
+    <file>previous.png</file>
+    <file>poll.png</file>
+    <file>add.png</file>
+    <file>remove.png</file>
+    <file>live.png</file>
+    <file>playback.png</file>
+    <file>setting.png</file>
+    <file>shutdown.png</file>
+    <file>logo.png</file>
+  </qresource>
+</RCC>

@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -54,6 +54,12 @@ typedef struct axSAMPLE_VDEC_LINK_CMD_PARAM_T {
     SAMPLE_VDEC_CMD_PARAM_T stVdecCmdParam;
 } SAMPLE_VDEC_LINK_CMD_PARAM_T;
 
+typedef enum {
+    SAMPLE_POLLING_TYPE_RESET_DESTROY,
+    SAMPLE_POLLING_TYPE_DESTROY,
+    SAMPLE_POLLING_TYPE_RESET,
+    SAMPLE_POLLING_TYPE_BUTT,
+} SAMPLE_POLLING_TYPE_E;
 
 AX_S32 gGrpNum = 1;
 AX_S32 gLoopDecodeNumber = 1;
@@ -116,8 +122,14 @@ static SAMPLE_VO_CONFIG_S g_stVoConf = {
             .u64KeepChnPrevFrameBitmap0 = ~0x0UL,
             .u64KeepChnPrevFrameBitmap1 = ~0x0UL,
         },
-        {.bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},},
-        {.bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},},
+        {
+            .bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},
+            .u32FifoDepth = 3,
+        },
+        {
+            .bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},
+            .u32FifoDepth = 3,
+        },
     },
 };
 
@@ -130,7 +142,13 @@ static AX_S32 _LinkInit(SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
     SAMPLE_LOG_T("start +++++++++++");
     SrcMod.enModId = AX_ID_VDEC;
     SrcMod.s32GrpId = pstCmd->uStartGrpId;
-    SrcMod.s32ChnId = 0;
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        SrcMod.s32ChnId = pstCmd->s32VdecVirtChn;
+    } else {
+        SrcMod.s32ChnId = 0;
+    }
+
     DstMod.enModId = AX_ID_IVPS;
     DstMod.s32GrpId = 0;
     DstMod.s32ChnId = 0;
@@ -183,7 +201,13 @@ static AX_S32 _LinkExit(SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
 
     SrcMod.enModId = AX_ID_VDEC;
     SrcMod.s32GrpId = pstCmd->uStartGrpId;
-    SrcMod.s32ChnId = 0;
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        SrcMod.s32ChnId = pstCmd->s32VdecVirtChn;
+    } else {
+        SrcMod.s32ChnId = 0;
+    }
+
     DstMod.enModId = AX_ID_IVPS;
     DstMod.s32GrpId = 0;
     DstMod.s32ChnId = 0;
@@ -207,6 +231,7 @@ static void *_AX_Link_VDEC_IVPS_TEST(void *arg)
     AX_S32 s32Ret = -1;
     AX_MOD_INFO_T DstMod = {0};
     AX_MOD_INFO_T SrcMod = {0};
+    AX_VDEC_CHN linkVdecChn = AX_INVALID_ID;
 
     return NULL;
 
@@ -216,7 +241,14 @@ static void *_AX_Link_VDEC_IVPS_TEST(void *arg)
 
     SrcMod.enModId = AX_ID_VDEC;
     SrcMod.s32GrpId = pstCmd->uStartGrpId;
-    SrcMod.s32ChnId = 0;
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        linkVdecChn = pstCmd->s32VdecVirtChn;
+    } else {
+        linkVdecChn = 0;
+    }
+    SrcMod.s32ChnId = linkVdecChn;
+
     DstMod.enModId = AX_ID_IVPS;
     DstMod.s32GrpId = 0;
     DstMod.s32ChnId = 0;
@@ -235,7 +267,7 @@ static void *_AX_Link_VDEC_IVPS_TEST(void *arg)
 
     SrcMod.enModId = AX_ID_VDEC;
     SrcMod.s32GrpId = pstCmd->uStartGrpId;
-    SrcMod.s32ChnId = 0;
+    SrcMod.s32ChnId = linkVdecChn;
 
     DstMod.enModId = AX_ID_IVPS;
     DstMod.s32GrpId = 0;
@@ -350,7 +382,7 @@ static void *_AX_LinkTest(void *arg)
     return NULL;
 }
 
-AX_S32 VdecPollingClose(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPLE_VO_CONFIG_S *pstVoConf)
+AX_S32 SamplePollingReset(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPLE_VO_CONFIG_S *pstVoConf)
 {
     AX_S32 s32Ret = 0;
     AX_U32 uStartGrpId;
@@ -365,7 +397,72 @@ AX_S32 VdecPollingClose(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMP
         return -1;
     }
 
+    uStartGrpId = pstCmd->uStartGrpId;
+    SAMPLE_LOG_T("start ############ VdGrp=%d", VdGrp);
+    s32Ret = AX_VDEC_StopRecvStream(VdGrp);
+    if (s32Ret) {
+            SAMPLE_CRIT_LOG("VdGrp:%d, AX_VDEC_StopRecvStream fail! Error Code:0x%X\n", VdGrp, s32Ret);
+            goto ERR_RET;
+    }
+
+    SAMPLE_LOG_T("stop vdec done +++++++++++ VdGrp=%d", VdGrp);
+    while (1) {
+        s32Ret = AX_VDEC_ResetGrp(VdGrp);
+        if (s32Ret != AX_ERR_VDEC_BUSY) {
+            break;
+        }
+        usleep(10000);
+    }
+    SAMPLE_LOG_T("reset vdec done +++++++++++ VdGrp=%d", VdGrp);
+
+    if (VdGrp == uStartGrpId) {
+        SAMPLE_LOG_T("ivps and vo reset start +++++++++++ VdGrp=%d", VdGrp);
+        SampleIvpsReset();
+        VoReset(pstVoConf);
+        SAMPLE_LOG_T("ivps and vo reset done +++++++++++ VdGrp=%d", VdGrp);
+    }
+
+    s32Ret = AX_VDEC_StartRecvStream(VdGrp, NULL);
+    if (s32Ret != AX_SUCCESS) {
+            SAMPLE_CRIT_LOG("AX_VDEC_StartRecvStream failed! ret:0x%x %s\n", s32Ret, AX_VdecRetStr(s32Ret));
+            goto ERR_RET;
+    }
+
+
+    SAMPLE_LOG_T("end ############ VdGrp=%d", VdGrp);
+
+
+    return AX_SUCCESS;
+
+ERR_RET:
+    return s32Ret;
+}
+
+
+AX_S32 SamplePollingClose(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPLE_VO_CONFIG_S *pstVoConf)
+{
+    AX_S32 s32Ret = 0;
+    AX_U32 uStartGrpId;
+    AX_VDEC_CHN VdChn = AX_INVALID_ID;
+
+    if (pstCmd == NULL) {
+        SAMPLE_CRIT_LOG("pstCmd == NULL");
+        return -1;
+    }
+
+    if (pstVoConf == NULL) {
+        SAMPLE_CRIT_LOG("pstVoConf == NULL");
+        return -1;
+    }
+
     SAMPLE_LOG_T("start +++++++++++ VdGrp=%d", VdGrp);
+
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        VdChn = pstCmd->s32VdecVirtChn;
+    } else {
+        VdChn = 0;
+    }
 
     uStartGrpId = pstCmd->uStartGrpId;
     if (VdGrp == uStartGrpId) {
@@ -377,7 +474,7 @@ AX_S32 VdecPollingClose(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMP
 
         VoDeInit(pstVoConf);
 
-        s32Ret = SampleIvpsExit();
+        s32Ret = SampleIvpsExit(pstCmd->bEnaIvpsBakFrm);
         if (AX_SUCCESS != s32Ret) {
             SAMPLE_CRIT_LOG("SampleIvpsExit error.\n");
             goto ERR_RET;
@@ -391,7 +488,7 @@ AX_S32 VdecPollingClose(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMP
     }
 
     if (pstCmd->enFrameBufSrc == POOL_SOURCE_USER) {
-        s32Ret = AX_VDEC_DetachPool(VdGrp, 0);
+        s32Ret = AX_VDEC_DetachPool(VdGrp, VdChn);
         if (s32Ret) {
             SAMPLE_CRIT_LOG("AX_VDEC_DetachPool fail! Error Code:0x%X\n", s32Ret);
             goto ERR_RET;
@@ -425,7 +522,7 @@ ERR_RET:
     return s32Ret;
 }
 
-AX_S32 VdecPollingOpen(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPLE_VO_CONFIG_S *pstVoConf)
+AX_S32 SamplePollingOpen(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPLE_VO_CONFIG_S *pstVoConf)
 {
     AX_S32 s32Ret = 0;
     AX_VDEC_CHN_ATTR_T stChnAttr;
@@ -450,6 +547,12 @@ AX_S32 VdecPollingOpen(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPL
     SAMPLE_LOG_T("start +++++++++++ VdGrp=%d", VdGrp);
 
     uStartGrpId = pstCmd->uStartGrpId;
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        VdChn = pstCmd->s32VdecVirtChn;
+    } else {
+        VdChn = 0;
+    }
 
     if (VdGrp == uStartGrpId) {
         /*vdec link ivps*/
@@ -465,7 +568,7 @@ AX_S32 VdecPollingOpen(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd, SAMPL
             goto ERR_RET;
         }
 
-        s32Ret = SampleIVPS_Init();
+        s32Ret = SampleIVPS_Init(pstCmd->bEnaIvpsBakFrm);
         if (AX_SUCCESS != s32Ret) {
             SAMPLE_CRIT_LOG("SampleIVPS_Init error. s32Ret:0x%x \n", s32Ret);
             goto ERR_RET;
@@ -579,7 +682,12 @@ static void *_VdecPollingTest(void *arg)
     AX_S32 poolingNum = 0;
     AX_BOOL bStartWait = AX_TRUE;
     AX_U32 pollingTime = 0;
+    AX_U32 randPollingTime = 0;
     AX_U32 pollingWaitCnt = 0;
+    AX_BOOL bRestTest = AX_TRUE;
+    AX_BOOL inTestNum = 0;
+    SAMPLE_POLLING_TYPE_E pollingType = SAMPLE_POLLING_TYPE_RESET_DESTROY;
+    AX_U32 pollingExcCnt = 0;
 
     if (arg == NULL) {
         SAMPLE_CRIT_LOG("arg == NULL");
@@ -593,14 +701,17 @@ static void *_VdecPollingTest(void *arg)
         return NULL;
     }
 
+    srand(time(NULL));
     uGrpCount = pstCmd->uGrpCount;
     uStartGrpId = pstCmd->uStartGrpId;
     poolingNum = pstPollingArgs->pollingCnt;
     pollingTime = pstCmd->pollingTime ? pstCmd->pollingTime : 10;
-    pollingWaitCnt = pollingTime * 10;
+    randPollingTime = rand() % pollingTime + 1;
+    pollingWaitCnt = randPollingTime * 10;
+    pollingType = pstPollingArgs->pollingType;
 
-    SAMPLE_LOG_T("poolingNum:%d pollingTime:%d, uStartGrpId:%d, uGrpCount:%d\n",
-                 poolingNum, pollingTime, uStartGrpId, uGrpCount);
+    SAMPLE_LOG_T("pollingType:%d poolingNum:%d pollingTime:%d, uStartGrpId:%d, uGrpCount:%d\n",
+                 pollingType, poolingNum, pollingTime, uStartGrpId, uGrpCount);
 
     while (1) {
         if (gLoopExit) {
@@ -623,24 +734,47 @@ static void *_VdecPollingTest(void *arg)
             bStartWait = AX_FALSE;
         }
 
+        if (pollingType == SAMPLE_POLLING_TYPE_DESTROY) {
+             bRestTest = AX_FALSE;
+        } else if (pollingType == SAMPLE_POLLING_TYPE_RESET) {
+            if (pollingExcCnt)
+                bRestTest = AX_TRUE;
+        } else {
+            if (inTestNum == 0) {
+                inTestNum = rand() % 10 + 1;
+                bRestTest = AX_FALSE;
+            } else {
+                bRestTest = AX_TRUE;
+            }
+        }
+
         pstPollingArgs->pollingStat = SAMPLE_VDEC_POLLING_STATUS_START;
-        SAMPLE_LOG_T("start polling +++++ poolingNum %d uStartGrpId:%d uGrpCount:%d",
-                     poolingNum, uStartGrpId, uGrpCount);
+        SAMPLE_LOG_T("start polling +++++ bRestTest:%d inTestNum %d poolingNum %d randPollingTime:%d uStartGrpId:%d uGrpCount:%d",
+                     bRestTest, inTestNum, poolingNum, randPollingTime, uStartGrpId, uGrpCount);
         for (VdGrp = uStartGrpId; VdGrp < uStartGrpId + uGrpCount; VdGrp++) {
              SAMPLE_VDEC_MUTEXT_LOCK(&pstPollingArgs->pollingMutex[VdGrp]);
 
-            s32Ret = VdecPollingClose(VdGrp, pstCmd, pstRecvArgs->pstVoConf);
-            if (s32Ret != AX_SUCCESS) {
-                SAMPLE_CRIT_LOG("VdecPollingExe failed. s32Ret=0x%x", s32Ret);
-                SAMPLE_VDEC_MUTEXT_UNLOCK(&pstPollingArgs->pollingMutex[VdGrp]);
-                goto ERR_RET;
-            }
+            if (bRestTest) {
+                SamplePollingReset(VdGrp, pstCmd, pstRecvArgs->pstVoConf);
+                if (s32Ret != AX_SUCCESS) {
+                    SAMPLE_CRIT_LOG("SampleVdecPollingReset failed. s32Ret=0x%x", s32Ret);
+                    SAMPLE_VDEC_MUTEXT_UNLOCK(&pstPollingArgs->pollingMutex[VdGrp]);
+                    goto ERR_RET;
+                }
+            } else {
+                s32Ret = SamplePollingClose(VdGrp, pstCmd, pstRecvArgs->pstVoConf);
+                if (s32Ret != AX_SUCCESS) {
+                    SAMPLE_CRIT_LOG("SamplePollingClose failed. s32Ret=0x%x", s32Ret);
+                    SAMPLE_VDEC_MUTEXT_UNLOCK(&pstPollingArgs->pollingMutex[VdGrp]);
+                    goto ERR_RET;
+                }
 
-            s32Ret = VdecPollingOpen(VdGrp, pstCmd, pstRecvArgs->pstVoConf);
-            if (s32Ret != AX_SUCCESS) {
-                SAMPLE_CRIT_LOG("VdecPollingOpen failed. s32Ret=0x%x", s32Ret);
-                SAMPLE_VDEC_MUTEXT_UNLOCK(&pstPollingArgs->pollingMutex[VdGrp]);
-                goto ERR_RET;
+                s32Ret = SamplePollingOpen(VdGrp, pstCmd, pstRecvArgs->pstVoConf);
+                if (s32Ret != AX_SUCCESS) {
+                    SAMPLE_CRIT_LOG("SamplePollingOpen failed. s32Ret=0x%x", s32Ret);
+                    SAMPLE_VDEC_MUTEXT_UNLOCK(&pstPollingArgs->pollingMutex[VdGrp]);
+                    goto ERR_RET;
+                }
             }
 
             pstPollingArgs->reSendStream[VdGrp] = AX_TRUE;
@@ -649,9 +783,11 @@ static void *_VdecPollingTest(void *arg)
 
         pstPollingArgs->pollingStat = SAMPLE_VDEC_POLLING_STATUS_END;
         poolingNum--;
+        pollingExcCnt++;
+        inTestNum--;
         SAMPLE_LOG_T("end polling +++++ uStartGrpId:%d uGrpCount:%d ", uStartGrpId, uGrpCount);
-
-        pollingWaitCnt = pollingTime * 10;
+        randPollingTime = rand() % pollingTime + 1;
+        pollingWaitCnt = randPollingTime * 10;
         while(!gLoopExit && pollingWaitCnt > 0) {
             usleep(100 *1000);
             pollingWaitCnt--;
@@ -661,7 +797,7 @@ static void *_VdecPollingTest(void *arg)
             break;
         }
 
-        if (poolingNum == 0) {
+        if (poolingNum <= 0) {
            pstPollingArgs->pollingStat = SAMPLE_VDEC_POLLING_STATUS_EXIT;
            SAMPLE_LOG_T("exit polling +++++");
            break;
@@ -697,7 +833,7 @@ AX_S32 SAMPLE_EXIT(AX_VOID)
 
     VoDeInit(&g_stVoConf);
 
-    sRet = SampleIvpsExit();
+    sRet = SampleIvpsExit(pstCmd->stVdecCmdParam.bEnaIvpsBakFrm);
     if (AX_SUCCESS != sRet) {
         SAMPLE_CRIT_LOG("SampleIvpsExit error.\n");
         s32Ret = sRet;
@@ -712,7 +848,7 @@ AX_S32 SAMPLE_EXIT(AX_VOID)
                 s32Ret = sRet;
             }
         } else if (pstCmd->stVdecCmdParam.enFrameBufSrc == POOL_SOURCE_USER) {
-            sRet = VdecUserPoolExitFunc(GrpArgs[i].VdecGrp);
+            sRet = VdecUserPoolExitFunc(GrpArgs[i].VdecGrp, &pstCmd->stVdecCmdParam);
             if (AX_SUCCESS != sRet) {
                 SAMPLE_CRIT_LOG("VdecUserPoolExitFunc %d FAILED! VdGrp:%d ret:0x%x\n",
                                 i, GrpArgs[i].VdecGrp, sRet);
@@ -755,7 +891,7 @@ static void _SigIntZ(int sigNo)
 }
 
 
-static AX_S32 VdecPollingInit(SAMPLE_VDEC_POLLING_ARGS_T **pArgs, SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
+static AX_S32 SamplePollingInit(SAMPLE_VDEC_POLLING_ARGS_T **pArgs, SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
 {
     AX_S32 s32Ret = AX_SUCCESS;
     int ret = 0;
@@ -791,6 +927,7 @@ static AX_S32 VdecPollingInit(SAMPLE_VDEC_POLLING_ARGS_T **pArgs, SAMPLE_VDEC_CM
     pstPollingArgs->pollingStat = AX_VDEC_FIFO_STATUS_BUTT;
     pstPollingArgs->pollingCnt = pstCmd->pollingCnt;
     pstPollingArgs->pollingTime = pstCmd->pollingTime;
+    pstPollingArgs->pollingType = pstCmd->pollingType;
     for (gi = uStartGrpId; gi < uStartGrpId + uGrpCount; gi++) {
         ret = pthread_mutex_init(&pstPollingArgs->pollingMutex[gi], NULL);
         if (ret != 0) {
@@ -820,7 +957,7 @@ ERR_RET:
     return s32Ret;
 }
 
-static void VdecPollingDeInit(SAMPLE_VDEC_POLLING_ARGS_T *pArgs, SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
+static void SamplePollingDeInit(SAMPLE_VDEC_POLLING_ARGS_T *pArgs, SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
 {
     AX_U32 uStartGrpId = 0;
     AX_U32 uGrpCount = 0;
@@ -859,6 +996,7 @@ int main(int argc, char *argv[])
     SAMPLE_VDEC_RECV_ARGS_T stRecvArgs = {0};
     pthread_t LinkTestTid;
     pthread_t pollingTid;
+    AX_VDEC_MOD_ATTR_T stModAttr;
 
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, _SigInt); /* ctrl + c */
@@ -889,9 +1027,9 @@ int main(int argc, char *argv[])
     }
 
     if (pstCmd->stVdecCmdParam.pollingEna) {
-        s32Ret = VdecPollingInit(&pstPollingArgs, &pstCmd->stVdecCmdParam);
+        s32Ret = SamplePollingInit(&pstPollingArgs, &pstCmd->stVdecCmdParam);
         if (AX_SUCCESS != s32Ret) {
-            SAMPLE_CRIT_LOG("VdecPollingInit FAILED! ret:0x%x\n", s32Ret);
+            SAMPLE_CRIT_LOG("SamplePollingInit FAILED! ret:0x%x\n", s32Ret);
             goto ERR_RET;
         }
     }
@@ -902,7 +1040,12 @@ int main(int argc, char *argv[])
         goto ERR_RET;
     }
 
-    s32Ret = AX_VDEC_Init(NULL);
+    memset(&stModAttr, 0x0, sizeof(AX_VDEC_MOD_ATTR_T));
+    stModAttr.enDecModule = pstCmd->stVdecCmdParam.enDecModule;
+    stModAttr.u32MaxGroupCount = pstCmd->stVdecCmdParam.uMaxGrpCnt;
+    stModAttr.VdecVirtChn = pstCmd->stVdecCmdParam.s32VdecVirtChn;
+
+    s32Ret = AX_VDEC_Init(&stModAttr);
     if (AX_SUCCESS != s32Ret) {
         SAMPLE_CRIT_LOG("AX_VDEC_Init FAILED! ret:0x%x %s\n",
                         s32Ret, AX_VdecRetStr(s32Ret));
@@ -933,7 +1076,7 @@ int main(int argc, char *argv[])
         goto ERR_RET_SYS_DEINIT;
     }
 
-    s32Ret = SampleIVPS_Init();
+    s32Ret = SampleIVPS_Init(pstCmd->stVdecCmdParam.bEnaIvpsBakFrm);
     if (AX_SUCCESS != s32Ret) {
         SAMPLE_CRIT_LOG("SampleIVPS_Init error. s32Ret:0x%x \n", s32Ret);
         goto ERR_RET_SYS_DEINIT;
@@ -1004,10 +1147,18 @@ int main(int argc, char *argv[])
 
     pthread_join(LinkTestTid, NULL);
 
-    while(!gLoopExit && waitCnt <= pstCmd->stVdecCmdParam.waitTime) {
+    while(1) {
+        if (gLoopExit) break;
+
         sleep(1);
-        if (pstCmd->stVdecCmdParam.waitTime)
+        if (pstCmd->stVdecCmdParam.waitTime) {
             waitCnt++;
+            if (waitCnt >= pstCmd->stVdecCmdParam.waitTime) {
+                break;
+            }
+        } else {
+            break;
+        }
     }
 
     SAMPLE_EXIT();
@@ -1023,7 +1174,7 @@ int main(int argc, char *argv[])
     }
 
     if (pstCmd->stVdecCmdParam.pollingEna && pstPollingArgs) {
-        VdecPollingDeInit(pstPollingArgs, &pstCmd->stVdecCmdParam);
+        SamplePollingDeInit(pstPollingArgs, &pstCmd->stVdecCmdParam);
     }
 
     SAMPLE_LOG_T("Decode Finished! \n\n"); // Log for verify, please do not modify
@@ -1038,7 +1189,7 @@ ERR_RET_SYS_DEINIT:
 
 ERR_RET:
     if (pstCmd->stVdecCmdParam.pollingEna && pstPollingArgs) {
-        VdecPollingDeInit(pstPollingArgs, &pstCmd->stVdecCmdParam);
+        SamplePollingDeInit(pstPollingArgs, &pstCmd->stVdecCmdParam);
     }
 
     return s32Ret || sRet;

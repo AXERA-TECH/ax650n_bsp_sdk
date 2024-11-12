@@ -20,6 +20,7 @@ AX_VOID CRtspDamon::DamonThread(AX_VOID* /* pArg */) {
     LOG_M_I(TAG, "%s: %s +++", __func__, m_stAttr.strUrl.c_str());
 
     AX_S32 nLossCnt = {-1};
+    AX_BOOL bNetDown = AX_FALSE;
 
     while (1) {
         if (!m_thread.IsRunning()) {
@@ -36,7 +37,7 @@ AX_VOID CRtspDamon::DamonThread(AX_VOID* /* pArg */) {
             nLossCnt = 0;
         } else {
             ++nLossCnt;
-            LOG_M_W(TAG, "%d heart beats are lossed from %s", nLossCnt, m_stAttr.strUrl.c_str());
+            LOG_MM_W(TAG, "[%d] %d heart beats are lossed from %s", m_stAttr.nCookie, nLossCnt, m_stAttr.strUrl.c_str());
         }
 
         if (!m_thread.IsRunning()) {
@@ -48,12 +49,16 @@ AX_VOID CRtspDamon::DamonThread(AX_VOID* /* pArg */) {
             nLossCnt = -1;
 
             ReportConnectStatus(1);
-            LOG_M_W(TAG, "disconnect with %s, checking network ...", m_stAttr.strUrl.c_str());
+            LOG_MM_W(TAG, "[%d] disconnect with %s, checking network ...", m_stAttr.nCookie, m_stAttr.strUrl.c_str());
             while (m_thread.IsRunning()) {
                 if (0 == ping4(m_stAttr.strUrl.c_str(), 2)) {
+                    bNetDown = AX_FALSE;
                     break;
                 } else {
-                    LOG_M_W(TAG, "network to %s is down", m_stAttr.strUrl.c_str());
+                    if (!bNetDown) {
+                        LOG_MM_W(TAG, "[%d] network to %s is down", m_stAttr.nCookie, m_stAttr.strUrl.c_str());
+                        bNetDown = AX_TRUE;
+                    }
                 }
 
                 /* if network is down, delay to wait network stable */
@@ -63,7 +68,7 @@ AX_VOID CRtspDamon::DamonThread(AX_VOID* /* pArg */) {
             AX_BOOL bConn = {AX_FALSE};
             AX_S32 i = {0};
             while (m_thread.IsRunning()) {
-                LOG_M_W(TAG, "network is ok, reconnecting %d to %s ...", ++i, m_stAttr.strUrl.c_str());
+                LOG_MM_W(TAG, "[%d] network is ok, reconnecting %d to %s ...", m_stAttr.nCookie, ++i, m_stAttr.strUrl.c_str());
                 if (m_stAttr.reconnect()) {
                     bConn = AX_TRUE;
                     break;
@@ -74,7 +79,7 @@ AX_VOID CRtspDamon::DamonThread(AX_VOID* /* pArg */) {
 
             if (!bConn) {
                 ReportConnectStatus(0);
-                LOG_M_E(TAG, "reconnect to %s fail", m_stAttr.strUrl.c_str());
+                LOG_MM_E(TAG, "[%d] reconnect to %s fail", m_stAttr.nCookie, m_stAttr.strUrl.c_str());
                 break;
             }
         }
@@ -118,8 +123,10 @@ AX_BOOL CRtspDamon::Start(AX_VOID) {
 
     LOG_M_I(TAG, "%s: %s +++", __func__, m_stAttr.strUrl.c_str());
 
-    if (!m_thread.Start([this](AX_VOID* pArg) -> AX_VOID { DamonThread(pArg); }, this, "RtspDamon")) {
-        LOG_M_E(TAG, "start damon thread of %s fail", m_stAttr.strUrl.c_str());
+    char szName[32];
+    sprintf(szName, "rtspDamon%d", m_stAttr.nCookie);
+    if (!m_thread.Start([this](AX_VOID* pArg) -> AX_VOID { DamonThread(pArg); }, this, szName)) {
+        LOG_MM_E(TAG, "[%d] start damon thread of %s fail", m_stAttr.nCookie, m_stAttr.strUrl.c_str());
         return AX_FALSE;
     }
 

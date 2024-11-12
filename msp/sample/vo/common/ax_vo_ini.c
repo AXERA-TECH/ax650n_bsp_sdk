@@ -310,70 +310,90 @@ static AX_CHAR *key_str[AX_VO_INI_K_BUTT] = {
     "disp_cursor_fb_index",
     "disp_cursor_move",
     "disp_out_fmt",
+    "disp_bld_buf_mode",
 };
 
 static AX_S32 VO_INI_FB_CONF_PARSE(AX_CHAR *pStr, SAMPLE_FB_CONFIG_S *pstFbConf)
 {
-    AX_U32 u32StrNr = 0;
-    AX_CHAR *pStrSplit[4] = {NULL, NULL, NULL, NULL};
+    AX_S32 s32Ret = 0;
+    AX_U32 i, u32StrNr = 0;
+    AX_CHAR *pStrSplit[10] = {0};
     AX_CHAR *pStrKey = ":@", *pStrTmp, *pSaveStr;
 
     memset(pstFbConf, 0, sizeof(*pstFbConf));
 
     pStrTmp = strtok_r(pStr, pStrKey, &pSaveStr);
-    while (pStrTmp && u32StrNr < 4) {
+    while (pStrTmp && u32StrNr < 10) {
         SAMPLE_PRT("split:%s\n", pStrTmp);
         pStrSplit[u32StrNr++] = pStrTmp;
         pStrTmp = strtok_r(NULL, pStrKey, &pSaveStr);
     }
 
-    if (u32StrNr < 3) {
-        SAMPLE_PRT("fb config invalid, u32StrNr:%d\n", u32StrNr);
-        return -1;
-    }
+    for (i = 0; i < u32StrNr; i += 1) {
+        if (strstr(pStrSplit[i], "fb")) {
+            if (strlen(pStrSplit[i]) <= 2) {
+                goto err;
+            }
+	    pstFbConf->u32Index = strtoul(&pStrSplit[i][2], NULL, 10);
 
-    if (strlen(pStrSplit[0]) > 2) {
-        pstFbConf->u32Index = strtoul(&pStrSplit[0][2], NULL, 10);
-    } else {
-        SAMPLE_PRT("fb index-str(%s) invalid\n", pStrSplit[0]);
-        return -1;
-    }
-
-    pstFbConf->u32ResoW = strtoul(pStrSplit[1], &pStrTmp, 10);
-    if (!pStrTmp) {
-        SAMPLE_PRT("fb reso-str(%s) invalid\n", pStrSplit[1]);
-        return -1;
-    }
-    pStrTmp++;
-    pstFbConf->u32ResoH = strtoul(pStrTmp, NULL, 10);
-
-    if (strstr(pStrSplit[2], "argb8888")) {
-        pstFbConf->u32Fmt = AX_FORMAT_ARGB8888;
-    } else if (strstr(pStrSplit[2], "argb1555")) {
-        pstFbConf->u32Fmt = AX_FORMAT_ARGB1555;
-    } else if (strstr(pStrSplit[2], "rgba8888")) {
-        pstFbConf->u32Fmt = AX_FORMAT_RGBA8888;
-    } else if (strstr(pStrSplit[2], "rgba5551")) {
-        pstFbConf->u32Fmt = AX_FORMAT_RGBA5551;
-    } else {
-        SAMPLE_PRT("fb fmt-str(%s) invalid\n", pStrSplit[2]);
-        return -1;
-    }
-
-    if (u32StrNr > 3 && strlen(pStrSplit[3]) > 2) {
-        pstFbConf->u32ColorKey = strtoul(&pStrSplit[3][2], &pStrTmp, 16);
-        if (pStrTmp) {
+        } else if (strstr(pStrSplit[i], "reso#")) {
+            if (strlen(pStrSplit[i]) <= 5) {
+                goto err;
+            }
+            pstFbConf->u32ResoW = strtoul(&pStrSplit[i][5], &pStrTmp, 10);
+            if (!pStrTmp || strlen(pStrTmp) < 2) {
+                goto err;
+            }
             pStrTmp++;
-            pstFbConf->u32ColorKeyInv = strtoul(pStrTmp, NULL, 10) ? 1 : 0;
+            pstFbConf->u32ResoH = strtoul(pStrTmp, NULL, 10);
+
+        } else if (strstr(pStrSplit[i], "vrefresh#")) {
+            if (strlen(pStrSplit[i]) <= 9) {
+                goto err;
+            }
+	    pstFbConf->u32Vrefresh= strtoul(&pStrSplit[i][9], NULL, 10);
+
+        } else if (strstr(pStrSplit[i], "fmt#")) {
+            if (strstr(pStrSplit[i], "argb8888")) {
+                pstFbConf->u32Fmt = AX_FORMAT_ARGB8888;
+            } else if (strstr(pStrSplit[i], "argb1555")) {
+                pstFbConf->u32Fmt = AX_FORMAT_ARGB1555;
+            } else if (strstr(pStrSplit[i], "rgba8888")) {
+                pstFbConf->u32Fmt = AX_FORMAT_RGBA8888;
+            } else if (strstr(pStrSplit[i], "rgba5551")) {
+                pstFbConf->u32Fmt = AX_FORMAT_RGBA5551;
+            } else {
+                SAMPLE_PRT("unsupported str\n");
+                goto err;
+            }
+
+        } else if (strstr(pStrSplit[i], "ck#")) {
+            if (strlen(pStrSplit[i]) <= 3) {
+                goto err;
+            }
+
+            pstFbConf->u32ColorKey = strtoul(&pStrSplit[i][3], &pStrTmp, 16);
+            if (pStrTmp) {
+                pStrTmp++;
+                pstFbConf->u32ColorKeyInv = strtoul(pStrTmp, NULL, 10) ? 1 : 0;
+            }
+            pstFbConf->u32ColorKeyEn = 1;
+
         }
-        pstFbConf->u32ColorKeyEn = 1;
+
+        continue;
+
+err:
+        SAMPLE_PRT("str(%s) invalid\n", pStrSplit[i]);
+        s32Ret = -1;
+	break;
     }
 
-    SAMPLE_PRT("fb%d reso:%dx%d fmt:0x%x, ck:0x%x-%d-%d\n", pstFbConf->u32Index,
-               pstFbConf->u32ResoW, pstFbConf->u32ResoH, pstFbConf->u32Fmt,
+    SAMPLE_PRT("fb%d reso:%dx%d vrefresh:%d fmt:0x%x, ck:0x%x-%d-%d\n", pstFbConf->u32Index,
+               pstFbConf->u32ResoW, pstFbConf->u32ResoH, pstFbConf->u32Vrefresh, pstFbConf->u32Fmt,
                pstFbConf->u32ColorKey, pstFbConf->u32ColorKeyInv, pstFbConf->u32ColorKeyEn);
 
-    return 0;
+    return s32Ret;
 }
 
 static AX_VOID VO_INI_GRAPHIC_PARSE(AX_CHAR *pStr, SAMPLE_VO_GRAPHIC_CONFIG_S *pstGraphConf)
@@ -1220,6 +1240,21 @@ static AX_S32 VO_INI_GET_KEY_VAL(AX_CHAR *pstr, AX_VOID *pConfig,
                 }
             }
         }
+        break;
+
+    case AX_VO_INI_K_D_BLD_BUF_MODE:
+        if (type == AX_VO_INI_S_LAYER_DISPLAY) {
+            pVoConfig = (SAMPLE_VO_CONFIG_S *)pConfig;
+
+            for (i = 0; i < stSplitStr.u32StrNr; i++) {
+                if (!strcmp(stSplitStr.pStr[i], "VO_BLD_SINGLE_BUF")) {
+                    pVoConfig->stVoDev[i].u32Flags |= AX_VO_FLAG_BLD_SINGLE_BUF;
+                } else {
+                    pVoConfig->stVoDev[i].u32Flags &= ~(AX_VO_FLAG_BLD_SINGLE_BUF);
+                }
+            }
+        }
+        break;
 
     default:
         break;

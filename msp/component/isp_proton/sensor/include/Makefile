@@ -21,11 +21,7 @@ DEPS			:= $(OBJS:%.o=%.d)
 
 # build flags
 CFLAGS			:= -shared -fPIC
-ifeq ($(debug),yes)
-CFLAGS			+= -Werror -Wall -O0 -g
-else
-CFLAGS			+= -Werror -Wall -O2
-endif
+CFLAGS			+= -Wall -Werror -O2 -ggdb3
 
 # dependency
 

@@ -12,6 +12,7 @@
 #include "AXThread.hpp"
 #include "AXEvent.hpp"
 #include "istream.hpp"
+#include "AppLogApi.h"
 
 #define AX_DS_INVALID_HANDLE (-1)
 #define MAX_WRITE_CACHE_SIZE (1 * 1024 * 1024) // (4 * 1024 * 1024)  4MB caused THP?
@@ -202,6 +203,11 @@ typedef struct AXDSF_INIT_ATTR {
     AX_U16 uHeight;
 } AXDSF_INIT_ATTR_T;
 
+typedef struct AXDSF_FRAME_LOCATION {
+    AX_S32 nCurrFrameIndexWithinFile; /* 当前遍历帧索引 */
+    AX_U32 nTotalFrameCount;  /* 当前数据文件总帧数 */
+} AXDSF_FRAME_LOCATION_T;
+
 class CDSFIterator;
 class CDataStreamFile {
 public:
@@ -223,10 +229,13 @@ public:
     /* Interfaces for iterator frames */
     CDSFIterator frm_begin();
     CDSFIterator frm_end();
+    CDSFIterator frm_rbegin();
+    CDSFIterator frm_rend();
 
     AXDS_FRAME_HEADER_T* FindFrame(AX_S32 nFrmIndex);
     AXDS_FRAME_HEADER_T* FindFrameByOffset(AX_U32 nFrmOffset);
     AX_S32 FindFrmIndexByTime(AX_S32 nSeconds, AX_BOOL bOnlyIFrame = AX_FALSE);
+    AX_S32 FindFrmIndexByOffset(AX_U32 nFrmOffset);
 
 protected:
     AX_VOID SwapBuf();
@@ -280,9 +289,12 @@ protected:
     AXDS_FRAME_HEADER_T* value;
     AX_S32 nCurrFrameIndex;
     AX_S32 nFrameCount;
+    AX_BOOL m_bReverse {AX_FALSE};
     constexpr static AXDS_FRAME_HEADER_T* END_VALUE = nullptr;
     constexpr static AX_S32 BEGIN {0};
     constexpr static AX_S32 END {-1};
+    constexpr static AX_S32 RBEGIN {0x7FFFFFFF};
+    constexpr static AX_S32 REND {-2};
 
 public:
     CDSFIterator(CDataStreamFile* pDSFInstance, AX_S32 nIndex) : m_pDataFile {pDSFInstance} {
@@ -290,9 +302,19 @@ public:
             return;
         }
 
-        value = m_pDataFile->FindFrame(nIndex);
-        nCurrFrameIndex = nIndex;
-        nFrameCount = m_pDataFile->GetFileHeader().uFrameCount;
+        if (BEGIN == nIndex) {
+            m_bReverse = AX_FALSE;
+            value = m_pDataFile->FindFrame(nIndex);
+            nCurrFrameIndex = nIndex;
+            nFrameCount = m_pDataFile->GetFileHeader().uFrameCount;
+        } else if (RBEGIN == nIndex) {
+            m_bReverse = AX_TRUE;
+            nCurrFrameIndex = m_pDataFile->GetFileHeader().uFrameCount - 1;
+            value = m_pDataFile->FindFrame(nCurrFrameIndex);
+            nFrameCount = m_pDataFile->GetFileHeader().uFrameCount;
+        } else {
+            value = CDSFIterator::END_VALUE;
+        }
     }
 
     CDSFIterator(const CDSFIterator& it) {
@@ -300,6 +322,7 @@ public:
         nCurrFrameIndex = it.nCurrFrameIndex;
         nFrameCount = it.nFrameCount;
         m_pDataFile = it.m_pDataFile;
+        m_bReverse = it.m_bReverse;
     }
 
     CDSFIterator() {
@@ -307,6 +330,7 @@ public:
         nCurrFrameIndex = 0;
         nFrameCount = 0;
         m_pDataFile = nullptr;
+        m_bReverse = AX_FALSE;
     }
 
     // Assignment operator
@@ -315,6 +339,7 @@ public:
         nCurrFrameIndex = src.nCurrFrameIndex;
         nFrameCount = src.nFrameCount;
         m_pDataFile = src.m_pDataFile;
+        m_bReverse = src.m_bReverse;
 
         return *this;
     }
@@ -333,7 +358,12 @@ public:
             throw std::logic_error("Cannot increment an end iterator.");
         }
 
-        value = m_pDataFile->FindFrame(++nCurrFrameIndex);
+        if (!m_bReverse) {
+            value = m_pDataFile->FindFrame(++nCurrFrameIndex);
+        } else {
+            value = m_pDataFile->FindFrame(--nCurrFrameIndex);
+        }
+
         return *this;
     }
 
@@ -343,8 +373,22 @@ public:
             throw std::logic_error("Cannot increment an end iterator");
         }
         auto temp = *this;
-        value = m_pDataFile->FindFrame(++nCurrFrameIndex);
+
+        if (!m_bReverse) {
+            value = m_pDataFile->FindFrame(++nCurrFrameIndex);
+        } else {
+            value = m_pDataFile->FindFrame(--nCurrFrameIndex);
+        }
+
         return temp;
+    }
+
+    AXDSF_FRAME_LOCATION_T GetCurrState() {
+        AXDSF_FRAME_LOCATION_T tLocation;
+        tLocation.nCurrFrameIndexWithinFile = nCurrFrameIndex;
+        tLocation.nTotalFrameCount = nFrameCount;
+
+        return tLocation;
     }
 
     CDSFIterator Relocate(AX_S32 nNewFrmIndex) {

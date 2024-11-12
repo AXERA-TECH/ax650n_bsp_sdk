@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -47,15 +47,25 @@ static SAMPLE_VO_LAYER_CONFIG_S g_stLayerConf = {
         .enPartMode = AX_VO_PART_MODE_MULTI,
     },
     .enVoMode = VO_MODE_1MUX,
+    .u32FifoDepth = 3,
     .u64KeepChnPrevFrameBitmap0 = ~0x0UL,
     .u64KeepChnPrevFrameBitmap1 = ~0x0UL,
 };
 
 static SAMPLE_VO_CONFIG_S g_stVoConf = {
     .stVoLayer = {
-        {.bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},},
-        {.bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},},
-        {.bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},},
+        {
+             .bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},
+             .u32FifoDepth = 3,
+        },
+        {
+             .bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},
+             .u32FifoDepth = 3,
+        },
+        {
+             .bindVoDev = {SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX, SAMPLE_VO_DEV_MAX},
+             .u32FifoDepth = 3,
+        },
     },
 };
 

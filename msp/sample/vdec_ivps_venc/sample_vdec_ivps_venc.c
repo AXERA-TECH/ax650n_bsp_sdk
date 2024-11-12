@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -122,7 +122,12 @@ static AX_S32 _LinkInit(SAMPLE_VDEC_CMD_PARAM_T *pstCmd, AX_S32 GrpNum)
     for (i = 0; i < GrpNum; i++) {
         SrcMod.enModId = AX_ID_VDEC;
         SrcMod.s32GrpId = i + pstCmd->uStartGrpId;
-        SrcMod.s32ChnId = 0;
+        if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+            && pstCmd->s32VdecVirtChn) {
+            SrcMod.s32ChnId = pstCmd->s32VdecVirtChn;
+        } else {
+            SrcMod.s32ChnId = 0;
+        }
         DstMod.enModId = AX_ID_IVPS;
         DstMod.s32GrpId = i + pstCmd->uStartGrpId;
         DstMod.s32ChnId = 0;
@@ -176,7 +181,12 @@ static AX_S32 _LinkExit(SAMPLE_VDEC_CMD_PARAM_T *pstCmd, AX_S32 GrpNum)
 
         SrcMod.enModId = AX_ID_VDEC;
         SrcMod.s32GrpId = i + pstCmd->uStartGrpId;
-        SrcMod.s32ChnId = 0;
+        if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+            && pstCmd->s32VdecVirtChn) {
+            SrcMod.s32ChnId = pstCmd->s32VdecVirtChn;
+        } else {
+            SrcMod.s32ChnId = 0;
+        }
         DstMod.enModId = AX_ID_IVPS;
         DstMod.s32GrpId = i + pstCmd->uStartGrpId;
         DstMod.s32ChnId = 0;
@@ -227,7 +237,7 @@ AX_S32 SAMPLE_EXIT(AX_VOID)
                 s32Ret = sRet;
             }
         } else if (pstCmd->stVdecCmdParam.enFrameBufSrc == POOL_SOURCE_USER) {
-            sRet = VdecUserPoolExitFunc(GrpArgs[i].VdecGrp);
+            sRet = VdecUserPoolExitFunc(GrpArgs[i].VdecGrp, &pstCmd->stVdecCmdParam);
             if (AX_SUCCESS != sRet) {
                 SAMPLE_CRIT_LOG("VdecUserPoolExitFunc %d FAILED! VdGrp:%d ret:0x%x\n",
                                 i, GrpArgs[i].VdecGrp, sRet);

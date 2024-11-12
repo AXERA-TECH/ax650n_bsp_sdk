@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -106,6 +106,7 @@ static AX_VOID *SAMPLE_VO_CTRL_THREAD(AX_VOID *pData)
     CropInfo.tCropRect.nY = 100;
     CropInfo.tCropRect.nW = 600;
     CropInfo.tCropRect.nH = 800;
+    AX_VO_CHN_ATTR_T stChnAttr;
 
     u32LayerID = pstVoConf->stVoLayer[0].u32VoLayer;
     u32ChnID = 0;
@@ -123,6 +124,47 @@ static AX_VOID *SAMPLE_VO_CTRL_THREAD(AX_VOID *pData)
         case 'B':
             s32Ret = AX_VO_GetVBlankTime(0, &u64VBlankTime);
             SAMPLE_PRT("get vblank-time vo0 %s, u64VBlankTime:%lld\n", s32Ret ? "failed" : "success", u64VBlankTime);
+            break;
+        case 'c':
+        case 'C':
+            s32Ret = AX_VO_GetChnAttr(u32LayerID, u32ChnID, &stChnAttr);
+            if (s32Ret) {
+                SAMPLE_PRT("get layer%d-chn0 attr %s\n", u32LayerID, s32Ret ? "failed" : "success");
+                break;
+            }
+
+            SAMPLE_PRT("original-attr coordi:(%d,%d), reso:%dx%d, fifo-depth:%d, priority:%d, keep_prev:%d, inuse-output:%d\n",
+                       stChnAttr.stRect.u32X, stChnAttr.stRect.u32Y,
+                       stChnAttr.stRect.u32Width, stChnAttr.stRect.u32Height,
+                       stChnAttr.u32FifoDepth, stChnAttr.u32Priority,
+                       stChnAttr.bKeepPrevFr, stChnAttr.bInUseFrOutput);
+
+            if (key == 'c') {
+                stChnAttr.stRect.u32X += 10;
+                stChnAttr.stRect.u32Y += 10;
+            } else {
+                stChnAttr.stRect.u32Width -= 10;
+                stChnAttr.stRect.u32Height -= 10;
+                stChnAttr.bKeepPrevFr = !stChnAttr.bKeepPrevFr;
+            }
+
+            s32Ret = AX_VO_SetChnAttr(u32LayerID, u32ChnID, &stChnAttr);
+            if (s32Ret) {
+                SAMPLE_PRT("set layer%d-chn0 attr %s\n", u32LayerID, s32Ret ? "failed" : "success");
+                break;
+            }
+
+            s32Ret = AX_VO_GetChnAttr(u32LayerID, u32ChnID, &stChnAttr);
+            if (s32Ret) {
+                SAMPLE_PRT("get layer%d-chn0 attr %s\n", u32LayerID, s32Ret ? "failed" : "success");
+                break;
+            }
+
+            SAMPLE_PRT("new-attr coordi:(%d,%d), reso:%dx%d, fifo-depth:%d, priority:%d, keep_prev:%d, inuse-output:%d\n",
+                       stChnAttr.stRect.u32X, stChnAttr.stRect.u32Y,
+                       stChnAttr.stRect.u32Width, stChnAttr.stRect.u32Height,
+                       stChnAttr.u32FifoDepth, stChnAttr.u32Priority,
+                       stChnAttr.bKeepPrevFr, stChnAttr.bInUseFrOutput);
             break;
         case 'd':
         case 'D':
@@ -281,6 +323,25 @@ AX_VOID VoDeInit(SAMPLE_VO_CONFIG_S *pstVoConf)
     }
 
     AX_VO_Deinit();
+
+    SAMPLE_PRT("done\n");
+}
+
+AX_VOID VoReset(SAMPLE_VO_CONFIG_S *pstVoConf)
+{
+    AX_S32 i;
+    AX_S32 s32Ret = 0;
+    SAMPLE_VO_LAYER_CONFIG_S *pstVoLayerConf;
+
+    SAMPLE_PRT("start\n");
+
+    for (i = 0; i < pstVoConf->u32LayerNr; i++) {
+        pstVoLayerConf = &pstVoConf->stVoLayer[i];
+        s32Ret = AX_VO_ClearChnBuf(pstVoLayerConf->u32VoLayer, 0, AX_TRUE);
+        if (s32Ret)
+            SAMPLE_PRT("ERROR: layer:%d, chn:%d, AX_VO_ClearChnBuf failed. s32Ret:0x%x", pstVoLayerConf->u32VoLayer, 0, s32Ret);
+    }
+
 
     SAMPLE_PRT("done\n");
 }

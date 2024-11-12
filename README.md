@@ -2,7 +2,7 @@
 
 ## What is this?
 
-this is a ax650 linux bsp sdk form AX650_SDK_V1.45.0_P1. currently it is application layer open source.
+this is a ax650 linux bsp sdk form AX650_SDK_V1.45.0_P39. currently it is application layer open source.
 
 ## How to compile
 

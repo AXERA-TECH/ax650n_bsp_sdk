@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -214,6 +214,12 @@ void *VdecFrameFunc(void *arg)
     memset(&stVdecUserPic, 0x0, sizeof(SAMPLE_VDEC_USERPIC_T));
     memset(pstCtx, 0x0, sizeof(SAMPLE_VDEC_CONTEXT_T));
 
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        VdChn = pstCmd->s32VdecVirtChn;
+    } else {
+        VdChn = 0;
+    }
 
     sLoopDecNum = pstCmd->sLoopDecNum;
     /*GROUP VDEC ATTR*/
@@ -1025,9 +1031,17 @@ ERR_RET:
     return s32Ret;
 }
 
-AX_S32 VdecUserPoolExitFunc(AX_VDEC_GRP VdGrp)
+AX_S32 VdecUserPoolExitFunc(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd)
 {
     AX_S32 s32Ret = 0;
+    AX_VDEC_CHN VdChn = AX_INVALID_ID;
+
+    if ((pstCmd->enDecType == PT_JPEG || pstCmd->enDecType == PT_MJPEG)
+        && pstCmd->s32VdecVirtChn) {
+        VdChn = pstCmd->s32VdecVirtChn;
+    } else {
+        VdChn = 0;
+    }
 
     s32Ret = AX_VDEC_StopRecvStream(VdGrp);
     if (s32Ret) {
@@ -1035,7 +1049,7 @@ AX_S32 VdecUserPoolExitFunc(AX_VDEC_GRP VdGrp)
         goto ERR_RET;
     }
 
-    s32Ret = AX_VDEC_DetachPool(VdGrp, 0);
+    s32Ret = AX_VDEC_DetachPool(VdGrp, VdChn);
     if (s32Ret) {
         SAMPLE_CRIT_LOG("AX_VDEC_DetachPool fail! Error Code:0x%X\n", s32Ret);
         goto ERR_RET;

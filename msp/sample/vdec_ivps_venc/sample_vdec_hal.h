@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -94,6 +94,6 @@ void *VdecFrameFunc(void *arg);
 void *_VdecRecvThread(void *arg);
 AX_S32 VdecPollingExe(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd);
 AX_S32 VdecExitFunc(AX_VDEC_GRP VdGrp);
-AX_S32 VdecUserPoolExitFunc(AX_VDEC_GRP VdGrp);
+AX_S32 VdecUserPoolExitFunc(AX_VDEC_GRP VdGrp, SAMPLE_VDEC_CMD_PARAM_T *pstCmd);
 
 #endif /* _SAMPLE_IVPS_HAL_H_ */

@@ -22,6 +22,7 @@ typedef struct _SAMPLE_INPUT_PARAM {
 
 AX_S32 VoInit(SAMPLE_VO_CONFIG_S *pstVoConf);
 AX_VOID VoDeInit(SAMPLE_VO_CONFIG_S *pstVoConf);
+AX_VOID VoReset(SAMPLE_VO_CONFIG_S *pstVoConf);
 void *VoGetFrameThread(void *arg);
 
 AX_S32 ParseVoPubAttr(AX_CHAR *pStr, SAMPLE_VO_CONFIG_S *pstVoConf);

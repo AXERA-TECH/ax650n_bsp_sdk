@@ -61,11 +61,7 @@ STATIC_TARGET	:= $(LINKNAME)
 
 # build flags
 CFLAGS			:= $(STATIC_FLAG)
-ifeq ($(debug),yes)
-CFLAGS			+= -Werror -Wall -O0 -g
-else
-CFLAGS			+= -Werror -Wall -O2
-endif
+CFLAGS			+= -Wall -Werror -O2 -ggdb3
 CFLAGS			+= -Wno-unused-variable
 CFLAGS			+= -DLINUX
 #CFLAGS			+= -DSENSOR_LOG_USE_PRINTF

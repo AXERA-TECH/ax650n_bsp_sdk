@@ -1,7 +1,8 @@
-SUBDIRS = cmm pool rtc efuse ivps vo dsp vin isp_3a vin_vo vin_ivps_venc_rtsp
+SUBDIRS = cmm pool rtc efuse ivps vo dsp vin isp_3a vin_vo vin_ivps_venc_rtsp vin_ivps_engine_venc_rtsp
 SUBDIRS += vdec vdec_ivps_vo vin_ivps_vo_venc vdec_ivps_venc
 SUBDIRS += cipher ive dmaxor dmadim sysmap
 SUBDIRS += pcie ives adc venc audio uvc npu efuse_hash avs
+SUBDIRS += video_convert
 
 ################################################################################
 #	prepare param
@@ -12,9 +13,7 @@ HOME_PATH		:= $(abspath $(LOCAL_PATH)/../..)
 include $(HOME_PATH)/build/color.mk
 include $(HOME_PATH)/build/config.mak
 
-ifneq ($(strip $(SUPPORT_OPTEE)),false)
-SUBDIRS += optee_hello_world  optee_sec_storage optee_aes optee_acipher
-endif
+
 PRJ_OUT_HOME		:= $(HOME_PATH)/build/out/$(PROJECT)
 OBJ_OUT_PATH		:= $(PRJ_OUT_HOME)/objs
 MSP_OUT_PATH		:= $(HOME_PATH)/msp/out

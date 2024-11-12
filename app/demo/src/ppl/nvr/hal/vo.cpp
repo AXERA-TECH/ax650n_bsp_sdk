@@ -15,6 +15,7 @@
 #include "ElapsedTimer.hpp"
 #include "ax_ivps_api.h"
 #include "ax_sys_api.h"
+#include "AXNVRFrameworkDefine.h"
 
 #define VO "VO"
 #define IS_GRAPHIC_LAYER_ENABLED(layer) ((GRAPHIC_LAYER)-1 != layer)
@@ -174,7 +175,7 @@ AX_BOOL CVO::Init(VO_ATTR_T& stAttr) {
 
         stAttr = m_stAttr;
         if (!stAttr.bLinkVo2Disp) {
-            m_vecRegionInfo.resize(stAttr.stChnInfo.nCount + (0 == m_stAttr.voLayer ? 1 /* PIP channel */ : 0));
+            m_vecRegionInfo.resize(NVR_PIP_CHN_NUM + (0 == m_stAttr.voLayer ? 1 /* PIP channel */ : 0));
         }
 
         m_bInited = AX_TRUE;
@@ -407,12 +408,10 @@ AX_BOOL CVO::UpdateChnInfo(CONST VO_CHN_INFO_T& stChnInfo) {
         m_stAttr.stChnInfo = stChnInfo;
         if (!m_stAttr.bLinkVo2Disp) {
             std::unique_lock<std::mutex> lck(m_mtxRegions);
-            m_vecRegionInfo.resize(m_stAttr.stChnInfo.nCount + (0 == m_stAttr.voLayer ? 1 /* PIP channel */ : 0));
+            m_vecRegionInfo.resize(NVR_PIP_CHN_NUM + (0 == m_stAttr.voLayer ? 1 /* PIP channel */ : 0));
         }
         return AX_TRUE;
     }
-
-    // START_ELAPSED_TIME;
 
     /* disable all current chns */
     if (m_stAttr.stChnInfo.nCount > 0) {
@@ -428,7 +427,7 @@ AX_BOOL CVO::UpdateChnInfo(CONST VO_CHN_INFO_T& stChnInfo) {
     m_stAttr.stChnInfo = stChnInfo;
     if (!m_stAttr.bLinkVo2Disp) {
         std::unique_lock<std::mutex> lck(m_mtxRegions);
-        m_vecRegionInfo.resize(m_stAttr.stChnInfo.nCount + (0 == m_stAttr.voLayer ? 1 /* PIP channel */ : 0));
+        m_vecRegionInfo.resize(NVR_PIP_CHN_NUM + (0 == m_stAttr.voLayer ? 1 /* PIP channel */ : 0));
     }
 
     // PRINT_ELAPSED_USEC("switch video layout %02d", m_stAttr.stChnInfo.nCount);
@@ -514,7 +513,6 @@ AX_BOOL CVO::SendFrame(VO_CHN voChn, CAXFrame& axFrame, AX_S32 nTimeOut /* = INF
         u64VOSendStreamCount = 0;
     }
 #endif
-
     LOG_M_D(VO, "%s: layer %d chn %d frame %lld pts %lld phy 0x%llx blkId 0x%x ---, ret = 0x%x", __func__, m_stAttr.voLayer, voChn,
             axFrame.stFrame.stVFrame.stVFrame.u64SeqNum, axFrame.stFrame.stVFrame.stVFrame.u64PTS,
             axFrame.stFrame.stVFrame.stVFrame.u64PhyAddr[0], axFrame.stFrame.stVFrame.stVFrame.u32BlkId[0], ret);
@@ -639,6 +637,7 @@ AX_BOOL CVO::HideChn(VO_CHN voChn) {
         m_stAttr.stChnInfo.arrHidden[voChn] = AX_TRUE;
         if (!m_stAttr.bLinkVo2Disp && voChn < m_vecRegionInfo.size()) {
             m_vecRegionInfo[voChn].bValid = AX_FALSE;
+            m_vecRegionInfo[voChn].nChn = -1;
         }
     } while (0);
 
@@ -848,14 +847,7 @@ AX_VOID CVO::LayerFrameGetThread(AX_VOID* pArg) {
             LOG_MM_D(VO, "AX_VO_GetLayerFrame(Layer: %d, Seq: %lld)", layer, stVFrame.u64SeqNum);
         }
 
-        // AX_U64 tick = GetTickCount();
         PaintRegions(&stVFrame);
-        // elapsed += (GetTickCount() - tick);
-        // if (++cnt == 1000) {
-        //  LOG_M_C(VO, "average paint elapsed = %f us", elapsed * 1.0 / cnt);
-        //  elapsed = 0;
-        //  cnt = 0;
-        // }
 
         ret = AX_VO_SendFrame2Disp(layer, &stVFrame, 0);
         if (0 != ret) {
@@ -958,12 +950,12 @@ AX_BOOL CVO::CoordinateConvert(VO_CHN voChn, const DETECT_RESULT_T& tResult) {
         return AX_FALSE;
     }
 
-    AX_U32 nRegionChnIndex = voChn;
+    AX_U32 nRegionChn = voChn;
     if (voChn == m_stAttr.pipChn) {
-        nRegionChnIndex = m_stAttr.stChnInfo.nCount;
+        nRegionChn = NVR_PIP_CHN_NUM;
     }
 
-    m_vecRegionInfo[nRegionChnIndex].Clear();
+    m_vecRegionInfo[nRegionChn].Clear();
 
     AX_U32 nImageW = 0;
     AX_U32 nImageH = 0;
@@ -995,8 +987,9 @@ AX_BOOL CVO::CoordinateConvert(VO_CHN voChn, const DETECT_RESULT_T& tResult) {
         tRect.nH = (AX_U32)(item.tBox.fH * fYRatio);
 
         if (voChn == m_stAttr.pipChn) {
-            m_vecRegionInfo[nRegionChnIndex].vecRects.emplace_back(tRect.nX, tRect.nY, tRect.nW, tRect.nH);
-            m_vecRegionInfo[nRegionChnIndex].bValid = AX_TRUE;
+            m_vecRegionInfo[nRegionChn].vecRects.emplace_back(tRect.nX, tRect.nY, tRect.nW, tRect.nH);
+            m_vecRegionInfo[nRegionChn].bValid = AX_TRUE;
+            m_vecRegionInfo[nRegionChn].nChn = voChn;
         } else {
             AX_VO_RECT_T stChnCropRect = m_stAttr.stChnInfo.arrCropRect[voChn];
             if (stChnCropRect.u32Width > 0 && stChnCropRect.u32Height > 0) {
@@ -1081,14 +1074,15 @@ AX_BOOL CVO::CoordinateConvert(VO_CHN voChn, const DETECT_RESULT_T& tResult) {
             vector<VO_LINE_ATTR_T> vecConvertedLines;
             if (GenRegionsForPipRect(tRect, vecConvertedRect, vecConvertedLines)) {
                 for (auto& m : vecConvertedRect) {
-                    m_vecRegionInfo[nRegionChnIndex].vecRects.emplace_back(m);
+                    m_vecRegionInfo[nRegionChn].vecRects.emplace_back(m);
                 }
 
                 for (auto& m : vecConvertedLines) {
-                    m_vecRegionInfo[nRegionChnIndex].vecLines.emplace_back(m);
+                    m_vecRegionInfo[nRegionChn].vecLines.emplace_back(m);
                 }
 
-                m_vecRegionInfo[nRegionChnIndex].bValid = AX_TRUE;
+                m_vecRegionInfo[nRegionChn].bValid = AX_TRUE;
+                m_vecRegionInfo[nRegionChn].nChn = voChn;
             }
         }
     }
@@ -1245,10 +1239,10 @@ AX_BOOL CVO::PointInRect(VO_POINT_ATTR_T& tPoint, VO_RECT_ATTR_T& tRect) {
 AX_VOID CVO::ClearRegions(VO_CHN voChn) {
     std::unique_lock<std::mutex> lck(m_mtxRegions);
 
-    AX_U32 nRegionChnIndex = voChn;
+    AX_U32 nRegionChn = voChn;
     if (voChn == m_stAttr.pipChn) {
-        nRegionChnIndex = m_stAttr.stChnInfo.nCount;
+        nRegionChn = NVR_PIP_CHN_NUM;
     }
 
-    m_vecRegionInfo[nRegionChnIndex].Clear();
+    m_vecRegionInfo[nRegionChn].Clear();
 }

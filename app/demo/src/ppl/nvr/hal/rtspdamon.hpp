@@ -17,12 +17,14 @@
 
 typedef struct RTSP_DAMON_ATTR_S {
     std::string strUrl;         /* rtsp url, rtsp://192.168.2.10:8554/stream1 */
+    AX_S32 nCookie;
     AX_S32 nKeepAliveInterval;  /* heart beat interval time in seconds */
     AX_S32 nReconnectThreshold; /* if the count of heart beat absent from server is >= nReconnThreshold, trigger to reconnect */
     std::function<AX_BOOL(AX_VOID)> reconnect;   /* reconnect to rtsp server */
     std::function<AX_VOID(AX_S32)> statusReport; /* 0: disconnect, 1: reconnect, 2: connected */
 
     RTSP_DAMON_ATTR_S(AX_VOID) {
+        nCookie = -1;
         nKeepAliveInterval = 10;
         nReconnectThreshold = 3;
         reconnect = nullptr;

@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -634,7 +634,7 @@ static int SAMPLE_CIPHER_AES_EncryptPhy_PerformanceTest()
         printf("PhySrc Alloc memory failed!\n");
         return AX_ERR_CIPHER_NOMEM;
     }
-    ret1 = AX_SYS_MemAlloc(&phyDst, (AX_VOID **)&dst, 512, 64, (AX_S8 *)"ce_aes_sample");
+    ret1 = AX_SYS_MemAlloc(&phyDst, (AX_VOID **)&dst, 1024 * 1024 * INPUT_DATA_LEN, 64, (AX_S8 *)"ce_aes_sample");
     if (ret1 < 0) {
         AX_SYS_MemFree((AX_U64)phySrc, (AX_VOID *)src);
         printf("PhyDst Alloc memory failed!\n");

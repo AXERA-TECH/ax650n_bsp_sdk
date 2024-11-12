@@ -156,7 +156,8 @@ AX_BOOL CVDEC::Init(CONST VDEC_ATTR_T& stAttr) {
             In order to decrease VB num, config VDEC to decode order (no reorder)
             Make sure video stream has no B frames
         */
-        stGrpParam.stVdecVideoParam.enOutputOrder = AX_VDEC_OUTPUT_ORDER_DEC;
+        stGrpParam.stVdecVideoParam.enVdecMode = stAttr.enIPBMode;
+        stGrpParam.stVdecVideoParam.enOutputOrder = (VIDEO_DEC_MODE_I == stAttr.enIPBMode) ? AX_VDEC_OUTPUT_ORDER_DISP : AX_VDEC_OUTPUT_ORDER_DEC;
         stGrpParam.f32SrcFrmRate = stAttr.nFps;
         ret = AX_VDEC_SetGrpParam(m_vdGrp, &stGrpParam);
         if (0 != ret) {
@@ -385,7 +386,7 @@ AX_BOOL CVDEC::ResetGrp(AX_S32 nTryCount /* = NVR_VDEC_RESET_GRP_TRY_COUNT*/) {
 }
 
 AX_BOOL CVDEC::SendStream(CONST AX_U8* pStream, AX_U32 nLen, AX_U64 u64PTS, AX_U64 nPrivData /* = 0 */,
-                          AX_BOOL bSkipDisplay /* = AX_FALSE */, AX_S32 nTimeOut /* = INFINITE */) {
+                          AX_BOOL bSkipDisplay /* = AX_FALSE */, AX_U64 u64UserData, AX_S32 nTimeOut /* = INFINITE */) {
     if (!m_bStarted) {
         // LOG_M_E(TAG, "%s: vdGrp %d is stopped", __func__, m_vdGrp);
         return AX_FALSE;
@@ -397,6 +398,7 @@ AX_BOOL CVDEC::SendStream(CONST AX_U8* pStream, AX_U32 nLen, AX_U64 u64PTS, AX_U
     stStream.pu8Addr = const_cast<AX_U8*>(pStream);
     stStream.u32StreamPackLen = nLen;
     stStream.u64PrivateData = nPrivData;
+    stStream.u64UserData = u64UserData;
 
     if (AX_VDEC_INPUT_MODE_FRAME == m_stAttr.enInputMode) {
         stStream.bEndOfFrame = AX_TRUE;
@@ -410,7 +412,6 @@ AX_BOOL CVDEC::SendStream(CONST AX_U8* pStream, AX_U32 nLen, AX_U64 u64PTS, AX_U
     }
 
     if (AX_VDEC_DISPLAY_MODE_PLAYBACK == m_stAttr.enDecodeMode) {
-        AX_S32 ret;
         AX_VDEC_GRP_STATUS_T status;
         while (m_bStarted) {
             if (0 != AX_VDEC_QueryStatus(m_vdGrp, &status)) {
@@ -429,9 +430,9 @@ AX_BOOL CVDEC::SendStream(CONST AX_U8* pStream, AX_U32 nLen, AX_U64 u64PTS, AX_U
         }
     }
 
-    // LOG_M_D(TAG, "AX_VDEC_SendStream(vdGrp %d, len %d, pts %lld, timeout %d) +++", m_vdGrp, nLen, u64PTS, nTimeOut);
+    LOG_MM_D(TAG, "AX_VDEC_SendStream(vdGrp %d, len %d, pts %lld, timeout %d) +++", m_vdGrp, nLen, u64PTS, nTimeOut);
     m_nLastSendCode = AX_VDEC_SendStream(m_vdGrp, &stStream, nTimeOut);
-    // LOG_M_D(TAG, "AX_VDEC_SendStream(vdGrp %d, len %d, pts %lld, timeout %d) ---", m_vdGrp, nLen, u64PTS, nTimeOut);
+    LOG_MM_D(TAG, "AX_VDEC_SendStream(vdGrp %d, len %d, pts %lld, timeout %d) ---", m_vdGrp, nLen, u64PTS, nTimeOut);
     if (0 != m_nLastSendCode) {
         if ((AX_ERR_VDEC_BUF_FULL == m_nLastSendCode) || (AX_ERR_VDEC_QUEUE_FULL == m_nLastSendCode)) {
             LOG_M_W(TAG, "vdGrp %d input buffer is full, abandon %d bytes, pts %lld", m_vdGrp, nLen, u64PTS);
@@ -474,7 +475,7 @@ AX_BOOL CVDEC::OnRecvStreamData(CONST STREAM_FRAME_T& stFrame) {
 #endif
     if (PT_H264 == stFrame.enPayload || PT_H265 == stFrame.enPayload) {
         if (!SendStream(stFrame.frame.stVideo.pData, stFrame.frame.stVideo.nLen, stFrame.frame.stVideo.nPTS, stFrame.nPrivData,
-                        stFrame.frame.stVideo.bSkipDisplay, m_stAttr.nTimeOut)) {
+                        stFrame.frame.stVideo.bSkipDisplay, stFrame.frame.stVideo.u64UserData, m_stAttr.nTimeOut)) {
             return AX_FALSE;
         }
     }
@@ -646,15 +647,12 @@ AX_BOOL CVDEC::SetChnAttr(AX_S32 vdChn, CONST AX_VDEC_CHN_ATTR_T& stChnAttr) {
         return AX_FALSE;
     }
 
-    if (m_bStarted) {
-        LOG_M_E(TAG, "vdGrp %d is already started, pls set before start", m_vdGrp);
-        return AX_FALSE;
-    }
-
     AX_S32 ret = AX_VDEC_SetChnAttr(m_vdGrp, vdChn, &stChnAttr);
     if (0 != ret) {
         LOG_M_E(TAG, "AX_VDEC_SetChnAttr(vdGrp %d, vdChn %d) fail, ret = 0x%x", m_vdGrp, vdChn, ret);
         return AX_FALSE;
+    } else {
+        LOG_M_I(TAG, "AX_VDEC_SetChnAttr(vdGrp %d, vdChn %d, %dx%d) OK", m_vdGrp, vdChn, stChnAttr.u32PicWidth, stChnAttr.u32PicHeight);
     }
 
     m_stAttr.stChnAttr[vdChn].stAttr = stChnAttr;
@@ -756,7 +754,7 @@ AX_VOID CDecodeTask::DecodingThread(AX_VOID* /* pArg */) {
                     } else if (AX_ERR_VDEC_STRM_ERROR == ret) {
                         LOG_M_W(TAG, "AX_VDEC_GetChnFrame(vdGrp %d, vdChn %d): stream is undecodeable", vdGrp, vdChn);
                     } else if (AX_ERR_VDEC_UNEXIST == ret) {
-                        LOG_MM_W(TAG, "vdGrp %d vdChn %d maybe under reseting", vdGrp, vdChn);
+                        LOG_MM_D(TAG, "vdGrp %d vdChn %d maybe under reseting", vdGrp, vdChn);
                     } else {
                         LOG_M_E(TAG, "AX_VDEC_GetChnFrame(vdGrp %d, vdChn %d, timeout %d) fail, ret = 0x%x", vdGrp, vdChn, TIMEOUT, ret);
                     }

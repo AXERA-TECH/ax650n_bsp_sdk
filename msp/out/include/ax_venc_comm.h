@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -52,11 +52,18 @@ extern "C" {
 #define MAX_VENC_USER_DATA_SIZE (2048)
 #define MAX_JENC_USER_DATA_SIZE (4096)
 
-/* define for AX_VENC_ATTR_T::flag */
-#define VENC_CHN_ENABLE_MULTICORE (0x1)
-
 typedef AX_S32 VENC_CHN;
 typedef AX_S32 VENC_GRP;
+
+/* define for AX_VENC_ATTR_T::flag */
+typedef enum
+{
+    AX_VENC_FLAGS_NONE = 0,
+    AX_VENC_CHN_ENABLE_MULTICORE = (1 << 0),
+    AX_VENC_STREAM_CACHED = (1 << 1),
+    AX_VENC_HEADER_ATTACH_TO_PB = (1 << 2),
+    AX_VENC_FLAGS_BUTT
+} AX_VENC_CHN_FLAGS_E;
 
 typedef enum
 {
@@ -890,7 +897,6 @@ typedef struct axVENC_SLICE_SPLIT_T
 #define AX_ERR_VENC_UNEXIST AX_DEF_ERR(AX_ID_VENC, AX_ID_VENC_COMMON, AX_ERR_UNEXIST)
 
 #define AX_ERR_VENC_NOT_PERMIT AX_DEF_ERR(AX_ID_VENC, AX_ID_VENC_COMMON, AX_ERR_NOT_PERM)
-#define AX_ERR_VENC_UNKNOWN    AX_DEF_ERR(AX_ID_VENC, AX_ID_VENC_COMMON, AX_ERR_UNKNOWN)
 #define AX_ERR_VENC_TIMEOUT    AX_DEF_ERR(AX_ID_VENC, AX_ID_VENC_COMMON, AX_ERR_TIMED_OUT)
 #define AX_ERR_VENC_FLOW_END   AX_DEF_ERR(AX_ID_VENC, AX_ID_VENC_COMMON, AX_ERR_FLOW_END)
 

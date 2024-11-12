@@ -36,18 +36,21 @@ AX_BOOL CRtspStream::Init(CONST STREAM_ATTR_T &stAttr) {
     try {
         m_scheduler = BasicTaskScheduler::createNew();
         m_env = BasicUsageEnvironment::createNew(*m_scheduler);
-        m_client = CAXRTSPClient::createNew(*m_env, stAttr.strURL.c_str(), cb, stAttr.nMaxBufSize, stAttr.nDebugLevel, "RTSPClient", 0);
+        m_client = CAXRTSPClient::createNew(*m_env, stAttr.strURL.c_str(), cb, stAttr.nMaxBufSize, stAttr.nDebugLevel, "RTSPClient", 0,
+                                            stAttr.nCookie);
         m_client->scs.streamTransportMode = (RTP_OVER_TCP == stAttr.enTransportMode) ? 1 : 0; /* 0: UDP 1: TCP */
         m_client->scs.keepAliveInterval = stAttr.nKeepAliveInterval;
         m_client->Start();
 
+        char szName[32];
+        sprintf(szName, "rtspEvent%d", stAttr.nCookie);
         if (!m_EventLoopThread.Start(
                 [this](AX_VOID *) -> AX_VOID {
                     m_cExitThread = 0;
                     m_env->taskScheduler().doEventLoop(&m_cExitThread);
                 },
-                this, "RtspEvent")) {
-            LOG_M_E(TAG, "%s: start %s event loop fail", __func__, stAttr.strURL.c_str());
+                this, szName)) {
+            LOG_MM_E(TAG, "[%d] start %s event loop fail", stAttr.nCookie, stAttr.strURL.c_str());
 
             /* client will be deleted by continueAfterDESCRIBE() -> shutdownStream() */
             m_client->Stop();
@@ -68,6 +71,7 @@ AX_BOOL CRtspStream::Init(CONST STREAM_ATTR_T &stAttr) {
         if (!m_damon) {
             RTSP_DAMON_ATTR_T stDamon;
             stDamon.strUrl = stAttr.strURL;
+            stDamon.nCookie = stAttr.nCookie;
             stDamon.nKeepAliveInterval = stAttr.nKeepAliveInterval + 1; /* margin to damon wait_for to avoid missing condition */
             stDamon.nReconnectThreshold = stAttr.nReconnectThreshold;
             stDamon.reconnect = std::bind(&CRtspStream::ReConnect, this);
@@ -77,7 +81,7 @@ AX_BOOL CRtspStream::Init(CONST STREAM_ATTR_T &stAttr) {
 
         /* wait SDP is received to parse stream info in 5 second */
         if (!m_InitEvent.WaitEvent(10000)) {
-            LOG_M_E(TAG, "recv sdp from %s timeout", stAttr.strURL.c_str());
+            LOG_MM_E(TAG, "[%d] recv sdp from %s timeout +++", stAttr.nCookie, stAttr.strURL.c_str());
             m_EventLoopThread.Stop();
             m_cExitThread = 1;
             m_EventLoopThread.Join();
@@ -96,11 +100,12 @@ AX_BOOL CRtspStream::Init(CONST STREAM_ATTR_T &stAttr) {
                 m_scheduler = nullptr;
             }
 
+            LOG_MM_E(TAG, "[%d] recv sdp from %s timeout ---", stAttr.nCookie, stAttr.strURL.c_str());
             return AX_FALSE;
         }
 
     } catch (std::bad_alloc &e) {
-        LOG_M_E(TAG, "%s: setup %s fail", __func__, stAttr.strURL.c_str());
+        LOG_MM_E(TAG, "[%d] setup %s fail", stAttr.nCookie, stAttr.strURL.c_str());
         DeInit();
         return AX_FALSE;
     }
@@ -145,7 +150,7 @@ AX_BOOL CRtspStream::Start(AX_VOID) {
     m_PlayEvent.SetEvent();
 
     if (!m_client->CheckPlayed(10000)) {
-        LOG_M_E(TAG, "%s: %s play fail", __func__, m_stAttr.strURL.c_str());
+        LOG_MM_E(TAG, "[%d - %s]: play fail", m_stAttr.nCookie, m_stAttr.strURL.c_str());
 
         Stop();
         return AX_FALSE;
@@ -212,11 +217,12 @@ void CRtspStream::OnRecvFrame(const void *session, const unsigned char *pFrame, 
 
 void CRtspStream::OnTracksInfo(const TRACKS_INFO_T &tracks) {
     if (0 == tracks.tracks.size()) {
-        LOG_M_E(TAG, "%s: no tracks", m_stInfo.strURL.c_str());
+        LOG_MM_E(TAG, "[%d - %s]: no tracks", m_stAttr.nCookie, m_stInfo.strURL.c_str());
         return;
     }
 
     m_stInfo.tracks.clear();
+    m_stInfo.nCookie = m_stAttr.nCookie;
 
     for (auto &&kv : tracks.tracks) {
         switch (kv.second.enPayload) {
@@ -241,8 +247,9 @@ void CRtspStream::OnTracksInfo(const TRACKS_INFO_T &tracks) {
                 m_stInfo.tracks[kv.first] = track;
                 m_stInfo.stVideo = track.info.stVideo;
 
-                LOG_M_N(TAG, "%s: %s payload %d, profile %d level %d, num_ref_frames %, %dx%d %dfps", tracks.url, kv.second.control,
-                        kv.second.rtpPayload, sps.profile_idc, sps.level_idc, sps.num_ref_frames, sps.width, sps.height, sps.fps);
+                LOG_MM_N(TAG, "[%d - %s]: %s payload %d, profile %d level %d, num_ref_frames %, %dx%d %dfps", m_stAttr.nCookie, tracks.url,
+                         kv.second.control, kv.second.rtpPayload, sps.profile_idc, sps.level_idc, sps.num_ref_frames, sps.width, sps.height,
+                         sps.fps);
             } break;
 
             case PT_G711A:
@@ -252,7 +259,7 @@ void CRtspStream::OnTracksInfo(const TRACKS_INFO_T &tracks) {
             } break;
 
             default:
-                LOG_M_N(TAG, "%s: %s payload %d", tracks.url, kv.second.control, kv.second.rtpPayload);
+                LOG_MM_N(TAG, "[%d - %s]: %s payload %d", m_stAttr.nCookie, tracks.url, kv.second.control, kv.second.rtpPayload);
                 break;
         }
     }
@@ -279,9 +286,9 @@ void CRtspStream::OnCheckAlive(int resultCode, const char *resultString) {
         }
     } else {
         if (resultString) {
-            LOG_M_E(TAG, "%s: resultCode = %d, %s", __func__, resultCode, resultString);
+            LOG_MM_E(TAG, "[%d] resultCode = %d, %s", m_stAttr.nCookie, resultCode, resultString);
         } else {
-            LOG_M_E(TAG, "%s: resultCode = %d", __func__, resultCode);
+            LOG_MM_E(TAG, "[%d] resultCode = %d", m_stAttr.nCookie, resultCode);
         }
     }
 }

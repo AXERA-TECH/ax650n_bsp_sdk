@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -51,6 +51,8 @@ typedef struct {
 #define AX_ERR_PTS_NOTREADY         AX_DEF_ERR(AX_ID_SYS, 0x02, AX_ERR_SYS_NOTREADY)   //0x800B0210
 #define AX_ERR_PTS_NOT_PERM         AX_DEF_ERR(AX_ID_SYS, 0x02, AX_ERR_NOT_PERM)       //0x800B0215
 #define AX_ERR_PTS_UNKNOWN          AX_DEF_ERR(AX_ID_SYS, 0x02, AX_ERR_UNKNOWN)        //0x800B0229
+#define AX_ERR_PTS_COPY_TO_USER     AX_DEF_ERR(AX_ID_SYS, 0x02, 0x82)                  //0x800B0282
+#define AX_ERR_PTS_COPY_FROM_USER   AX_DEF_ERR(AX_ID_SYS, 0x02, 0x83)                  //0x800B0283
 
 #define AX_ERR_LINK_ILLEGAL_PARAM   AX_DEF_ERR(AX_ID_SYS, 0x03, AX_ERR_ILLEGAL_PARAM)  //0x800B030A
 #define AX_ERR_LINK_NULL_PTR        AX_DEF_ERR(AX_ID_SYS, 0x03, AX_ERR_NULL_PTR)       //0x800B030B
@@ -61,6 +63,8 @@ typedef struct {
 #define AX_ERR_LINK_UNKNOWN         AX_DEF_ERR(AX_ID_SYS, 0x03, AX_ERR_UNKNOWN)        //0x800B0329
 #define AX_ERR_LINK_TABLE_FULL      AX_DEF_ERR(AX_ID_SYS, 0x03, 0x80)                  //0x800B0380
 #define AX_ERR_LINK_TABLE_EMPTY     AX_DEF_ERR(AX_ID_SYS, 0x03, 0x81)                  //0x800B0381
+#define AX_ERR_LINK_COPY_TO_USER    AX_DEF_ERR(AX_ID_SYS, 0x03, 0x82)                  //0x800B0382
+#define AX_ERR_LINK_COPY_FROM_USER  AX_DEF_ERR(AX_ID_SYS, 0x03, 0x83)                  //0x800B0383
 
 
 

@@ -28,6 +28,7 @@ The input parameters are described as follows:
         --mosaic       (optional) : draw mosaic API test
         --cover        (optional) : draw line/polygon API test
         --pool_type    (optional) : select pool type (0(default): common pool; 1: private pool; 2: user pool)
+        --cpudraw      (optional) : cpu draw test
         --grp_id       (optional) : set group id (0(default): [0, 256)
         -a             (optional) : all the sync API test
 

@@ -1,10 +1,10 @@
 /**************************************************************************************************
  *
- * Copyright (c) 2019-2023 Axera Semiconductor (Ningbo) Co., Ltd. All Rights Reserved.
+ * Copyright (c) 2019-2023 Axera Semiconductor (Shanghai) Co., Ltd. All Rights Reserved.
  *
- * This source file is the property of Axera Semiconductor (Ningbo) Co., Ltd. and
+ * This source file is the property of Axera Semiconductor (Shanghai) Co., Ltd. and
  * may not be copied or distributed in any isomorphic form without the prior
- * written consent of Axera Semiconductor (Ningbo) Co., Ltd.
+ * written consent of Axera Semiconductor (Shanghai) Co., Ltd.
  *
  **************************************************************************************************/
 
@@ -20,7 +20,7 @@
 #define AUDIO_CAP_DEV_META_SIZE         (8 * 1024)
 #define AUDIO_CAP_DEV_DEFAULT_BLK_SIZE  (8 * 1024)
 #define AUDIO_CAP_DEV_DEFAULT_BLK_CNT   (64)
-#define AUDIO_CAP_DEV_DEFAULT_DEPTH     (32)
+#define AUDIO_CAP_DEV_DEFAULT_DEPTH     (30)
 
 typedef struct audio_CAP_FRAME_T {
     AX_U32 nChnCnt;
