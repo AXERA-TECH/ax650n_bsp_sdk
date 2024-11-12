@@ -13,9 +13,7 @@ HOME_PATH		:= $(abspath $(LOCAL_PATH)/../..)
 include $(HOME_PATH)/build/color.mk
 include $(HOME_PATH)/build/config.mak
 
-ifneq ($(strip $(SUPPORT_OPTEE)),false)
-SUBDIRS += optee_hello_world  optee_sec_storage optee_aes optee_acipher
-endif
+
 PRJ_OUT_HOME		:= $(HOME_PATH)/build/out/$(PROJECT)
 OBJ_OUT_PATH		:= $(PRJ_OUT_HOME)/objs
 MSP_OUT_PATH		:= $(HOME_PATH)/msp/out
